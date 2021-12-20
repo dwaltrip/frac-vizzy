@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
+import { drawMandelbrot } from './lib/mandelbrot';
+
 function Canvas({ onmount, ...props }) {
   const canvasRef = useRef(null);
 
@@ -17,13 +19,14 @@ function Canvas({ onmount, ...props }) {
 
 function MandelbrotPlot() {
   return (
-    <div>
+    <div className='mandelbrot-plot-container'>
       <Canvas
-        height="400"
-        width="400"
+        className='mandelbrot-canvas'
+        height='600'
+        width='600'
         onmount={({ canvas, ctx })=> {
-          ctx.fillStyle = 'green';
-          ctx.fillRect(10, 10, 100, 100);
+          console.log('--- plotting.... ---')
+          drawMandelbrot(canvas);
         }}
       />
     </div>
