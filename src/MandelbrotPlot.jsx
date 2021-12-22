@@ -17,16 +17,20 @@ function Canvas({ onmount, ...props }) {
   );
 }
 
-function MandelbrotPlot() {
+// TODO: my old code doesn't have the thick horizontal line?
+// where did that artifact come from??
+// UPDATE: it does... need to check old commits to find out when
+// it was introduced.
+function MandelbrotPlot({ xRange, yRange }) {
   return (
     <div className='mandelbrot-plot-container'>
       <Canvas
         className='mandelbrot-canvas'
         height='600'
-        width='600'
+        width='800'
         onmount={({ canvas, ctx })=> {
           console.log('--- plotting.... ---')
-          drawMandelbrot(canvas);
+          drawMandelbrot(canvas, xRange, yRange);
         }}
       />
     </div>

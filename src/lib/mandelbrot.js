@@ -1,4 +1,5 @@
 
+import { assert } from './assert';
 import { computeMandlebrotPoints } from './compute-mandelbrot';
 
 const REAL_START = -2;
@@ -10,11 +11,41 @@ const BAILOUT_LIMT = 100;
 
 // ----------------------------------------------------------------
 
-function drawMandelbrot(canvas) {
+function drawMandelbrot(canvas, realRange, complexRange) {
+  assert(
+    realRange.start >= -2 && realRange.end <= 2,
+    `Invaid realRange: ${realRange}`,
+  );
+  assert(
+    complexRange.start >= -2 && complexRange.end <= 2,
+    `Invaid yrange: ${complexRange}`,
+  );
+  const rLength = realRange.end - realRange.start;
+  const cLength = complexRange.end - complexRange.start;
 
   var canvasWidth = canvas.width;
   var canvasHeight = canvas.height;
-  var plotSize = Math.min(canvasWidth, canvasHeight);
+
+  const rRatio = canvasWidth / rLength;
+  const cRatio = canvasHeight / cLength;
+
+  console.log('rRatio:', rRatio, '-- canvasWidth:', canvasWidth, '-- rLength:', rLength);
+  console.log('cRatio:', cRatio, '-- canvasHeight:', canvasHeight, '-- cLength:', cLength);
+
+  let plotHeight, plotWidth;
+
+  // the complex-dimension is the constraining one
+  if (rRatio > cRatio) {
+    const pixelsPerPlotUnit = canvasHeight / cLength;
+    plotHeight = canvasHeight;
+    plotWidth = rLength * pixelsPerPlotUnit;
+  }
+  // the real-dimension is the constraining one
+  else {
+    const pixelsPerPlotUnit = canvasWidth / rLength;
+    plotHeight = cLength * pixelsPerPlotUnit;
+    plotWidth = canvasWidth ;
+  }
 
   var ctx = canvas.getContext("2d");
   var canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
@@ -32,12 +63,14 @@ function drawMandelbrot(canvas) {
     ctx.putImageData(canvasData, 0, 0);
   }
 
-  function drawPoints(points) {
+  // TODO: make sure y-axis is not flipped...
+  function drawPoints(points, topLeft) {
+    const { x: startX, y: startY } = topLeft;
     for (let y=0; y<points.length; y++) {
       const row = points[y];
       for (let x=0; x<row.length; x++) {
         if (row[x] !== 0) {
-          drawPixel(x, y, 0, 0, 0);
+          drawPixel(startX + x,startY + y, 0, 0, 0);
         }
       }
     }
@@ -45,15 +78,29 @@ function drawMandelbrot(canvas) {
 
   let t0 = performance.now();
   const points = computeMandlebrotPoints({
-    real_range: { start: REAL_START, end: REAL_END, num_steps: plotSize },
-    complex_range: { start: COMPLEX_START, end: COMPLEX_END, num_steps: plotSize },
+    real_range: {
+      start: realRange.start,
+      end: realRange.end,
+      num_steps: plotWidth,
+    },
+    complex_range: {
+      start: complexRange.start,
+      end: complexRange.end,
+      num_steps: plotHeight, 
+    },
     bailout_limit: BAILOUT_LIMT,
   });
   let t1 = performance.now();
   console.log(`Timer -- computeMandlebrotPoints() took ${t1 - t0} milliseconds.`);
 
+  const topLeft = {
+    x: (canvasWidth - plotWidth) / 2,
+    y: (canvasHeight - plotHeight) / 2,
+  };
+  console.log('topLeft:', topLeft);
+
   t0 = performance.now();
-  drawPoints(points);
+  drawPoints(points, topLeft);
   updateCanvas();
   t1 = performance.now();
   console.log(`Timer -- drawPoints() and updateCanvas() took ${t1 - t0} milliseconds.`);
