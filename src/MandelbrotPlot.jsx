@@ -24,6 +24,11 @@ function Canvas({ onmount, ...props }) {
 function MandelbrotPlot({ xRange, yRange }) {
   return (
     <div className='mandelbrot-plot-container'>
+      <div>
+        <span>xRange: {JSON.stringify(xRange)}</span>
+        <span>yRange: {JSON.stringify(yRange)}</span>
+      </div>
+
       <Canvas
         className='mandelbrot-canvas'
         height='600'

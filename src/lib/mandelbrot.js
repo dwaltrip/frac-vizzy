@@ -51,6 +51,9 @@ function drawMandelbrot(canvas, realRange, complexRange) {
   var canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
 
   function drawPixel (x, y, r, g, b) {
+    // if (Math.random() < .0001) {
+    //   console.log(`(x: ${x}, y: ${y})`);
+    // }
     var index = (x + (y * canvasWidth)) * 4;
 
     canvasData.data[index + 0] = r;
@@ -65,12 +68,16 @@ function drawMandelbrot(canvas, realRange, complexRange) {
 
   // TODO: make sure y-axis is not flipped...
   function drawPoints(points, topLeft) {
+    console.log('Number of points:', points.length * (points[0] || []).length);
     const { x: startX, y: startY } = topLeft;
     for (let y=0; y<points.length; y++) {
       const row = points[y];
       for (let x=0; x<row.length; x++) {
         if (row[x] !== 0) {
-          drawPixel(startX + x,startY + y, 0, 0, 0);
+          drawPixel(startX + x, startY + y, 0, 0, 0);
+        } else {
+          // This creates a background color.
+          drawPixel(startX + x,startY + y, 230, 230, 230);
         }
       }
     }
@@ -93,9 +100,11 @@ function drawMandelbrot(canvas, realRange, complexRange) {
   let t1 = performance.now();
   console.log(`Timer -- computeMandlebrotPoints() took ${t1 - t0} milliseconds.`);
 
+  // NOTE: If `topLeft`` is not an integer, the plots can be very messed up.
+  // TODO: Think about whether `Math.floor` is the correct fix (it seems to fix it).
   const topLeft = {
-    x: (canvasWidth - plotWidth) / 2,
-    y: (canvasHeight - plotHeight) / 2,
+    x: Math.floor((canvasWidth - plotWidth) / 2),
+    y: Math.floor((canvasHeight - plotHeight) / 2),
   };
   console.log('topLeft:', topLeft);
 

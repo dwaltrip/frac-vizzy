@@ -53,6 +53,8 @@ function computeMandlebrotPoints({
 }) {
   const r_step_size = (r_range.end - r_range.start) / r_range.num_steps;
   const c_step_size = (c_range.end - c_range.start) / c_range.num_steps;
+  console.log('r_step_size:', r_step_size);
+  console.log('c_step_size:', c_step_size);
 
   const points = [];
 
@@ -60,16 +62,23 @@ function computeMandlebrotPoints({
     points.push([]);
   }
 
+  let pointsInSetCount = 0;
+
   for (let c=0; c<c_range.num_steps; c++) {
     for (let r=0; r<r_range.num_steps; r++) {
       const real    = r_range.start + (r * r_step_size);
       const complex = c_range.start + (c * c_step_size);
 
-      points[c].push(
-        isInMandlebrotSet(real, complex, bailout_limit) ? 1 : 0
-      );
+      if (isInMandlebrotSet(real, complex, bailout_limit)) {
+        pointsInSetCount++;
+        points[c].push(1);
+      } else {
+        points[c].push(0);
+      }
     }
   }
+
+  console.log(`----- Num points in set: ${pointsInSetCount} -----`);
   return points;
 }
 
