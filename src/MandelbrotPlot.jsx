@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-import { drawMandelbrot } from './lib/mandelbrot';
+import { initMandelbrot } from './lib/mandelbrot';
 
 function Canvas({ onmount, ...props }) {
   const canvasRef = useRef(null);
@@ -21,21 +21,23 @@ function Canvas({ onmount, ...props }) {
 // where did that artifact come from??
 // UPDATE: it does... need to check old commits to find out when
 // it was introduced.
-function MandelbrotPlot({ xRange, yRange }) {
+function MandelbrotPlot({ xRange, yRange, updatePlot }) {
+  // console.log('-- MandelbrotPlot -- rendering...');
   return (
     <div className='mandelbrot-plot-container'>
       <div>
         <span>xRange: {JSON.stringify(xRange)}</span>
+        <br/>
         <span>yRange: {JSON.stringify(yRange)}</span>
       </div>
 
       <Canvas
         className='mandelbrot-canvas'
-        height='600'
-        width='800'
+        height='700'
+        width='700'
         onmount={({ canvas, ctx })=> {
-          console.log('--- plotting.... ---')
-          drawMandelbrot(canvas, xRange, yRange);
+          console.log('--- plotting.... ---');
+          initMandelbrot(canvas, xRange, yRange, updatePlot);
         }}
       />
     </div>

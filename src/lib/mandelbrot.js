@@ -1,5 +1,7 @@
 
 import { assert } from './assert';
+import { getMousePos } from './getMousePos';
+import { round } from './round';
 import { computeMandlebrotPoints } from './compute-mandelbrot';
 
 const REAL_START = -2;
@@ -9,9 +11,13 @@ const COMPLEX_END = 2;
 
 const BAILOUT_LIMT = 100;
 
+const CANVAS_ZOOM_FACTOR = 3;
+
 // ----------------------------------------------------------------
 
-function drawMandelbrot(canvas, realRange, complexRange) {
+function initMandelbrot(canvas, realRange, complexRange, updatePlot) {
+ console.log('======== initMandelbrot ========');
+
   assert(
     realRange.start >= -2 && realRange.end <= 2,
     `Invaid realRange: ${realRange}`,
@@ -20,11 +26,14 @@ function drawMandelbrot(canvas, realRange, complexRange) {
     complexRange.start >= -2 && complexRange.end <= 2,
     `Invaid yrange: ${complexRange}`,
   );
+
+  const state = { realRange, complexRange };
+
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+
   const rLength = realRange.end - realRange.start;
   const cLength = complexRange.end - complexRange.start;
-
-  var canvasWidth = canvas.width;
-  var canvasHeight = canvas.height;
 
   const rRatio = canvasWidth / rLength;
   const cRatio = canvasHeight / cLength;
@@ -47,14 +56,100 @@ function drawMandelbrot(canvas, realRange, complexRange) {
     plotWidth = canvasWidth ;
   }
 
-  var ctx = canvas.getContext("2d");
-  var canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+  // NOTE: If `topLeft`` is not an integer, the plots can be very messed up.
+  // TODO: Think about whether `Math.floor` is the correct fix (it seems to fix it).
+  const topLeft = {
+    x: Math.floor((canvasWidth - plotWidth) / 2),
+    y: Math.floor((canvasHeight - plotHeight) / 2),
+  };
+  const botRight = { x: topLeft.x + plotWidth, y: topLeft.y + plotHeight };
+  console.log('topLeft:', topLeft);
+
+  function redraw() {
+    drawMandelbrot(
+      canvas,
+      state.realRange,
+      state.complexRange,
+      plotHeight,
+      plotWidth,
+      topLeft,
+    );
+  }
+
+  redraw();
+
+  canvas.addEventListener('click', event => {
+    console.log('----- canvas onclick -- start -------------');
+    const mousePos = getMousePos(canvas, event);
+    console.log('\tmousePos:', mousePos);
+
+    const realRange = state.realRange;
+    const complexRange = state.complexRange;
+    const rLength = realRange.end - realRange.start;
+    const cLength = complexRange.end - complexRange.start;
+
+    if (
+      (mousePos.x < topLeft.x || mousePos.x > botRight.x) ||
+      (mousePos.y < topLeft.y || mousePos.y > botRight.y)
+    ) {
+      console.log('\tinvalid pos!');
+      return;
+    }
+
+    const xRatio = mousePos.x / canvasWidth;
+    const yRatio = mousePos.y / canvasHeight;
+    const newCenter = {
+      x: realRange.start + (xRatio * rLength),
+      y: complexRange.start + (yRatio * cLength),
+    };
+
+    console.log('\tnewCenter:', newCenter);
+
+    const xLen = rLength / CANVAS_ZOOM_FACTOR;
+    const yLen = cLength / CANVAS_ZOOM_FACTOR;
+
+    state.realRange = {
+      start: round(newCenter.x - (xLen / 2), 10),
+      end: round(newCenter.x + (xLen / 2), 10),
+    };
+    state.complexRange = {
+      start: round(newCenter.y - (yLen / 2), 10),
+      end: round(newCenter.y + (yLen / 2), 10),
+    };
+    console.log('\trealRange:', state.realRange);
+    console.log('\tcomplexRange:', state.complexRange);
+
+    updatePlot(state.realRange, state.complexRange)
+
+    console.log('----- canvas onclick -- redrawing... -----');
+    redraw();
+    console.log('-------------------------------------------')
+  });
+}
+
+// ----------------------------------------------------------------
+
+function drawMandelbrot(
+  canvas,
+  realRange,
+  complexRange,
+  plotHeight,
+  plotWidth,
+  topLeft,
+) {
+
+  const ctx = canvas.getContext("2d");
+
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
   function drawPixel (x, y, r, g, b) {
     // if (Math.random() < .0001) {
     //   console.log(`(x: ${x}, y: ${y})`);
     // }
-    var index = (x + (y * canvasWidth)) * 4;
+    var index = (x + (y * canvas.width)) * 4;
 
     canvasData.data[index + 0] = r;
     canvasData.data[index + 1] = g;
@@ -68,7 +163,7 @@ function drawMandelbrot(canvas, realRange, complexRange) {
 
   // TODO: make sure y-axis is not flipped...
   function drawPoints(points, topLeft) {
-    console.log('Number of points:', points.length * (points[0] || []).length);
+    // console.log('Number of points:', points.length * (points[0] || []).length);
     const { x: startX, y: startY } = topLeft;
     for (let y=0; y<points.length; y++) {
       const row = points[y];
@@ -99,14 +194,6 @@ function drawMandelbrot(canvas, realRange, complexRange) {
   });
   let t1 = performance.now();
   console.log(`Timer -- computeMandlebrotPoints() took ${t1 - t0} milliseconds.`);
-
-  // NOTE: If `topLeft`` is not an integer, the plots can be very messed up.
-  // TODO: Think about whether `Math.floor` is the correct fix (it seems to fix it).
-  const topLeft = {
-    x: Math.floor((canvasWidth - plotWidth) / 2),
-    y: Math.floor((canvasHeight - plotHeight) / 2),
-  };
-  console.log('topLeft:', topLeft);
 
   t0 = performance.now();
   drawPoints(points, topLeft);
@@ -156,4 +243,4 @@ function drawMandelbrot(canvas, realRange, complexRange) {
   }
 }
 
-export { drawMandelbrot };
+export { initMandelbrot };

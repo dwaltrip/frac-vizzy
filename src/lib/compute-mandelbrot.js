@@ -53,8 +53,8 @@ function computeMandlebrotPoints({
 }) {
   const r_step_size = (r_range.end - r_range.start) / r_range.num_steps;
   const c_step_size = (c_range.end - c_range.start) / c_range.num_steps;
-  console.log('r_step_size:', r_step_size);
-  console.log('c_step_size:', c_step_size);
+  // console.log('r_step_size:', r_step_size);
+  // console.log('c_step_size:', c_step_size);
 
   const points = [];
 
@@ -78,7 +78,7 @@ function computeMandlebrotPoints({
     }
   }
 
-  console.log(`----- Num points in set: ${pointsInSetCount} -----`);
+  // console.log(`Num points in set: ${pointsInSetCount}`);
   return points;
 }
 
