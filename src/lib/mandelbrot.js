@@ -2,17 +2,19 @@
 import { assert } from './assert';
 import { getMousePos } from './getMousePos';
 import { round } from './round';
-import { drawPoints } from './draw';
+import { drawPoints, drawLine } from './draw';
 import { computeMandlebrotPoints } from './compute-mandelbrot';
+
+const DEBUG = false;
 
 const REAL_START = -2;
 const REAL_END = 2;
 const COMPLEX_START = -2;
 const COMPLEX_END = 2;
 
-const BAILOUT_LIMT = 100;
+const BAILOUT_LIMT = 200;
 
-const CANVAS_ZOOM_FACTOR = 3;
+const CANVAS_ZOOM_FACTOR = 4;
 
 // ----------------------------------------------------------------
 
@@ -57,6 +59,9 @@ function initMandelbrot(canvas, realRange, complexRange, updatePlot) {
     plotWidth = canvasWidth ;
   }
 
+  let xPlotOffset = (canvasWidth - plotWidth) / 2;
+  let yPlotOffset = (canvasHeight - plotHeight) / 2;
+
   // NOTE: If `topLeft`` is not an integer, the plots can be very messed up.
   // TODO: Think about whether `Math.floor` is the correct fix (it seems to fix it).
   const topLeft = {
@@ -97,8 +102,9 @@ function initMandelbrot(canvas, realRange, complexRange, updatePlot) {
       return;
     }
 
-    const xRatio = mousePos.x / canvasWidth;
-    const yRatio = mousePos.y / canvasHeight;
+    // TODO: can I make this cleaner / less bug-prone?
+    const xRatio = (mousePos.x - xPlotOffset) / plotWidth;
+    const yRatio = (mousePos.y - yPlotOffset) / plotHeight;
     const newCenter = {
       x: realRange.start + (xRatio * rLength),
       y: complexRange.start + (yRatio * cLength),
@@ -180,6 +186,19 @@ function drawMandelbrot(
   // Render the data onto the canvas!
   ctx.putImageData(imgData, 0, 0);
   t1 = performance.now();
+
+  if (DEBUG) {
+    drawLine(ctx,
+      { x: Math.floor(canvas.width / 2), y: 0 },
+      { x: Math.floor(canvas.width / 2), y: canvas.height },
+      { r: 224, g: 0, b: 0, a: 0.25 }, 
+    );
+    drawLine(ctx,
+      { y: Math.floor(canvas.height / 2), x: 0 },
+      { y: Math.floor(canvas.height / 2), x: canvas.width },
+      { r: 224, g: 0, b: 0, a: 0.25 }, 
+    );
+  }
 
   console.log(`Timer -- rendering took ${t1 - t0} milliseconds.`);
 }

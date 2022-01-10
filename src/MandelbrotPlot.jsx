@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
+import { round } from './lib/round';
 import { initMandelbrot } from './lib/mandelbrot';
 
 function Canvas({ onmount, ...props }) {
@@ -26,9 +27,9 @@ function MandelbrotPlot({ xRange, yRange, updatePlot }) {
   return (
     <div className='mandelbrot-plot-container'>
       <div className='coords-display'>
-        <span>xRange: {JSON.stringify(xRange)}</span>
+        <span>xRange -- start: {round(xRange.start, 5)}, end: {round(xRange.end, 5)}</span>
         <span>&nbsp;&nbsp;</span>
-        <span>yRange: {JSON.stringify(yRange)}</span>
+        <span>yRange -- start: {round(yRange.start, 5)}, end: {round(yRange.end, 5)}</span>
       </div>
 
       <Canvas

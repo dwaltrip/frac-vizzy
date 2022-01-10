@@ -1,7 +1,10 @@
 
 function getMousePos(canvas, evt) {
   var rect = canvas.getBoundingClientRect();
-  return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+  return {
+    x: Math.floor(evt.clientX - rect.left),
+    y: Math.floor(evt.clientY - rect.top),
+  };
 }
 
 export { getMousePos };

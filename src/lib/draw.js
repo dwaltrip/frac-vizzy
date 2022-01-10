@@ -30,4 +30,15 @@ function drawPoints(imageData, points, topLeft, colormap) {
   }
 }
 
+function drawLine(ctx, p1, p2, color, width=2) {
+  const preStyle = ctx.strokeStyle 
+  ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a || 1})`;
+  ctx.lineWidth = width;
+  ctx.beginPath();       // Start a new path
+  ctx.moveTo(p1.x, p1.y);    // Move the pen to (30, 50)
+  ctx.lineTo(p2.x, p2.y);  // Draw a line to (150, 100)
+  ctx.stroke();          // Render the path
+  ctx.strokeStyle = preStyle;
+}
+
 export { drawPoints, drawLine };
