@@ -6,17 +6,20 @@ const CRITICAL_POINT_Z = { real: 0, complex: 0 };
 
 // -----------------------------------------------------------------------------
 
-function isInMandlebrotSet(num_real, num_complex, bailout_limit) {
+function calcMandlebrotSetStatus(num_real, num_complex, iteration_limit) {
   let current_r = CRITICAL_POINT_Z.real + num_real;
   let current_c = CRITICAL_POINT_Z.complex + num_complex;
 
-  for (let i=0; i<bailout_limit; i++) {
+  for (let i=0; i<iteration_limit; i++) {
     // check for bad values
     if (
       (isNaN(current_r) || typeof current_r === 'undefined') ||
       (isNaN(current_c) || typeof current_c === 'undefined')
     ) {
-      return false;
+      return {
+        isInSet: false,
+        iteration: i,
+      };
     }
 
     // check for out of bounds
@@ -24,7 +27,10 @@ function isInMandlebrotSet(num_real, num_complex, bailout_limit) {
       (current_r > 2 || current_r < -2) ||
       (current_c > 2 || current_c < -2)
     ) {
-      return false;
+      return {
+        isInSet: false,
+        iteration: i,
+      };
     }
 
     // Iterate!
@@ -37,10 +43,13 @@ function isInMandlebrotSet(num_real, num_complex, bailout_limit) {
 
   // Final, more accurate out of bounds check
   if (Math.sqrt(Math.pow(current_r, 2) + Math.pow(current_c, 2)) > MB_RADIUS) {
-    return false;
+    return {
+      isInSet: false,
+      iteration: iteration_limit,
+    };
   }
 
-  return true;
+  return { isInSet: true };
 }
 
 // -----------------------------------------------------------------------------
@@ -49,7 +58,7 @@ function isInMandlebrotSet(num_real, num_complex, bailout_limit) {
 function computeMandlebrotPoints({
   real_range: r_range,
   complex_range: c_range,
-  bailout_limit,
+  iteration_limit,
 }) {
   const r_step_size = (r_range.end - r_range.start) / r_range.num_steps;
   const c_step_size = (c_range.end - c_range.start) / c_range.num_steps;
@@ -69,11 +78,13 @@ function computeMandlebrotPoints({
       const real    = r_range.start + (r * r_step_size);
       const complex = c_range.start + (c * c_step_size);
 
-      if (isInMandlebrotSet(real, complex, bailout_limit)) {
+      const status = calcMandlebrotSetStatus(real, complex, iteration_limit);
+      points[c].push({
+        isInSet: status.isInSet,
+        divergenceFactor: Math.ceil(Math.log(status.iteration)),
+      });
+      if (status.isInSet) {
         pointsInSetCount++;
-        points[c].push(1);
-      } else {
-        points[c].push(0);
       }
     }
   }
