@@ -25,9 +25,9 @@ function MandelbrotPlot({ xRange, yRange, updatePlot }) {
   // console.log('-- MandelbrotPlot -- rendering...');
   return (
     <div className='mandelbrot-plot-container'>
-      <div>
+      <div className='coords-display'>
         <span>xRange: {JSON.stringify(xRange)}</span>
-        <br/>
+        <span>&nbsp;&nbsp;</span>
         <span>yRange: {JSON.stringify(yRange)}</span>
       </div>
 
