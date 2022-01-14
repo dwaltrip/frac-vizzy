@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import qs from 'qs';
 
-import './App.css';
+import './styles/App.css';
 
+import { ConfigPanel } from './ConfigPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
 
@@ -19,24 +21,32 @@ const initialYRange = { start: -1.2, end: 1.2 };
 // const initialXRange = { start: -0.75, end: -0.73 };
 // const initialYRange = { start: 0.175, end: 0.2 };
 
+function getInitialConfigs() {
+  const url = new URL(window.location.href);
+  const data = qs.parse(url.searchParams.toString());
+  console.log('-- url query params data:', data);
+  return {
+    xRange: initialXRange,
+    yRange: initialYRange,
+  };
+}
 
 function App() {
-  const [xRange, setXRange] = useState(initialXRange);
-  const [yRange, setYRange] = useState(initialYRange);
+  const [configs, setConfigs] = useState(getInitialConfigs());
 
   return (
-    <div className="App">
+    <div className='App'>
+      {/* TODO: use React state for Config Panel field values */}
+      <ConfigPanel configs={configs} />
+
       <MandelbrotPlot
-        xRange={xRange}
-        yRange={yRange}
-        updatePlot={(newXRange, newYRange) => {
-          // console.log('updatePlot',
-          //   '-- xRange:', JSON.stringify(newXRange),
-          //   '-- yRange:', JSON.stringify(newYRange),
-          // );
-          // TODO: this may cause 2 renders (2 fn calls)
-          setXRange(newXRange);
-          setYRange(newYRange);
+        // configs={configs}
+        xRange={configs.xRange}
+        yRange={configs.yRange}
+        updateConfigs={(newXRange, newYRange) => {
+          console.log('new xRange:', JSON.stringify(newXRange))
+          console.log('new yRange:', JSON.stringify(newYRange));
+          // setConfigs(newYRange);
         }}
       />
     </div>
