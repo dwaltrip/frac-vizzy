@@ -4,8 +4,8 @@ import { round } from './lib/round';
 
 function ConfigPanel({ configs }) {
   const {
-    xRange,
-    yRange,
+    realRange,
+    complexRange,
   } = configs;
 
   return (
@@ -18,19 +18,19 @@ function ConfigPanel({ configs }) {
         <div className='data-subheader'>Real Range</div>
         <div className='data-row'>
           <label>Start</label>
-          <span className='value'>{round(xRange.start, 5)}</span>
+          <span className='value'>{round(realRange.start, 5)}</span>
           <span className='spacer' />
           <label>End</label>
-          <span className='value'>{round(xRange.end, 5)}</span>
+          <span className='value'>{round(realRange.end, 5)}</span>
         </div>
 
         <div className='data-subheader'>Complex Range</div>
         <div className='data-row'>
           <label>Start</label>
-          <span className='value'>{round(yRange.start, 5)}</span>
+          <span className='value'>{round(complexRange.start, 5)}</span>
           <span className='spacer' />
           <label>End</label>
-          <span className='value'>{round(yRange.end, 5)}</span>
+          <span className='value'>{round(complexRange.end, 5)}</span>
         </div>
       </section>
     </div>

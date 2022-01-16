@@ -26,28 +26,34 @@ function getInitialConfigs() {
   const data = qs.parse(url.searchParams.toString());
   console.log('-- url query params data:', data);
   return {
-    xRange: initialXRange,
-    yRange: initialYRange,
+    realRange: initialXRange,
+    complexRange: initialYRange,
   };
 }
 
 function App() {
-  const [configs, setConfigs] = useState(getInitialConfigs());
+  console.log('=== Rendering App... ==='); 
+  const [configs, setConfigsRaw] = useState(getInitialConfigs());
+
+  function setConfigs({ realRange, complexRange }) {
+    console.log('setConfigs...');
+    setConfigsRaw(prevConfigs => ({
+      ...prevConfigs,
+      realRange: realRange,
+      complexRange: complexRange,
+    }));
+  }
 
   return (
     <div className='App'>
-      {/* TODO: use React state for Config Panel field values */}
-      <ConfigPanel configs={configs} />
+      <ConfigPanel
+        configs={configs}
+        setConfigs={setConfigs}
+      />
 
       <MandelbrotPlot
-        // configs={configs}
-        xRange={configs.xRange}
-        yRange={configs.yRange}
-        updateConfigs={(newXRange, newYRange) => {
-          console.log('new xRange:', JSON.stringify(newXRange))
-          console.log('new yRange:', JSON.stringify(newYRange));
-          // setConfigs(newYRange);
-        }}
+        configs={configs}
+        setConfigs={setConfigs}
       />
     </div>
   );

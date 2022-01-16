@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
-import { initMandelbrot } from './lib/mandelbrot';
+import { drawMandelbrot } from './lib/mandelbrot';
+import { setupCanvasEvents } from './canvasEvents';
 
 function Canvas({ onmount, ...props }) {
   const canvasRef = useRef(null);
@@ -21,8 +22,31 @@ function Canvas({ onmount, ...props }) {
 // where did that artifact come from??
 // UPDATE: it does... need to check old commits to find out when
 // it was introduced.
-function MandelbrotPlot({ xRange, yRange, updateConfigs }) {
-  console.log('-- MandelbrotPlot -- rendering...');
+function MandelbrotPlot({ configs, setConfigs }) {
+  const canvasRef = useRef(null);
+  const configsRef = useRef(null);
+
+  // TODO: does this work??
+  useEffect(() => {
+    console.log('- useEffect - Keeping configsRef up to date...');
+    configsRef.current = configs;
+  });
+
+  // NOTE: We DO NOT want to depend on `configsRef.current`
+  // We only want to run this when the canvas element
+  //  is first created.
+  // However, `setupCanvasEvents` needs access to the CURRENT configs.
+  useEffect(() => {
+    console.log('- useEffect - calling setupCanvasEvents')
+    const getConfigs = ()=> configsRef.current;
+    setupCanvasEvents({ canvas: canvasRef.current, getConfigs, setConfigs });
+  }, [canvasRef.current]);
+
+  useEffect(() => {
+    console.log('- useEffect - calling drawMandelbrot()');
+    drawMandelbrot({ canvas: canvasRef.current, configs, setConfigs });
+  }, [configs, canvasRef.current]);
+
   return (
     <div className='mandelbrot-plot-container'>
       <Canvas
@@ -30,8 +54,7 @@ function MandelbrotPlot({ xRange, yRange, updateConfigs }) {
         height='700'
         width='700'
         onmount={({ canvas, ctx })=> {
-          console.log('--- plotting.... ---');
-          initMandelbrot(canvas, xRange, yRange, updateConfigs);
+          canvasRef.current = canvas;
         }}
       />
     </div>
