@@ -1,6 +1,50 @@
 
 .config-panel {
-    display: flex; 
-    flex-direction: column;
-    margin: 20px;
+  display: flex; 
+  flex-direction: column;
+  margin: 20px;
+}
+
+.config-panel header {
+  margin-bottom: 5px;
+}
+
+.config-panel section.data-section {
+  margin-top: 12px;
+}
+
+.config-panel .data-header, 
+.config-panel .data-subheader {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.config-panel .data-header {
+  margin-bottom: 8px;
+}
+
+.config-panel .data-subheader {
+  margin-top: 8px;
+  margin-bottom: 3px;
+  color: #555;
+}
+
+.config-panel .data-row {
+  display: flex;
+  flex-direction: row;
+  font-size: 13px;
+  margin-bottom: 3px;
+  padding-left: 5px;
+}
+
+.config-panel .data-row label {
+  margin-right: 5px;
+}
+
+.config-panel .data-row .value {
+  font-size: 13px;
+}
+
+.config-panel section.data-section.coords-display .data-row label {
+  width: 50px;
 }
