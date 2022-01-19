@@ -3,7 +3,7 @@ import { round } from './round';
 import { drawPoints, drawLine } from './draw';
 
 import { calcPlotState } from '../state/plot';
-import { computeMandlebrotPoints } from './compute-mandelbrot';
+import { computeMandlebrotPoints } from './computeMandelbrot';
 
 const DEBUG = false;
 
@@ -23,6 +23,7 @@ function drawMandelbrot({ canvas, configs, setConfigs }) {
 
   const { realRange, complexRange } = configs;
 
+  console.log('-- configs:', configs ? JSON.stringify(configs) : configs);
   const plot = calcPlotState(canvas, configs);
 
   assert(
@@ -103,7 +104,7 @@ function drawMandelbrot({ canvas, configs, setConfigs }) {
       colorMap.set(i, { r, g, b });
     }
   }
-  console.log('colorMap:', colorMap);
+  // console.log('colorMap:', colorMap);
   // ----------------------------------------------------------------------
 
   const ctx = canvas.getContext("2d");

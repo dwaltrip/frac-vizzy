@@ -10,7 +10,7 @@ function drawPixel(imageData, x, y, r, g, b) {
 
 // TODO: make sure y-axis is not flipped...
 function drawPoints(imageData, points, topLeft, colormap) {
-  console.log('-- drawPoints -- Num points:', points.length * (points[0] || []).length);
+  // console.log('-- drawPoints -- Num points:', points.length * (points[0] || []).length);
   const { x: startX, y: startY } = topLeft;
   for (let y=0; y<points.length; y++) {
     const row = points[y];

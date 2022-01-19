@@ -24,7 +24,7 @@ const initialYRange = { start: -1.2, end: 1.2 };
 function getInitialConfigs() {
   const url = new URL(window.location.href);
   const data = qs.parse(url.searchParams.toString());
-  console.log('-- url query params data:', data);
+  // console.log('-- url query params data:', data);
   return {
     realRange: initialXRange,
     complexRange: initialYRange,
