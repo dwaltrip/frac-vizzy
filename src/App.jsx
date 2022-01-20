@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import qs from 'qs';
 
 import './styles/App.css';
@@ -6,30 +6,34 @@ import './styles/App.css';
 import { ConfigPanel } from './ConfigPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
+const DEFAULT_CONFIGS = {
+  realRange: { start: "-1.5", end: "0.5" },
+  complexRange: { start: "-1.2", end: "1.2" },
+  iterationLimit: "250",
+};
 
-// const initialXRange = { start: -2, end: 2 };
-// const initialYRange = { start: -2, end: 2 };
-
-const initialXRange = { start: -1.5, end: 0.5 };
-const initialYRange = { start: -1.2, end: 1.2 };
-
-// -----------
-
-// const initialXRange = { start: -0.8, end: -0.7 };
-// const initialYRange = { start: 0.1, end: 0.2 };
-
-// const initialXRange = { start: -0.75, end: -0.73 };
-// const initialYRange = { start: 0.175, end: 0.2 };
+function parseRange(range) {
+  if (!range) {
+    return null;
+  }
+  return { start: parseFloat(range.start), end: parseFloat(range.end) };
+}
 
 function getInitialConfigs() {
   const url = new URL(window.location.href);
   const data = qs.parse(url.searchParams.toString());
-  // console.log('-- url query params data:', data);
-  return {
-    realRange: initialXRange,
-    complexRange: initialYRange,
+  const defaults = DEFAULT_CONFIGS;
+  // TODO: Better error handling here.
+  // We need to handle any possible user input for the URL param values.
+  const configs = {
+    realRange: parseRange({ ...defaults.realRange, ...data.realRange }),
+    complexRange: parseRange({ ...defaults.complexRange, ...data.complexRange }),
+    iterationLimit: parseInt(data.iterationLimit || defaults.iterationLimit),
   };
+  return configs;
 }
+
+let initialLoad = true;
 
 function App() {
   console.log('=== Rendering App... ==='); 
@@ -43,6 +47,19 @@ function App() {
       complexRange: complexRange,
     }));
   }
+
+  useEffect(() => {
+    // TODO: better way of doing this?
+    if (initialLoad) {
+      initialLoad = false;
+      return;
+    }
+    const relPathWithParams = (
+      window.location.pathname + '?' +
+      qs.stringify(configs, { encode: false })
+    );
+    window.history.replaceState(null, '', relPathWithParams);
+  }, [configs]);
 
   return (
     <div className='App'>

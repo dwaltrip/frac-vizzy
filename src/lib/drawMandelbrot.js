@@ -12,7 +12,6 @@ const REAL_END = 2;
 const COMPLEX_START = -2;
 const COMPLEX_END = 2;
 
-const ITERATION_LIMIT = 250;
 // const USE_COLORS = false;
 const USE_COLORS = true;
 
@@ -47,7 +46,7 @@ function drawMandelbrot({ canvas, configs, setConfigs }) {
       end: complexRange.end,
       num_steps: plot.height, 
     },
-    iteration_limit: ITERATION_LIMIT,
+    iteration_limit: configs.iterationLimit,
   });
   let t1 = performance.now();
 
@@ -77,7 +76,8 @@ function drawMandelbrot({ canvas, configs, setConfigs }) {
   // const bgColor = { r: 247, g: 243, b: 238 };
   // const bgColor = { r: 227, g: 223, b: 228 };
   const bgColor = { r: 220, g: 230, b: 255 };
-  const lightenTo = 0.85;
+  const lightenTo = 0.55;
+  // const lightenTo = 0.85;
   let colorRange = {
     start: {
       r: bgColor.r * lightenTo,
