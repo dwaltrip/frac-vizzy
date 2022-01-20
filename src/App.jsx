@@ -39,12 +39,11 @@ function App() {
   console.log('=== Rendering App... ==='); 
   const [configs, setConfigsRaw] = useState(getInitialConfigs());
 
-  function setConfigs({ realRange, complexRange }) {
+  function setConfigs({ ...newConfigs }) {
     console.log('setConfigs...');
     setConfigsRaw(prevConfigs => ({
       ...prevConfigs,
-      realRange: realRange,
-      complexRange: complexRange,
+      ...newConfigs,
     }));
   }
 

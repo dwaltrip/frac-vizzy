@@ -1,17 +1,35 @@
 import './styles/ConfigPanel.css';
 
 import { round } from './lib/round';
+import { SelectWithCustomValues } from './ui/SelectWithCustomValues';
 
-function ConfigPanel({ configs }) {
+const ITERATION_VALUE_OPTS = [
+  100,
+  250,
+  500,
+  1000,
+  2500,
+  5000,
+].map(num => {
+  const value = '' + num;
+  return { value, text: value };
+});
+
+// TODO: Enable modifying the settings while points are being computed.
+function ConfigPanel({ configs, setConfigs }) {
   const {
     realRange,
     complexRange,
     iterationLimit,
   } = configs;
 
+  const setIterationLimit = value => {
+    setConfigs({ iterationLimit: parseInt(value) });
+  };
+
   return (
     <div className='config-panel'>
-      <header>Config Panel</header>
+      <header>Settings</header>
 
       <section className='data-section coords-display'>
         <div className='data-header'>Coordinates</div>
@@ -41,7 +59,13 @@ function ConfigPanel({ configs }) {
         <div className='data-header'>Other Configs</div>
         <div className='data-row'>
           <label>Iterations</label>
-          <span className='value'>{iterationLimit}</span>
+          <span className='value'>
+            <SelectWithCustomValues
+              value={'' + iterationLimit}
+              options={ITERATION_VALUE_OPTS}
+              onChange={setIterationLimit}
+            />
+          </span>
         </div>
       </section>
     </div>

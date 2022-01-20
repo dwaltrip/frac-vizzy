@@ -6,45 +6,70 @@
 }
 
 .config-panel header {
-  margin-bottom: 5px;
-}
-
-.config-panel section.data-section {
-  margin-top: 12px;
-}
-
-.config-panel .data-header, 
-.config-panel .data-subheader {
-  font-size: 15px;
+  color:  #333;
   font-weight: bold;
 }
 
+.config-panel section.data-section {
+  margin-top: 20px;
+  color: #333;
+}
+
 .config-panel .data-header {
-  margin-bottom: 8px;
+  /*font-size: 15px;*/
 }
 
 .config-panel .data-subheader {
-  margin-top: 8px;
-  margin-bottom: 3px;
-  color: #555;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.config-panel .data-subheader,
+.config-panel .data-header + .data-row {
+  margin-top: 10px;
 }
 
 .config-panel .data-row {
   display: flex;
   flex-direction: row;
   font-size: 13px;
-  margin-bottom: 3px;
-  padding-left: 5px;
+  padding-left: 10px;
+}
+
+.config-panel .data-row + .data-row {
+  margin-top: 3px;
 }
 
 .config-panel .data-row label {
   margin-right: 5px;
+  /*color: #4a3822;*/
+  color: #40301b;
 }
 
-.config-panel .data-row .value {
+.config-panel .data-row .value,
+.config-panel .select-with-custom-option select,
+.config-panel .select-with-custom-option .custom-value-input {
+  /*color: #814e0e;*/
+  color: #7a490b;
   font-size: 13px;
+}
+
+.config-panel .select-with-custom-option select,
+.config-panel .select-with-custom-option .custom-value-input {
+  background-color: #fffbf5;
+  border: 1px solid #93887a;
+  border-radius: 3px;
+  /*border: 1px solid #40301b;*/
 }
 
 .config-panel section.data-section.coords-display .data-row label {
   width: 50px;
+}
+
+.confing-panel .select-with-custom-option button {
+  color: #444;
+  background-color: #eee;
+  background-color: #efebe5;
+  border: 1px solid #999;
+  border-radius: 3px;
 }

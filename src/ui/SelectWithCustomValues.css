@@ -1,0 +1,29 @@
+.select-with-custom-option {
+  position: relative;
+}
+
+.select-with-custom-option .custom-value {
+  background-color: white;
+  font-size: 13px;
+  position: absolute;
+  margin-left: 6px;
+  margin-top: 1px;
+  user-select: none;
+  pointer-events: none; 
+}
+
+.select-with-custom-option .custom-value-input {
+  width: 60px;
+}
+
+.select-with-custom-option button {
+  margin-left: 5px;
+}
+
+.select-with-custom-option .select-form-row {
+  display: flex;
+}
+
+.select-with-custom-option .select-form-row + .select-form-row {
+  margin-top: 5px;
+}
