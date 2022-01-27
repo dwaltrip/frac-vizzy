@@ -5,15 +5,13 @@ import { calcPlotState } from './state/plot';
 
 const CANVAS_ZOOM_FACTOR = 4;
 
-function canvasOnClick({ canvas, event, configs, setConfigs }) {
+function canvasOnClick({ canvas, event, params, setPlotParams }) {
   console.log('======= canvas onclick -- start =======');
   const mousePos = getMousePos(canvas, event);
   console.log('\tmousePos:', mousePos);
 
-  console.log('-- configs:', configs ? JSON.stringify(configs) : null);
-  const { realRange, complexRange } = configs;
-
-  const plot = calcPlotState(canvas, configs);
+  const { realRange, complexRange } = params;
+  const plot = calcPlotState(canvas, params);
 
   const rLength = realRange.end - realRange.start;
   const cLength = complexRange.end - complexRange.start;
@@ -40,7 +38,7 @@ function canvasOnClick({ canvas, event, configs, setConfigs }) {
   const xLen = rLength / CANVAS_ZOOM_FACTOR;
   const yLen = cLength / CANVAS_ZOOM_FACTOR;
 
-  setConfigs({
+  setPlotParams({
     realRange: truncateRange({
       start: newCenter.x - (xLen / 2),
       end: newCenter.x + (xLen / 2),

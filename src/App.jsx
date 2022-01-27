@@ -3,10 +3,10 @@ import qs from 'qs';
 
 import './styles/App.css';
 
-import { ConfigPanel } from './ConfigPanel';
+import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
-const DEFAULT_CONFIGS = {
+const DEFAULT_PARAMS = {
   realRange: { start: "-1.5", end: "0.5" },
   complexRange: { start: "-1.2", end: "1.2" },
   iterationLimit: "250",
@@ -19,57 +19,57 @@ function parseRange(range) {
   return { start: parseFloat(range.start), end: parseFloat(range.end) };
 }
 
-function getInitialConfigs() {
+function getInitialParams() {
   const url = new URL(window.location.href);
   const data = qs.parse(url.searchParams.toString());
-  const defaults = DEFAULT_CONFIGS;
+  const defaults = DEFAULT_PARAMS;
   // TODO: Better error handling here.
   // We need to handle any possible user input for the URL param values.
-  const configs = {
+  return {
     realRange: parseRange({ ...defaults.realRange, ...data.realRange }),
     complexRange: parseRange({ ...defaults.complexRange, ...data.complexRange }),
     iterationLimit: parseInt(data.iterationLimit || defaults.iterationLimit),
   };
-  return configs;
 }
 
 let initialLoad = true;
 
 function App() {
   console.log('=== Rendering App... ==='); 
-  const [configs, setConfigsRaw] = useState(getInitialConfigs());
+  const [plotParams, setParamsRaw] = useState(getInitialParams());
 
-  function setConfigs({ ...newConfigs }) {
-    console.log('setConfigs...');
-    setConfigsRaw(prevConfigs => ({
-      ...prevConfigs,
-      ...newConfigs,
+  function setPlotParams({ ...newParams }) {
+    setParamsRaw(prevParams => ({
+      ...prevParams,
+      ...newParams,
     }));
   }
 
   useEffect(() => {
     // TODO: better way of doing this?
+    // We don't run this on initial load so that we don't show the plot params
+    //   in the URL if they are viewing the default plot.
     if (initialLoad) {
       initialLoad = false;
       return;
     }
-    const relPathWithParams = (
+    const relPathWithQuery = (
       window.location.pathname + '?' +
-      qs.stringify(configs, { encode: false })
+      qs.stringify(plotParams, { encode: false })
     );
-    window.history.replaceState(null, '', relPathWithParams);
-  }, [configs]);
+    window.history.replaceState(null, '', relPathWithQuery);
+  }, [plotParams]);
 
   return (
     <div className='App'>
-      <ConfigPanel
-        configs={configs}
-        setConfigs={setConfigs}
+      <SettingsPanel
+        params={plotParams}
+        setPlotParams={setPlotParams}
       />
 
       <MandelbrotPlot
-        configs={configs}
-        setConfigs={setConfigs}
+        params={plotParams}
+        setPlotParams={setPlotParams}
       />
     </div>
   );

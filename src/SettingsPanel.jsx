@@ -1,4 +1,4 @@
-import './styles/ConfigPanel.css';
+import './styles/SettingsPanel.css';
 
 import { SelectWithCustomValues } from './ui/SelectWithCustomValues';
 
@@ -15,19 +15,19 @@ const ITERATION_VALUE_OPTS = [
 });
 
 // TODO: Enable modifying the settings while points are being computed.
-function ConfigPanel({ configs, setConfigs }) {
+function SettingsPanel({ params, setPlotParams }) {
   const {
     realRange,
     complexRange,
     iterationLimit,
-  } = configs;
+  } = params;
 
   const setIterationLimit = value => {
-    setConfigs({ iterationLimit: parseInt(value) });
+    setPlotParams({ iterationLimit: parseInt(value) });
   };
 
   return (
-    <div className='config-panel'>
+    <div className='settings-panel'>
       <header>Settings</header>
 
       <section className='data-section coords-display'>
@@ -55,7 +55,7 @@ function ConfigPanel({ configs, setConfigs }) {
       </section>
 
       <section className='data-section'>
-        <div className='data-header'>Other Configs</div>
+        <div className='data-header'>Other Settings</div>
         <div className='data-row'>
           <label>Iterations</label>
           <span className='value'>
@@ -71,4 +71,4 @@ function ConfigPanel({ configs, setConfigs }) {
   );
 }
 
-export { ConfigPanel };
+export { SettingsPanel };

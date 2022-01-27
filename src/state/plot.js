@@ -1,6 +1,6 @@
 
-function calcPlotState(canvas, configs) {
-  const { realRange, complexRange } = configs;
+function calcPlotState(canvas, params) {
+  const { realRange, complexRange } = params;
 
   const rLength = realRange.end - realRange.start;
   const cLength = complexRange.end - complexRange.start;

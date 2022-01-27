@@ -7,13 +7,12 @@ import { canvasOnClick } from './canvasEvents';
 // where did that artifact come from??
 // UPDATE: it does... need to check old commits to find out when
 // it was introduced.
-function MandelbrotPlot({ configs, setConfigs }) {
+function MandelbrotPlot({ params, setPlotParams }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    console.log('- useEffect - calling drawMandelbrot()');
-    drawMandelbrot({ canvas: canvasRef.current, configs, setConfigs });
-  }, [configs]);
+    drawMandelbrot({ canvas: canvasRef.current, params });
+  }, [params]);
 
   return (
     <div className='mandelbrot-plot-container'>
@@ -27,8 +26,8 @@ function MandelbrotPlot({ configs, setConfigs }) {
           canvasOnClick({
             canvas: canvasRef.current,
             event,
-            configs,
-            setConfigs,
+            params,
+            setPlotParams,
           });
         }}
       >

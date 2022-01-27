@@ -17,13 +17,11 @@ const USE_COLORS = true;
 
 // ----------------------------------------------------------------
 
-function drawMandelbrot({ canvas, configs, setConfigs }) {
+function drawMandelbrot({ canvas, params }) {
  console.log('======== drawMandelbrot ========');
 
-  const { realRange, complexRange } = configs;
-
-  console.log('-- configs:', configs ? JSON.stringify(configs) : configs);
-  const plot = calcPlotState(canvas, configs);
+  const { realRange, complexRange } = params;
+  const plot = calcPlotState(canvas, params);
 
   assert(
     realRange.start >= -2 && realRange.end <= 2,
@@ -46,7 +44,7 @@ function drawMandelbrot({ canvas, configs, setConfigs }) {
       end: complexRange.end,
       num_steps: plot.height, 
     },
-    iteration_limit: configs.iterationLimit,
+    iteration_limit: params.iterationLimit,
   });
   let t1 = performance.now();
 
