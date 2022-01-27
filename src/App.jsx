@@ -6,31 +6,7 @@ import './styles/App.css';
 import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
-const DEFAULT_PARAMS = {
-  realRange: { start: "-1.5", end: "0.5" },
-  complexRange: { start: "-1.2", end: "1.2" },
-  iterationLimit: "250",
-};
-
-function parseRange(range) {
-  if (!range) {
-    return null;
-  }
-  return { start: parseFloat(range.start), end: parseFloat(range.end) };
-}
-
-function getInitialParams() {
-  const url = new URL(window.location.href);
-  const data = qs.parse(url.searchParams.toString());
-  const defaults = DEFAULT_PARAMS;
-  // TODO: Better error handling here.
-  // We need to handle any possible user input for the URL param values.
-  return {
-    realRange: parseRange({ ...defaults.realRange, ...data.realRange }),
-    complexRange: parseRange({ ...defaults.complexRange, ...data.complexRange }),
-    iterationLimit: parseInt(data.iterationLimit || defaults.iterationLimit),
-  };
-}
+import { getInitialParams, serializeParams } from './plotParams';
 
 let initialLoad = true;
 
@@ -55,7 +31,7 @@ function App() {
     }
     const relPathWithQuery = (
       window.location.pathname + '?' +
-      qs.stringify(plotParams, { encode: false })
+      qs.stringify(serializeParams(plotParams), { encode: false })
     );
     window.history.replaceState(null, '', relPathWithQuery);
   }, [plotParams]);
