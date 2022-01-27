@@ -1,4 +1,6 @@
 import { getMousePos } from './lib/getMousePos';
+import { truncateRange } from './lib/truncateRange';
+
 import { calcPlotState } from './state/plot';
 
 const CANVAS_ZOOM_FACTOR = 4;
@@ -39,18 +41,14 @@ function canvasOnClick({ canvas, event, configs, setConfigs }) {
   const yLen = cLength / CANVAS_ZOOM_FACTOR;
 
   setConfigs({
-    realRange: {
+    realRange: truncateRange({
       start: newCenter.x - (xLen / 2),
       end: newCenter.x + (xLen / 2),
-      // start: round(newCenter.x - (xLen / 2), 10),
-      // end: round(newCenter.x + (xLen / 2), 10),
-    },
-    complexRange: {
+    }, 0.001),
+    complexRange: truncateRange({
       start: newCenter.y - (yLen / 2),
       end: newCenter.y + (yLen / 2),
-      // start: round(newCenter.y - (yLen / 2), 10),
-      // end: round(newCenter.y + (yLen / 2), 10),
-    },
+    }, .001),
   });
 }
 

@@ -1,6 +1,5 @@
 import './styles/ConfigPanel.css';
 
-import { round } from './lib/round';
 import { SelectWithCustomValues } from './ui/SelectWithCustomValues';
 
 const ITERATION_VALUE_OPTS = [
@@ -37,21 +36,21 @@ function ConfigPanel({ configs, setConfigs }) {
         <div className='data-subheader'>Real Range</div>
         <div className='data-row'>
           <label>Start</label>
-          <span className='value'>{round(realRange.start, 5)}</span>
+          <span className='value'>{realRange.start}</span>
         </div>
         <div className='data-row'>
           <label>End</label>
-          <span className='value'>{round(realRange.end, 5)}</span>
+          <span className='value'>{realRange.end}</span>
         </div>
 
         <div className='data-subheader'>Complex Range</div>
         <div className='data-row'>
           <label>Start</label>
-          <span className='value'>{round(complexRange.start, 5)}</span>
+          <span className='value'>{complexRange.start}</span>
         </div>
         <div className='data-row'>
           <label>End</label>
-          <span className='value'>{round(complexRange.end, 5)}</span>
+          <span className='value'>{complexRange.end}</span>
         </div>
       </section>
 
