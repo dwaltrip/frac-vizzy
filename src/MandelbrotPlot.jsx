@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 import { drawMandelbrot } from './lib/drawMandelbrot';
-import { canvasOnClick } from './canvasEvents';
+import { zoomInPlot } from './canvasEvents';
 
 // TODO: my old code doesn't have the thick horizontal line?
 // where did that artifact come from??
@@ -22,8 +22,8 @@ function MandelbrotPlot({ params, setPlotParams }) {
         width='700'
         ref={canvasRef}
         // TODO: Is it fine to allow react to manage our canvas event handling?
-        onClick={event => {
-          canvasOnClick({
+        onDoubleClick={event => {
+          zoomInPlot({
             canvas: canvasRef.current,
             event,
             params,

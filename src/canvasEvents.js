@@ -5,8 +5,8 @@ import { calcPlotState } from './state/plot';
 
 const CANVAS_ZOOM_FACTOR = 4;
 
-function canvasOnClick({ canvas, event, params, setPlotParams }) {
-  console.log('======= canvas onclick -- start =======');
+function zoomInPlot({ canvas, event, params, setPlotParams }) {
+  console.log('======= zoomInPlot -- start =======');
   const mousePos = getMousePos(canvas, event);
   console.log('\tmousePos:', mousePos);
 
@@ -50,4 +50,4 @@ function canvasOnClick({ canvas, event, params, setPlotParams }) {
   });
 }
 
-export { canvasOnClick };
+export { zoomInPlot };
