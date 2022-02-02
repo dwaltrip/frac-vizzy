@@ -50,4 +50,42 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
   });
 }
 
-export { zoomInPlot };
+function zoomOutPlot({ canvas, event, params, setPlotParams }) {
+  console.log('======= zoomOutPlot -- start =======');
+
+  const plot = calcPlotState(canvas, params);
+  const mousePos = getMousePos(canvas, event);
+
+  if (
+    (mousePos.x < plot.topLeft.x || mousePos.x > plot.botRight.x) ||
+    (mousePos.y < plot.topLeft.y || mousePos.y > plot.botRight.y)
+  ) {
+    console.log('\tinvalid pos!');
+    return;
+  }
+
+  const { realRange, complexRange } = params;
+  const rLength = realRange.end - realRange.start;
+  const cLength = complexRange.end - complexRange.start;
+
+  const center = {
+    r: realRange.start + (rLength / 2),
+    c: complexRange.start + (cLength / 2),
+  };
+
+  const newRLength = rLength * CANVAS_ZOOM_FACTOR;
+  const newCLength = cLength * CANVAS_ZOOM_FACTOR;
+
+  setPlotParams({
+    realRange: truncateRange({
+      start: center.r - (newRLength / 2),
+      end: center.r + (newRLength / 2),
+    }, 0.001),
+    complexRange: truncateRange({
+      start: center.c - (newCLength / 2),
+      end: center.c + (newCLength / 2),
+    }, .001),
+  });
+}
+
+export { zoomInPlot, zoomOutPlot };
