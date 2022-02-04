@@ -1,9 +1,11 @@
+// TODO: move from lib/ to mandelbrot/
+
 import { assert } from './assert';
 import { round } from './round';
 import { drawPoints, drawLine } from './draw';
 
 import { calcPlotState } from '../state/plot';
-import { computeMandlebrotPoints } from './computeMandelbrot';
+import { MandelbrotWorkerManager } from '../mandelbrot/mandelbrotWorkerManager';
 
 const DEBUG = false;
 
@@ -18,7 +20,7 @@ const USE_COLORS = true;
 // ----------------------------------------------------------------
 
 function drawMandelbrot({ canvas, params }) {
- console.log('======== drawMandelbrot ========');
+  console.log('======== drawMandelbrot ========');
 
   const { realRange, complexRange } = params;
   const plot = calcPlotState(canvas, params);
@@ -32,8 +34,10 @@ function drawMandelbrot({ canvas, params }) {
     `Invaid yrange: ${complexRange}`,
   );
 
-  let t0 = performance.now();
-  const points = computeMandlebrotPoints({
+  MandelbrotWorkerManager.terminateAllWorkers();
+  const computePointsInWorker = MandelbrotWorkerManager.createWorker();
+
+  const args = {
     real_range: {
       start: realRange.start,
       end: realRange.end,
@@ -45,12 +49,38 @@ function drawMandelbrot({ canvas, params }) {
       num_steps: plot.height, 
     },
     iteration_limit: params.iterationLimit,
+  };
+
+  let t0 = performance.now();
+  computePointsInWorker(args).then(points => {
+    let t1 = performance.now();
+    console.log(`Timer -- computeMandlebrotPoints() took ${t1 - t0} milliseconds.`);
+    render(points);
   });
-  let t1 = performance.now();
 
-  console.log(`Timer -- computeMandlebrotPoints() took ${t1 - t0} milliseconds.`);
+  function render(points) {
+    const ctx = canvas.getContext("2d");
 
-  // ------- TODO: this needs a lot of work... it doesn't look good -------
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    const colorMap = getColorMap(points);
+
+    let t0 = performance.now();
+    drawPoints(imgData, points, plot.topLeft, colorMap);
+    // Render the data onto the canvas!
+    ctx.putImageData(imgData, 0, 0);
+    let t1 = performance.now();
+
+    console.log(`Timer -- rendering took ${t1 - t0} milliseconds.`);
+  }
+}
+
+// ----------------------------------------------------------------------
+
+// TODO: the color stuff needs a lot of work... it doesn't look like online pics.
+function getColorMap(points) {
   let maxDivergenceFactor = 0;
   forEachPoint(points, status => {
     if (status.divergenceFactor > maxDivergenceFactor) {
@@ -102,36 +132,12 @@ function drawMandelbrot({ canvas, params }) {
       colorMap.set(i, { r, g, b });
     }
   }
+
   // console.log('colorMap:', colorMap);
-  // ----------------------------------------------------------------------
-
-  const ctx = canvas.getContext("2d");
-
-  // Clear the canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-  t0 = performance.now();
-  drawPoints(imgData, points, plot.topLeft, colorMap);
-  // Render the data onto the canvas!
-  ctx.putImageData(imgData, 0, 0);
-  t1 = performance.now();
-
-  if (DEBUG) {
-    drawLine(ctx,
-      { x: Math.floor(canvas.width / 2), y: 0 },
-      { x: Math.floor(canvas.width / 2), y: canvas.height },
-      { r: 224, g: 0, b: 0, a: 0.25 }, 
-    );
-    drawLine(ctx,
-      { y: Math.floor(canvas.height / 2), x: 0 },
-      { y: Math.floor(canvas.height / 2), x: canvas.width },
-      { r: 224, g: 0, b: 0, a: 0.25 }, 
-    );
-  }
-
-  console.log(`Timer -- rendering took ${t1 - t0} milliseconds.`);
+  return colorMap;
 }
+
+// ----------------------------------------------------------------------
 
 function forEachPoint(points, fn) {
   for (let y=0; y<points.length; y++) {
