@@ -5,31 +5,35 @@
 // TODO: Review this (and online examples) more carefully. How robust is this?
 // TODO: handle errors... worker.onerror?
 // TODO: Transferables?
-function workerify(fn) {
+const WORKERIFY_MESSAGE_IDENTIFIER = '__$WORKERIFY_MESSAGE_IDENTIFIER';
+
+function workerify(funcToWorkerify) {
   const workerCodeStr = [
-    '$$ = ' + fn.toString() + ';',
+    '$$ = ' + funcToWorkerify.toString() + ';',
     (
 `onmessage = function(e) {
   const result = $$(e.data);
-  postMessage(result);
+  postMessage({
+    result,
+    '${WORKERIFY_MESSAGE_IDENTIFIER}': true,
+  });
 }`),
   ].join('\n');
-  console.log('--- workerify --- workerCodeStr:')
-  console.log(workerCodeStr);
-  console.log('--------------------------------')
-
   const workerUrl = window.URL.createObjectURL(
     new Blob([workerCodeStr], {type:'text/javascript'})
   );
-  const worker = new Worker(workerUrl);
 
-  let isRunning = false;
+  const state = {
+    messageListeners: [],
+    isRunning: false,
+  }
+  const worker = new Worker(workerUrl);
 
   const workerAsFn = function(args) {
     args = [].slice.call(arguments);
 
-    if (!isRunning) {
-      isRunning = true;
+    if (!state.isRunning) {
+      state.isRunning = true;
       worker.postMessage(...args);
     }
     else {
@@ -38,8 +42,12 @@ function workerify(fn) {
 
     return new Promise((resolve, reject) => {
       worker.onmessage = e => {
-        console.log('workerify -- worker.onmessage');
-        resolve(e.data);
+        if (e.data[WORKERIFY_MESSAGE_IDENTIFIER]) {
+          resolve(e.data.result);
+        }
+        else {
+          state.messageListeners.forEach(fn => fn(e.data));
+        }
       };
     });
   };
@@ -47,6 +55,11 @@ function workerify(fn) {
   workerAsFn.terminate = ()=> {
     worker.terminate();
     window.URL.revokeObjectURL(workerUrl);
+    state.messageListeners = [];
+  };
+
+  workerAsFn.listen = (handler) => {
+    state.messageListeners.push(handler);
   };
 
   return workerAsFn;

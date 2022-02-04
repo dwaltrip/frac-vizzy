@@ -1,0 +1,8 @@
+
+.mandelbrot-plot-container .computation-status {
+  margin-bottom: 5px;
+  font-size: 14px;
+  display: flex;
+  justify-content: flex-end;
+  color: #7a490b;
+}

@@ -19,7 +19,7 @@ const USE_COLORS = true;
 
 // ----------------------------------------------------------------
 
-function drawMandelbrot({ canvas, params }) {
+function drawMandelbrot({ canvas, params, onProgress }) {
   console.log('======== drawMandelbrot ========');
 
   const { realRange, complexRange } = params;
@@ -51,11 +51,11 @@ function drawMandelbrot({ canvas, params }) {
     iteration_limit: params.iterationLimit,
   };
 
-  let t0 = performance.now();
-  computePointsInWorker(args).then(points => {
-    let t1 = performance.now();
-    console.log(`Timer -- computeMandlebrotPoints() took ${t1 - t0} milliseconds.`);
-    render(points);
+  computePointsInWorker.listen(data => {
+    const { label, percentComplete } = data;
+    if (label == 'progress-update') {
+      onProgress && onProgress(percentComplete);
+    } 
   });
 
   function render(points) {
@@ -75,6 +75,13 @@ function drawMandelbrot({ canvas, params }) {
 
     console.log(`Timer -- rendering took ${t1 - t0} milliseconds.`);
   }
+
+  let t0 = performance.now();
+  return computePointsInWorker(args).then(points => {
+    let t1 = performance.now();
+    console.log(`Timer -- computeMandlebrotPoints() took ${t1 - t0} milliseconds.`);
+    render(points);
+  });
 }
 
 // ----------------------------------------------------------------------

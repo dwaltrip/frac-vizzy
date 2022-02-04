@@ -75,6 +75,10 @@ function createMandelbrotComputeWorker() {
         points.push([]);
       }
 
+      const totalIterations = c_range.num_steps * r_range.num_steps;
+      const onePercentOfTotalIters = Math.ceil(totalIterations / 100);
+      let iterCount = 0;
+
       for (let c=0; c<c_range.num_steps; c++) {
         for (let r=0; r<r_range.num_steps; r++) {
           const real    = r_range.start + (r * r_step_size);
@@ -85,6 +89,14 @@ function createMandelbrotComputeWorker() {
             isInSet: status.isInSet,
             divergenceFactor: Math.ceil(Math.log(status.iteration)),
           });
+
+          iterCount++;
+          if (iterCount % onePercentOfTotalIters === 0) {
+            postMessage({
+              label: 'progress-update',
+              percentComplete: Math.floor(100 * (iterCount / totalIterations)),
+            })
+          }
         }
       }
 

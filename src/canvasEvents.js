@@ -50,6 +50,7 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
   });
 }
 
+// TODO: set max zoom by clamping realRange and complexRange.
 function zoomOutPlot({ canvas, event, params, setPlotParams }) {
   console.log('======= zoomOutPlot -- start =======');
 
