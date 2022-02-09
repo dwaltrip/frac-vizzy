@@ -1,6 +1,4 @@
-// TODO: move from lib/ to mandelbrot/
-
-import { workerify } from './workerify';
+import { workerify } from '../lib/workerify';
 
 function createMandelbrotComputeWorker() {
 

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import './styles/MandelbrotPlot.css';
 
-import { drawMandelbrot } from './lib/drawMandelbrot';
+import { drawMandelbrot } from './mandelbrot/drawMandelbrot';
 import { useThrottledValue } from './lib/useThrottledValue';
 import { zoomInPlot, zoomOutPlot } from './canvasEvents';
 

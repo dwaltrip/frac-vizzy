@@ -1,11 +1,9 @@
-// TODO: move from lib/ to mandelbrot/
-
-import { assert } from './assert';
-import { round } from './round';
-import { drawPoints, drawLine } from './draw';
+import { assert } from '../lib/assert';
+import { round } from '../lib/round';
+import { drawPoints, drawLine } from '../lib/draw';
 
 import { calcPlotState } from '../state/plot';
-import { MandelbrotWorkerManager } from '../mandelbrot/mandelbrotWorkerManager';
+import { MandelbrotWorkerManager } from './mandelbrotWorkerManager';
 
 const DEBUG = false;
 
