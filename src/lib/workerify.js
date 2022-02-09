@@ -29,12 +29,17 @@ function workerify(funcToWorkerify) {
   }
   const worker = new Worker(workerUrl);
 
+  function cleanup() {
+    worker.terminate();
+    window.URL.revokeObjectURL(workerUrl);
+  }
+
   const workerAsFn = function(args) {
     args = [].slice.call(arguments);
 
     if (!state.isRunning) {
       state.isRunning = true;
-      worker.postMessage(...args);
+      worker.postMessage(...(args.length > 0 ? args : [null]));
     }
     else {
       throw new Error('workerify -- worker is already running...');
@@ -44,6 +49,7 @@ function workerify(funcToWorkerify) {
       worker.onmessage = e => {
         if (e.data[WORKERIFY_MESSAGE_IDENTIFIER]) {
           resolve(e.data.result);
+          cleanup();
         }
         else {
           state.messageListeners.forEach(fn => fn(e.data));
@@ -53,8 +59,7 @@ function workerify(funcToWorkerify) {
   };
 
   workerAsFn.terminate = ()=> {
-    worker.terminate();
-    window.URL.revokeObjectURL(workerUrl);
+    cleanup();
     state.messageListeners = [];
   };
 
