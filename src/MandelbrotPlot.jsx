@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './styles/MandelbrotPlot.css';
 
 import { drawMandelbrot } from './mandelbrot/drawMandelbrot';
-import { useThrottledValue } from './lib/useThrottledValue';
+import { throttle } from './lib/throttle';
 import { zoomInPlot, zoomOutPlot } from './canvasEvents';
 
 // TODO: my old code doesn't have the thick horizontal line?
@@ -18,24 +18,24 @@ function MandelbrotPlot({ params, setPlotParams }) {
   useEffect(() => {
     setIsCalculating(true);
     setPercentComplete(0);
+    const setPercentCompleteThrottled = throttle(setPercentComplete, 125);
+
     drawMandelbrot({
       canvas: canvasRef.current,
       params,
-      onProgress: percent => setPercentComplete(percent),
+      onProgress: percent => setPercentCompleteThrottled(percent),
     }).then(() => {
       setIsCalculating(false);
       setPercentComplete(100);
     });
   }, [params]);
 
-  const percentCompleteThrottled = useThrottledValue(percentComplete, 125);
-
   return (
     <div className='mandelbrot-plot-container'>
       <div className='computation-status'>
         <span className='status-msg'>
           {isCalculating ?
-            `Working... ${percentCompleteThrottled}%` :
+            `Working... ${percentComplete}%` :
             `Done calculating!`
           }
         </span>
