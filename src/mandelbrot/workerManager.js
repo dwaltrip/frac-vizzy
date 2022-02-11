@@ -2,7 +2,7 @@ import { createMandelbrotComputeWorker } from './computeMandelbrot';
 
 let workers = [];
 
-const MandelbrotWorkerManager = {
+const WorkerManager = {
   terminateAllWorkers: function() {
     workers.forEach(worker => worker.terminate());
     workers = [];
@@ -15,4 +15,4 @@ const MandelbrotWorkerManager = {
   },
 };
 
-export { MandelbrotWorkerManager };
+export { WorkerManager };

@@ -1,9 +1,8 @@
-import { assert } from '../lib/assert';
 import { round } from '../lib/round';
 import { drawPoints, drawLine } from '../lib/draw';
 
 import { calcPlotState } from '../state/plot';
-import { MandelbrotWorkerManager } from './mandelbrotWorkerManager';
+import { ComputeManager } from './computeManager';
 
 const DEBUG = false;
 
@@ -20,66 +19,34 @@ const USE_COLORS = true;
 function drawMandelbrot({ canvas, params, onProgress }) {
   console.log('======== drawMandelbrot ========');
 
-  const { realRange, complexRange } = params;
   const plot = calcPlotState(canvas, params);
 
-  assert(
-    realRange.start >= -2 && realRange.end <= 2,
-    `Invaid realRange: ${realRange}`,
-  );
-  assert(
-    complexRange.start >= -2 && complexRange.end <= 2,
-    `Invaid yrange: ${complexRange}`,
-  );
-
-  MandelbrotWorkerManager.terminateAllWorkers();
-  const computePointsInWorker = MandelbrotWorkerManager.createWorker();
-
-  const args = {
-    real_range: {
-      start: realRange.start,
-      end: realRange.end,
-      num_steps: plot.width,
-    },
-    complex_range: {
-      start: complexRange.start,
-      end: complexRange.end,
-      num_steps: plot.height, 
-    },
-    iteration_limit: params.iterationLimit,
-  };
-
-  computePointsInWorker.listen(data => {
-    const { label, percentComplete } = data;
-    if (label == 'progress-update') {
-      onProgress && onProgress(percentComplete);
-    } 
-  });
-
-  function render(points) {
-    const ctx = canvas.getContext("2d");
-
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    const colorMap = getColorMap(points);
-
-    let t0 = performance.now();
-    drawPoints(imgData, points, plot.topLeft, colorMap);
-    // Render the data onto the canvas!
-    ctx.putImageData(imgData, 0, 0);
-    let t1 = performance.now();
-
-    console.log(`Timer -- rendering took ${t1 - t0} milliseconds.`);
-  }
-
   let t0 = performance.now();
-  return computePointsInWorker(args).then(points => {
+  return ComputeManager.computePoints({ params, plot, onProgress }).then(points => {
     let t1 = performance.now();
     console.log(`Timer -- computeMandlebrotPoints() took ${t1 - t0} milliseconds.`);
-    render(points);
+    render(canvas, plot, points);
   });
+}
+
+// ----------------------------------------------------------------------
+
+function render(canvas, plot, points) {
+  const ctx = canvas.getContext("2d");
+
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  const colorMap = getColorMap(points);
+
+  let t0 = performance.now();
+  drawPoints(imgData, points, plot.topLeft, colorMap);
+  // Render the data onto the canvas!
+  ctx.putImageData(imgData, 0, 0);
+  let t1 = performance.now();
+
+  console.log(`Timer -- rendering took ${t1 - t0} milliseconds.`);
 }
 
 // ----------------------------------------------------------------------
