@@ -63,42 +63,35 @@ function createMandelbrotComputeWorker() {
       real_range: r_range,
       complex_range: c_range,
       iteration_limit,
+      workerOffset,
+      numWorkers,
     }) {
       const r_step_size = (r_range.end - r_range.start) / r_range.num_steps;
       const c_step_size = (c_range.end - c_range.start) / c_range.num_steps;
 
-      const points = [];
+      let c = workerOffset;
 
-      for (let i=0; i<c_range.num_steps; i++) {
-        points.push([]);
-      }
+      while(c < c_range.num_steps) {
+        const row = []:
 
-      const totalIterations = c_range.num_steps * r_range.num_steps;
-      const onePercentOfTotalIters = Math.ceil(totalIterations / 100);
-      let iterCount = 0;
-
-      for (let c=0; c<c_range.num_steps; c++) {
         for (let r=0; r<r_range.num_steps; r++) {
           const real    = r_range.start + (r * r_step_size);
           const complex = c_range.start + (c * c_step_size);
-
           const status = calcMandlebrotSetStatus(real, complex, iteration_limit);
-          points[c].push({
+
+          row.push({
             isInSet: status.isInSet,
             divergenceFactor: Math.ceil(Math.log(status.iteration)),
           });
-
-          iterCount++;
-          if (iterCount % onePercentOfTotalIters === 0) {
-            postMessage({
-              label: 'progress-update',
-              percentComplete: Math.floor(100 * (iterCount / totalIterations)),
-            })
-          }
         }
-      }
 
-      return points;
+        postMessage({
+          label: 'done-computing-row',
+          data: { y: c, xValues: row },
+        });
+
+        c += numWorkers;
+      }
     }
 
     return computeMandlebrotPoints(...args);

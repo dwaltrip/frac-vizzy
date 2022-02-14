@@ -34,40 +34,42 @@ function workerify(funcToWorkerify) {
     window.URL.revokeObjectURL(workerUrl);
   }
 
-  const workerAsFn = function(args) {
-    args = [].slice.call(arguments);
+  const WrappedWorker = {
+    run(args) {
+      args = [].slice.call(arguments);
 
-    if (!state.isRunning) {
-      state.isRunning = true;
-      worker.postMessage(...(args.length > 0 ? args : [null]));
-    }
-    else {
-      throw new Error('workerify -- worker is already running...');
-    }
+      if (!state.isRunning) {
+        state.isRunning = true;
+        worker.postMessage(...(args.length > 0 ? args : [null]));
+      }
+      else {
+        throw new Error('workerify -- worker is already running...');
+      }
 
-    return new Promise((resolve, reject) => {
-      worker.onmessage = e => {
-        if (e.data[WORKERIFY_MESSAGE_IDENTIFIER]) {
-          resolve(e.data.result);
-          cleanup();
-        }
-        else {
-          state.messageListeners.forEach(fn => fn(e.data));
-        }
-      };
-    });
+      return new Promise((resolve, reject) => {
+        worker.onmessage = e => {
+          if (e.data[WORKERIFY_MESSAGE_IDENTIFIER]) {
+            resolve(e.data.result);
+            cleanup();
+          }
+          else {
+            state.messageListeners.forEach(fn => fn(e.data));
+          }
+        };
+      });
+    },
+
+    terminate() {
+      cleanup();
+      state.messageListeners = [];
+    },
+
+    listen(handler) {
+      state.messageListeners.push(handler);
+    },
   };
 
-  workerAsFn.terminate = ()=> {
-    cleanup();
-    state.messageListeners = [];
-  };
-
-  workerAsFn.listen = (handler) => {
-    state.messageListeners.push(handler);
-  };
-
-  return workerAsFn;
+  return WrappedWorker;
 }
 
 export { workerify };

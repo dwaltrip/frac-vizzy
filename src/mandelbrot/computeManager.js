@@ -1,8 +1,13 @@
 import { assert } from '../lib/assert';
 import { WorkerManager } from './workerManager';
 
+// -----------------------------
+// TODO: ... implement this....
+const NUM_WORKERS = 4;
+// -----------------------------
+
 const ComputeManager = {
-  computePoints: function({ params, plot, onProgress }) {
+  computePoints: function({ params, plot, handleNewRow, onProgress }) {
 
     const { realRange, complexRange } = params;
 
@@ -29,17 +34,41 @@ const ComputeManager = {
       iteration_limit: params.iterationLimit,
     };
 
+    const workerArgs = [];
+    for (let i=0; i<NUM_WORKERS; i++) {
+      workerArgs.push({
+        // main args
+        computeArgs.real_range,
+        computeArgs.complex_range,
+        computeArgs.iteration_limit,
+
+        // parallelization args
+        workerOffset: i,
+        numWorkers: NUM_WORKERS,
+      });
+    }
+
+    let totalRows = plot.height;
+    let rowsComputed = 0;
+
+    const messageHandler = ({ label, data }) => {
+      if (label == 'done-computing-row') {
+        handleNewRow(data);
+
+        rowsComputed += 1;
+        if (onProgress) {
+          let percentComplete = Math.floor(100 * (rowsComputed / totalRows)),
+          onProgress(percentComplete);
+        }
+      }
+    };
+    
     WorkerManager.terminateAllWorkers();
-    const computePointsInWorker = WorkerManager.createWorker();
-
-    computePointsInWorker.listen(data => {
-      const { label, percentComplete } = data;
-      if (label == 'progress-update') {
-        onProgress && onProgress(percentComplete);
-      } 
-    });
-
-    return computePointsInWorker(computeArgs);
+    return Promise.all(workerArgs.map(args => {
+      const worker = WorkerManager.createWorker();
+      worker.listen(messageHandler);
+      return worker.run(args);
+    }));
   },
 };
 

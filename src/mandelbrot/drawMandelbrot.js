@@ -19,37 +19,43 @@ const USE_COLORS = true;
 function drawMandelbrot({ canvas, params, onProgress }) {
   console.log('======== drawMandelbrot ========');
 
-  const plot = calcPlotState(canvas, params);
+  // Clear the canvas
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // ------------------------------------------------------
+  // TODO: How are we going to build the color map?
+  // Before we were waiting until we had all of the points.
+  let colorMap = new Map();
+  const getColor = val => colorMap.get(val);
+  // ------------------------------------------------------
 
   let t0 = performance.now();
-  return ComputeManager.computePoints({ params, plot, onProgress }).then(points => {
+  return ComputeManager.computePoints({
+    params,
+    plot: calcPlotState(canvas, params),
+    onProgress,
+    handleNewRow: ({ y, xValues }) => drawRow(ctx, y, xValues, getColor),
+  }).then(() => {
     let t1 = performance.now();
-    console.log(`Timer -- computeMandlebrotPoints() took ${t1 - t0} milliseconds.`);
-    render(canvas, plot, points);
+    console.log(`Timer -- ComputeManager.computePoints() took ${t1 - t0} milliseconds.`);
   });
 }
 
 // ----------------------------------------------------------------------
 
-function render(canvas, plot, points) {
-  const ctx = canvas.getContext("2d");
+function drawRow(ctx, y, xValues, getColor) {
+  const imgDataForRow = ctx.createImageData(cavans.width, 1);
 
-  // Clear the canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  for (let x = 0; x < xValues.length; x++) {
+    let color = getColor(xValues[x]);
+    drawPixel(imgDataForRow, x, 0, color.r, color.g, color.b);
+  }
 
-  const colorMap = getColorMap(points);
-
-  let t0 = performance.now();
-  drawPoints(imgData, points, plot.topLeft, colorMap);
-  // Render the data onto the canvas!
-  ctx.putImageData(imgData, 0, 0);
-  let t1 = performance.now();
-
-  console.log(`Timer -- rendering took ${t1 - t0} milliseconds.`);
+  ctx.putImageData(imgDataForRow, 0, y);
 }
 
-// ----------------------------------------------------------------------
+// ----------------------------------------------------------------
 
 // TODO: the color stuff needs a lot of work... it doesn't look like online pics.
 function getColorMap(points) {
