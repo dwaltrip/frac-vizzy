@@ -20,6 +20,7 @@ const ComputeManager = {
       `Invaid yrange: ${complexRange}`,
     );
 
+    // TODO: convert snake_case to camelCase
     const computeArgs = {
       real_range: {
         start: realRange.start,
