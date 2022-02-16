@@ -57,6 +57,7 @@ function SelectWithCustomValues({ value, options, onChange }) {
             value={inputValue}
             onChange={event => setInputValue(event.target.value)}
           />
+          {/* TODO: the disabled / not-disabled states look far too similar */}
           <button onClick={submitCustomValue} disabled={!hasUnsavedChanges}>
             Apply
           </button>

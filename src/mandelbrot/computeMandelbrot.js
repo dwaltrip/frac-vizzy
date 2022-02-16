@@ -6,19 +6,37 @@ function createMandelbrotComputeWorker() {
   // It must fully self-contained without any external references.
   return workerify(function workerCode(...args) {
 
-    // Mandlebrot set inclusion radius
-    const MB_RADIUS = 2; 
-    const CRITICAL_POINT_Z = { real: 0, complex: 0 };
+    // `numReal, numComplex` are the real and complex parts of the number
+    // that is being tested.
+    // The number being tested is used in place of the constant `c` in the
+    // special function, f_c(z) = z^2 + c, that is used for iteration.
+    function calcMandlebrotSetStatus(numReal, numComplex, iterationLimit) {
+      const MB_RADIUS = 2; 
+      const CRITICAL_POINT_Z = { real: 0, complex: 0 };
 
-    function calcMandlebrotSetStatus(num_real, num_complex, iteration_limit) {
-      let current_r = CRITICAL_POINT_Z.real + num_real;
-      let current_c = CRITICAL_POINT_Z.complex + num_complex;
+      // `current` is the value for `z` as we iterate over the function.
+      let currentR = CRITICAL_POINT_Z.real + numReal;
+      let currentC = CRITICAL_POINT_Z.complex + numComplex;
 
-      for (let i=0; i<iteration_limit; i++) {
+      // We iterate over the funciton, f_c(z) = z^2 + c, each time taking the
+      // resulting value and plugging back in for `z`.
+      // If the value `z` diverges, then the number being tested is not part of
+      // of the Mandelbrot set.
+      for (let i=0; i<iterationLimit; i++) {
+
+        // These lines calculate `z^2`.
+        const z2Real = currentR * currentR - (currentC * currentC);
+        const z2Complex = currentR * currentC + (currentC * currentR);
+
+        // These lines calculate `z^2 + c`.
+        // This gives us the next value to plug back in as `z`.
+        currentR = z2Real + numReal;
+        currentC = z2Complex + numComplex;
+
         // check for bad values
         if (
-          (isNaN(current_r) || typeof current_r === 'undefined') ||
-          (isNaN(current_c) || typeof current_c === 'undefined')
+          (isNaN(currentR) || typeof currentR === 'undefined') ||
+          (isNaN(currentC) || typeof currentC === 'undefined')
         ) {
           return {
             isInSet: false,
@@ -28,31 +46,29 @@ function createMandelbrotComputeWorker() {
 
         // check for out of bounds
         if (
-          (current_r > 2 || current_r < -2) ||
-          (current_c > 2 || current_c < -2)
+          (currentR > 2 || currentR < -2) ||
+          (currentC > 2 || currentC < -2)
         ) {
           return {
             isInSet: false,
             iteration: i,
           };
         }
-
-        // Iterate!
-        // f_c(z) = z^2 + c;
-        const z2_real = current_r * current_r - (current_c * current_c);
-        const z2_complex = current_r * current_c + (current_c * current_r);
-        current_r = num_real + z2_real;
-        current_c = num_complex + z2_complex;
       }
 
       // Final, more accurate out of bounds check
-      if (Math.sqrt(Math.pow(current_r, 2) + Math.pow(current_c, 2)) > MB_RADIUS) {
+      if (Math.sqrt(Math.pow(currentR, 2) + Math.pow(currentC, 2)) > MB_RADIUS) {
         return {
           isInSet: false,
-          iteration: iteration_limit,
+          iteration: iterationLimit,
         };
       }
 
+      // If we reach this point, the iterations did not diverge, and the point
+      // is considered "in the set". Of course, it may diverge if addtional
+      // iterations are performed.
+      // I believe it is mathematically impossible to know if a point is truly
+      // in the set. It is always "provisional", so to speak.
       return { isInSet: true };
     }
 
@@ -60,24 +76,27 @@ function createMandelbrotComputeWorker() {
 
     // TODO: I think I have been drawing it inverted vertically...
     function computeMandlebrotPoints({
-      real_range: r_range,
-      complex_range: c_range,
-      iteration_limit,
+      realRange: rRange,
+      complexRange: cRange,
+      iterationLimit,
       workerOffset,
       numWorkers,
     }) {
-      const r_step_size = (r_range.end - r_range.start) / r_range.num_steps;
-      const c_step_size = (c_range.end - c_range.start) / c_range.num_steps;
+      // For each dimension, we loop `numSteps` times. Thus, calculating the
+      // `stepSize` this way results in `numSteps` pixels for each dimension,
+      // with the first pixel corresponding exactly to the point `range.start`
+      // and the last pixel corresponding to the point `range.end`.
+      const rStepSize = (rRange.end - rRange.start) / (rRange.numSteps - 1);
+      const cStepSize = (cRange.end - cRange.start) / (cRange.numSteps - 1);
 
       let c = workerOffset;
-
-      while(c < c_range.num_steps) {
+      while(c < cRange.numSteps) {
         const row = []:
 
-        for (let r=0; r<r_range.num_steps; r++) {
-          const real    = r_range.start + (r * r_step_size);
-          const complex = c_range.start + (c * c_step_size);
-          const status = calcMandlebrotSetStatus(real, complex, iteration_limit);
+        for (let r=0; r<rRange.numSteps; r++) {
+          const real    = rRange.start + (r * rStepSize);
+          const complex = cRange.start + (c * cStepSize);
+          const status = calcMandlebrotSetStatus(real, complex, iterationLimit);
 
           row.push({
             isInSet: status.isInSet,

@@ -1,5 +1,6 @@
 import { randInt } from '../lib/randInt';
 
+// NOTE: There is a some logic repeated here from `computeMandelbrot.js`
 function buildColorMap({
   realRange: rRange,
   complexRange: cRange,
@@ -8,9 +9,8 @@ function buildColorMap({
   const numPixels = rRange.numSteps * cRange.numSteps;
   const numSamples = Math.floor(numPixels / 1000);
 
-  const rStepSize = (rRange.end - rRange.start) / rRange.numSteps;
-  const cStepSize = (cRange.end - cRange.start) / cRange.numSteps;
-
+  const rStepSize = (rRange.end - rRange.start) / (rRange.numSteps - 1);
+  const cStepSize = (cRange.end - cRange.start) / (cRange.numSteps - 1);
 
   let maxDivergenceFactor = 0;
   // TODO: Is this consistent enough?
@@ -18,11 +18,13 @@ function buildColorMap({
   for(let i=0; i<numSamples; i++) {
     const rIndex = randInt(0, rRange.numSteps - 1);
     const cIndex = randInt(0, cRange.numSteps - 1);
+
     const real = rRange.start + (rIndex * rStepSize);
     const complex = cRange.start + (cIndex * cStepSize);
 
     const status = calcMandlebrotSetStatus(real, complex, iterationLimit);
     const divergenceFactor = Math.ceil(Math.log(status.iteration));
+
     maxDivergenceFactor = Math.max(divergenceFactor, maxDivergenceFactor);
   }
 

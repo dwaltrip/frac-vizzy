@@ -1,5 +1,5 @@
 import { round } from '../lib/round';
-import { drawPoints, drawLine } from '../lib/draw';
+import { drawPixel } from '../lib/draw';
 
 import { calcPlotState } from '../state/plot';
 import { ComputeManager } from './computeManager';
@@ -42,16 +42,18 @@ function drawMandelbrot({ canvas, params, onProgress }) {
 // ----------------------------------------------------------------------
 
 function drawRow(ctx, y, xValues, getColor) {
-  const imgDataForRow = ctx.createImageData(cavans.width, 1);
+  const imgDataForSingleRow = ctx.createImageData(cavans.width, 1);
 
   for (let x = 0; x < xValues.length; x++) {
     const status = xValues[x];
+    // TODO: This magic number -1 should be in a shared const var somewhere,
+    // as it is referenced in multiple places.
     const value = status.isInSet ? -1 : status.divergenceFactor;
     const color = getColor(value);
-    drawPixel(imgDataForRow, x, 0, color.r, color.g, color.b);
+    drawPixel(imgDataForSingleRow, x, 0, color.r, color.g, color.b);
   }
 
-  ctx.putImageData(imgDataForRow, 0, y);
+  ctx.putImageData(imgDataForSingleRow, 0, y);
 }
 
 // ----------------------------------------------------------------------

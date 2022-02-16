@@ -30,6 +30,7 @@ function drawPoints(imageData, points, topLeft, colormap) {
   }
 }
 
+// NOTE: this currently isn't used anywhere but I used it for debugging before.
 function drawLine(ctx, p1, p2, color, width=2) {
   const preStyle = ctx.strokeStyle 
   ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a || 1})`;
@@ -41,4 +42,4 @@ function drawLine(ctx, p1, p2, color, width=2) {
   ctx.strokeStyle = preStyle;
 }
 
-export { drawPoints, drawLine };
+export { drawPixel, drawLine };

@@ -20,30 +20,24 @@ const ComputeManager = {
       `Invaid yrange: ${complexRange}`,
     );
 
-    // TODO: convert snake_case to camelCase
     const computeArgs = {
-      real_range: {
-        start: realRange.start,
-        end: realRange.end,
-        num_steps: plot.width,
+      realRange: {
+        ...realRange,
+        numSteps: plot.width,
       },
-      complex_range: {
-        start: complexRange.start,
-        end: complexRange.end,
-        num_steps: plot.height, 
+      complexRange: {
+        ...complexRange,
+        numSteps: plot.height,
       },
-      iteration_limit: params.iterationLimit,
+      iterationLimit: params.iterationLimit,
     };
 
     const workerArgs = [];
     for (let i=0; i<NUM_WORKERS; i++) {
       workerArgs.push({
-        // main args
-        computeArgs.real_range,
-        computeArgs.complex_range,
-        computeArgs.iteration_limit,
-
-        // parallelization args
+        // main args:
+        ...computeArgs,
+        // parallelization args:
         workerOffset: i,
         numWorkers: NUM_WORKERS,
       });
@@ -65,6 +59,8 @@ const ComputeManager = {
     };
     
     WorkerManager.terminateAllWorkers();
+
+    // TODO: handle errors?
     return Promise.all(workerArgs.map(args => {
       const worker = WorkerManager.createWorker();
       worker.listen(messageHandler);
