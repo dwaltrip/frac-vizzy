@@ -19,15 +19,16 @@ function workerify(funcToWorkerify) {
   });
 }`),
   ].join('\n');
+
   const workerUrl = window.URL.createObjectURL(
     new Blob([workerCodeStr], {type:'text/javascript'})
   );
+  const worker = new Worker(workerUrl);
 
   const state = {
     messageListeners: [],
     isRunning: false,
-  }
-  const worker = new Worker(workerUrl);
+  };
 
   function cleanup() {
     worker.terminate();
@@ -43,7 +44,7 @@ function workerify(funcToWorkerify) {
         worker.postMessage(...(args.length > 0 ? args : [null]));
       }
       else {
-        throw new Error('workerify -- worker is already running...');
+        throw new Error('workerify -- run() should only be called once.');
       }
 
       return new Promise((resolve, reject) => {
