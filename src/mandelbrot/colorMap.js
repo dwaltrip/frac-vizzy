@@ -1,4 +1,5 @@
 import { randInt } from '../lib/randInt';
+import { calcMandlebrotSetStatus } from './computeMandelbrot';
 
 // NOTE: There is a some logic repeated here from `computeMandelbrot.js`
 function buildColorMap({
@@ -23,9 +24,10 @@ function buildColorMap({
     const complex = cRange.start + (cIndex * cStepSize);
 
     const status = calcMandlebrotSetStatus(real, complex, iterationLimit);
-    const divergenceFactor = Math.ceil(Math.log(status.iteration));
-
-    maxDivergenceFactor = Math.max(divergenceFactor, maxDivergenceFactor);
+    if (!status.isInSet) {
+      const divergenceFactor = Math.ceil(Math.log(status.iteration));
+      maxDivergenceFactor = Math.max(divergenceFactor, maxDivergenceFactor);
+    }
   }
 
   // const bgColor = { r: 247, g: 243, b: 238 };
@@ -54,7 +56,6 @@ function buildColorMap({
     colorMap.set(i, { r, g, b });
   }
 
-  // console.log('colorMap:', colorMap);
   return colorMap;
 }
 

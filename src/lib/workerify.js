@@ -7,9 +7,10 @@
 // TODO: Transferables?
 const WORKERIFY_MESSAGE_IDENTIFIER = '__$WORKERIFY_MESSAGE_IDENTIFIER';
 
-function workerify(funcToWorkerify) {
+function workerify(funcToWorkerify, dependencyFuncs) {
   const workerCodeStr = [
-    '$$ = ' + funcToWorkerify.toString() + ';',
+    ...(dependencyFuncs || []).map(fn => fn.toString()),
+    'const $$ = ' + funcToWorkerify.toString() + ';',
     (
 `onmessage = function(e) {
   const result = $$(e.data);
@@ -18,7 +19,10 @@ function workerify(funcToWorkerify) {
     '${WORKERIFY_MESSAGE_IDENTIFIER}': true,
   });
 }`),
-  ].join('\n');
+  ].join('\n\n');
+  // console.log('--- workerCodeStr -----------------------------\n');
+  // console.log(workerCodeStr);
+  // console.log('\n-----------------------------------------------');
 
   const workerUrl = window.URL.createObjectURL(
     new Blob([workerCodeStr], {type:'text/javascript'})

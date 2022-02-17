@@ -7,10 +7,9 @@ const NUM_WORKERS = 4;
 // -----------------------------
 
 const ComputeManager = {
-  computePoints: function({ params, plot, handleNewRow, onProgress }) {
+  computePoints: function({ computeArgs, handleNewRow, onProgress }) {
 
-    const { realRange, complexRange } = params;
-
+    const { realRange, complexRange } = computeArgs;
     assert(
       realRange.start >= -2 && realRange.end <= 2,
       `Invaid realRange: ${realRange}`,
@@ -19,19 +18,7 @@ const ComputeManager = {
       complexRange.start >= -2 && complexRange.end <= 2,
       `Invaid yrange: ${complexRange}`,
     );
-
-    const computeArgs = {
-      realRange: {
-        ...realRange,
-        numSteps: plot.width,
-      },
-      complexRange: {
-        ...complexRange,
-        numSteps: plot.height,
-      },
-      iterationLimit: params.iterationLimit,
-    };
-
+ 
     const workerArgs = [];
     for (let i=0; i<NUM_WORKERS; i++) {
       workerArgs.push({
@@ -43,7 +30,7 @@ const ComputeManager = {
       });
     }
 
-    let totalRows = plot.height;
+    let totalRows = complexRange.numSteps;
     let rowsComputed = 0;
 
     const messageHandler = ({ label, data }) => {
@@ -52,7 +39,7 @@ const ComputeManager = {
 
         rowsComputed += 1;
         if (onProgress) {
-          let percentComplete = Math.floor(100 * (rowsComputed / totalRows)),
+          let percentComplete = Math.floor(100 * (rowsComputed / totalRows));
           onProgress(percentComplete);
         }
       }

@@ -13,12 +13,13 @@ function calcPlotState(canvas, params) {
   if (rRatio > cRatio) {
     const pixelsPerPlotUnit = canvas.height / cLength;
     plotHeight = canvas.height;
-    plotWidth = rLength * pixelsPerPlotUnit;
+    // TODO: is this Math.floor fine? Why didn't I have this before?
+    plotWidth = Math.floor(rLength * pixelsPerPlotUnit); 
   }
   // the real-dimension is the constraining one
   else {
     const pixelsPerPlotUnit = canvas.width / rLength;
-    plotHeight = cLength * pixelsPerPlotUnit;
+    plotHeight = Math.floor(cLength * pixelsPerPlotUnit);
     plotWidth = canvas.width;
   }
 
