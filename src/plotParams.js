@@ -3,6 +3,7 @@ import qs from 'qs';
 const DEFAULT_PARAMS = {
   realRange: { start: "-1.5", end: "0.5" },
   complexRange: { start: "-1.2", end: "1.2" },
+  zoomLevel: "0",
   iterationLimit: "250",
 };
 
@@ -21,6 +22,7 @@ function getInitialParams() {
       ...defaults.complexRange,
       ...urlData.complexRange,
     }),
+    zoomLevel: parseInt(urlData.zoomLevel || defaults.zoomLevel),
     iterationLimit: parseInt(urlData.iterationLimit || defaults.iterationLimit),
   };
 }
@@ -33,6 +35,7 @@ function serializeParams(params) {
   return {
     rr: serializeRange(params.realRange),
     cr: serializeRange(params.complexRange),
+    z: params.zoomLevel,
     il: params.iterationLimit,
   };
 }
@@ -45,6 +48,7 @@ function deserializeParams(params) {
   return {
     realRange: deserializeRange(params.rr),
     complexRange: deserializeRange(params.cr),
+    zoomLevel: params.z,
     iterationLimit: params.il,
   };
 }

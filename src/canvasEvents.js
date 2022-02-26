@@ -3,6 +3,7 @@ import { truncateRange } from './lib/truncateRange';
 
 import { calcPlotState } from './state/plot';
 
+// NOTE: this needs to be a multiple of 2!
 const CANVAS_ZOOM_FACTOR = 4;
 
 function zoomInPlot({ canvas, event, params, setPlotParams }) {
@@ -10,7 +11,7 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
   const mousePos = getMousePos(canvas, event);
   console.log('\tmousePos:', mousePos);
 
-  const { realRange, complexRange } = params;
+  const { realRange, complexRange, zoomLevel } = params;
   const plot = calcPlotState(canvas, params);
 
   const rLength = realRange.end - realRange.start;
@@ -47,10 +48,11 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
       start: newCenter.y - (yLen / 2),
       end: newCenter.y + (yLen / 2),
     }, .001),
+    zoomLevel: zoomLevel * CANVAS_ZOOM_FACTOR,
   });
 }
 
-// TODO: set max zoom by clamping realRange and complexRange.
+// TODO: set max zoom by constraining realRange, complexRange, and zoomLevel
 function zoomOutPlot({ canvas, event, params, setPlotParams }) {
   console.log('======= zoomOutPlot -- start =======');
 
@@ -65,7 +67,8 @@ function zoomOutPlot({ canvas, event, params, setPlotParams }) {
     return;
   }
 
-  const { realRange, complexRange } = params;
+  const { realRange, complexRange, zoomLevel } = params;
+
   const rLength = realRange.end - realRange.start;
   const cLength = complexRange.end - complexRange.start;
 
@@ -86,6 +89,7 @@ function zoomOutPlot({ canvas, event, params, setPlotParams }) {
       start: center.c - (newCLength / 2),
       end: center.c + (newCLength / 2),
     }, .001),
+    zoomLevel: zoomLevel / CANVAS_ZOOM_FACTOR,
   });
 }
 
