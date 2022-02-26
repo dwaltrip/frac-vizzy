@@ -1,4 +1,6 @@
 
+// TODO: this is all wrong.
+// It needs to be based off of `params.zoomLevel`
 function calcPlotState(canvas, params) {
   const { realRange, complexRange } = params;
 

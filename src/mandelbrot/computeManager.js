@@ -7,7 +7,7 @@ const NUM_WORKERS = 4;
 // -----------------------------
 
 const ComputeManager = {
-  computePoints: function({ computeArgs, handleNewRow, onProgress }) {
+  computePoints: function({ computeArgs, handleNewTile, onProgress }) {
 
     const { realRange, complexRange } = computeArgs;
     assert(
@@ -34,8 +34,8 @@ const ComputeManager = {
     let rowsComputed = 0;
 
     const messageHandler = ({ label, data }) => {
-      if (label == 'done-computing-row') {
-        handleNewRow(data);
+      if (label == 'done-computing-tile') {
+        handleNewTile(data);
 
         rowsComputed += 1;
         if (onProgress) {
@@ -55,5 +55,10 @@ const ComputeManager = {
     }));
   },
 };
+
+function computeArgsToTileDesc(computeArgs) {
+  const { realRange, complexRange } = computeArgs;
+  
+}
 
 export { ComputeManager };

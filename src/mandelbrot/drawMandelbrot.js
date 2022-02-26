@@ -54,13 +54,17 @@ function drawMandelbrot({ canvas, params, onProgress }) {
   return ComputeManager.computePoints({
     computeArgs,
     onProgress,
-    handleNewRow: ({ y, xValues }) => {
+    // TODO: Cache the tile data!!
+    // Who is in charge of that?
+    // -------------------------
+    // I don't understand `pos` here.
+    handleNewTile: ({ tile, pos }) => {
       const offset = { 
-        x: plot.topLeft.x,
-        y: plot.topLeft.y + y,
+        x: plot.topLeft.x + pos.x,
+        y: plot.topLeft.y + pos.y,
       };
-      drawRow(ctx, offset, xValues, getColor);
-    }
+      drawTile(ctx, offset, tile, getColor);
+    },
   }).then(() => {
     let t1 = performance.now();
     console.log(`Timer -- ComputeManager.computePoints() took ${t1 - t0} milliseconds.`);
@@ -70,19 +74,44 @@ function drawMandelbrot({ canvas, params, onProgress }) {
 
 // ----------------------------------------------------------------------
 
-function drawRow(ctx, offset, xValues, getColor) {
-  const imgDataForSingleRow = ctx.createImageData(xValues.length, 1);
+// TODO: how do I know how many pixels are in a tile?
+function drawTile(ctx, params, tile) {
+  const { realRange, complexRange } = params;
 
-  for (let x = 0; x < xValues.length; x++) {
-    const status = xValues[x];
-    // TODO: This magic number -1 should be in a shared const var somewhere,
-    // as it is referenced in multiple places.
-    const value = status.isInSet ? -1 : status.divergenceFactor;
-    const color = getColor(value);
-    drawPixel(imgDataForSingleRow, x, 0, color.r, color.g, color.b);
+  const { data, sideLength } = tile;
+  // const { tileRealRange, tileComplexRange } = tile;
+
+  if (tile.realRange.start - 
+
+  const visibleWidth = 
+  const visibleHeight = 
+
+  const imgDataForTile = ctx.createImageData(visibleWidth, visibleHeight);
+}
+
+// TODO: need to be able to draw part of a tile
+function drawTile(ctx, offset, tile, getColor) {
+  const [yLen, xLen] = [tile.length, (tile[0] || []).length];
+  assert(yLen > 0 && xLen > 0, `Bad tile -- xLen: ${xLen}, yLen: ${yLen}`);
+
+
+  const imgDataForTile = ctx.createImageData(xLen, yLen);
+
+  for (let y = 0; x < yLen; x++) {
+    const row = tile[y];
+    assert(row.length === xLen, 'tile rows should be equal length');
+
+    for (let x=0; x<xLen; x++) {
+      const status = row[x];
+      // TODO: This magic number -1 should be in a shared const var somewhere,
+      // as it is referenced in multiple places.
+      const value = status.isInSet ? -1 : status.divergenceFactor;
+      const color = getColor(value);
+      drawPixel(imgDataForTile, x, y, color.r, color.g, color.b);
+    }
   }
 
-  ctx.putImageData(imgDataForSingleRow, offset.x, offset.y);
+  ctx.putImageData(imgDataForTile, offset.x, offset.y);
 }
 
 // ----------------------------------------------------------------------

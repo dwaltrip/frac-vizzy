@@ -1,15 +1,8 @@
 
-const TILES_PER_DIM = 2;
 const TILE_ORIGIN = { real: 0, complex: 0 };
 
-function getTileIds({ realRange, complexRange }) {
-  const rLen = realRange.end - realRange.start;
-  const cLen = complexRange.end - complexRange.start;
-  const smallerDim = Math.min(rLen, cLen);
-
-  const sideLength = getNearestTileSideLengthLessThan(
-    smallerDim / TILES_PER_DIM
-  );
+function getTileIds({ realRange, complexRange, zoomLevel }) {
+  const sideLength = 1 / Math.pow(2, zoomLevel);
 
   const topLeftPoint = {
     // topLeft is start of real range and the end of the complex range

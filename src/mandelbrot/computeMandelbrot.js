@@ -108,8 +108,9 @@ function createMandelbrotComputeWorker() {
           }
 
           postMessage({
-            label: 'done-computing-row',
-            data: { y: c, xValues: row },
+            label: 'done-computing-tile',
+            // data: { y: c, xValues: row },
+            data: { tile, pos: { x: ,y : } },
           });
 
           c += numWorkers;
