@@ -1,24 +1,31 @@
 
 const TILE_ORIGIN = { real: 0, complex: 0 };
 
-function getTileIds({ realRange, complexRange, zoomLevel }) {
+// TODO: import this from some centralized place
+const TILE_SIDE_LENGTH_IN_PIXELS = 100;
+
+// ----------------------------------------------------------------------------
+
+function getTileIds({ centerPos, plot, zoomLevel }) {
   const sideLength = 1 / Math.pow(2, zoomLevel);
 
+  const xLen = (plot.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const yLen = (plot.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+
   const topLeftPoint = {
-    // topLeft is start of real range and the end of the complex range
-    real: realRange.start,
-    complex: complexRange.end,
+    real: centerPos.x - (xLen / 2),
+    complex: centerPos.y + (yLen / 2),
   };
   const botRightPoint = {
-    real: realRange.end,
-    complex: complexRange.start,
+    real: centerPos.x + (xLen / 2),
+    complex: centerPos.y - (yLen / 2),
   };
 
   const topLeftTileId = getContainingTileId(topLeftPoint, sideLength);
   const bottomRightTileId = getContainingTileId(botRightPoint, sideLength);
 
-  const numRows = (topLeftTileId.gridCoord.complex - bottomRightTileId.gridCoord.complex) + 1;
-  const numCols = (bottomRightTileId.gridCoord.real - topLeftTileId.gridCoord.real) + 1;
+  const numRows = (topLeftTileId.gridCoord.y - bottomRightTileId.gridCoord.y) + 1;
+  const numCols = (bottomRightTileId.gridCoord.x - topLeftTileId.gridCoord.x) + 1;
 
   return getTileGrid(topLeftTileId, numRows, numCols);
 }
@@ -35,9 +42,9 @@ function getTileGrid(topLeftTileId, rows, cols) {
       row.push({
         gridCoord: {
           // moving from topLeft to topRight is positive in (real / x) dim
-          real: topLeftCoord.real + x,
+          x: topLeftCoord.x + x,
           // moving from topLeft to botLeft is negative in (complex / y) dim
-          complex: topLeftCoord.complex - y,
+          y: topLeftCoord.y - y,
         },
         sideLength: topLeftTileId.sideLength,
       });
@@ -55,17 +62,9 @@ function getTileGrid(topLeftTileId, rows, cols) {
 function getContainingTileId(point, sideLength) {
   return {
     gridCoord: {
-      real: Math.floor((point.real - TILE_ORIGIN.real) / sideLength),
-      complex: Math.floor((point.complex - TILE_ORIGIN.complex) / sideLength),
+      x: Math.floor((point.real - TILE_ORIGIN.real) / sideLength),
+      y: Math.floor((point.complex - TILE_ORIGIN.complex) / sideLength),
     },
     sideLength,
   };
-}
-
-function getNearestTileSideLengthLessThan(distance) {
-  let sideLength = 1;  
-  while (sideLength > distance) {
-    sideLength = sideLength / 2;
-  }
-  return sideLength;
 }

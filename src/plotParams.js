@@ -1,15 +1,5 @@
 import qs from 'qs';
 
-/* ----------------------------------------------------------------------------
-TODO: 
-  * Where do I set the number of pixels per tile?
-  * Best way to adjust the realRange and complexRange if they drastically
-      conflict with the specified zoom level? In reality, knowing if they
-      conflict depends on the viewport size. What assumptions should I make
-      about the viewport?
-
----------------------------------------------------------------------------- */ 
-
 // TODO: what are reasonable numbers here?
 const VIEWPORT_CONSTRAINTS = {
   MIN_LENGTH: 400,
@@ -23,93 +13,70 @@ const MIN_TILES_PER_DIM = 2;
 const PIXELS_PER_TILE_DIM = 200;
 
 const DEFAULT_PARAMS = {
-  realRange: { start: "-1.5", end: "0.5" },
-  complexRange: { start: "-1.2", end: "1.2" },
-  zoomLevel: "0",
+  centerPos: { x: "0", y: "0" },
   iterationLimit: "250",
 };
 
-function getInitialParams() {
+// These points draw a box around the fully zoomed out Mandelbrot
+const DEFAULT_TOP_LEFT = { x: -1.5, y: 1.2 };
+const DEFAULT_BOT_RIGHT = { x: 0.5, y: -1.2 };
+
+function getInitialParams(viewport) {
   const url = new URL(window.location.href);
   const urlData = deserializeParams(qs.parse(url.searchParams.toString()));
-  const defaults = DEFAULT_PARAMS;
+
+  const defaults = { ...DEFAULT_PARAMS };
+
+  if (!urlData.zoomLevel) {
+    // ------------------------------------------------------------------------
+    // Compute default zoom level so the entire Mandelbrot fits in image
+    // TODO: Should I move this outside of `getInitialParams`?
+
+    const xLen = DEFAULT_BOT_RIGHT.x - DEFAULT_TOP_LEFT.x;
+    const yLen = DEFAULT_TOP_LEFT.y - DEFAULT_BOT_RIGHT.y;
+
+    const tileGrid = {
+      height: Math.ceil(viewport.height / TILE_SIDE_LENGTH_IN_PIXELS),
+      width: Math.ceil(viewport.width / TILE_SIDE_LENGTH_IN_PIXELS),
+    };
+
+    // TODO: would be nice to have a test for this logic
+    const zoomLevelFromX = Math.floor(-1 * Math.log2(xLen / tileGrid.width));
+    const zoomLevelFromY = Math.floor(-1 * Math.log2(yLen / tileGrid.height));
+    defaults.zoomLevel = Math.min([zoomLevelFromX, zoomLevelFromY]);
+    // ------------------------------------------------------------------------
+  }
+
   // TODO: Better error handling here.
   // We need to handle any possible user input for the URL param values.
   return {
-    realRange: parseRange({
-      ...defaults.realRange,
-      ...urlData.realRange,
-    }),
-    complexRange: parseRange({
-      ...defaults.complexRange,
-      ...urlData.complexRange,
+    centerPos: parsePos({
+      ...defaults.centerPos,
+      ...urlData.centerPos,
     }),
     zoomLevel: parseInt(urlData.zoomLevel || defaults.zoomLevel),
     iterationLimit: parseInt(urlData.iterationLimit || defaults.iterationLimit),
   };
 }
 
-// TODO: when there is a conflict between the `zoomLevel` and `realRange / complexRange`,
-//   I need to prefer one over the other. Which should have precedence?
-// ----------------------------------------------------------------------------
-// New idea.... instead of defining the "rectangular region of the math plane",
-//   I could just define the center point...
-// Would I still be able to guarantee that the entire Mandelbrot fractal is
-//   visible with the default params?
-//   Maybe I could set the initial zoom (when the page first loads) such
-//   that the whole things fits in the viewport
-//   (assuming a viewport that meets certain constraints, e.g. some min size)
-// ----------------------------------------------------------------------------
-function normalizeParams(params, canvas) {
-  const { realRange, complexRange, zoomLevel, ...others } = params;
-
-  const tileSideLength = 1 / Math.pow(2, zoomLevel);
-  const rLength = realRange.end - realRange.start;
-  const cLength = complexRange.end - complexRange.start;
-
-  const 
-
-  if ((rLength / tileSideLength) > MAX_TILES_PER_DIM) {
-    const rLengthAdj = tileSideLength * MAX_TILES_PER_DIM;
-  }
-
-
-  return {
-    realRange: adjustedRealRange,
-    complexRange: adjustedComplexRange,
-    zoomLevel,
-    ...others
-  };
-}
-
-// TODO: Clean up / DRY up the serialize / deserialize logic?
-// Might be hard to do so while keeping the code reasonable.
-
 function serializeParams(params) {
-  const serializeRange = range => ({ s: range.start, e: range.end });
   return {
-    rr: serializeRange(params.realRange),
-    cr: serializeRange(params.complexRange),
+    pos: params.centerPos,
     z: params.zoomLevel,
     il: params.iterationLimit,
   };
 }
 
 function deserializeParams(params) {
-  const deserializeRange = range => (range ?
-    { start: range.s, end: range.e } :
-    {}
-  );
   return {
-    realRange: deserializeRange(params.rr),
-    complexRange: deserializeRange(params.cr),
+    centerPos: params.pos,
     zoomLevel: params.z,
     iterationLimit: params.il,
   };
 }
 
-function parseRange(range) {
-  return { start: parseFloat(range.start), end: parseFloat(range.end) };
+function parsePos(pos) {
+  return { x: parseFloat(pos.x), y: parseFloat(pos.y) };
 }
 
 export { getInitialParams, serializeParams };

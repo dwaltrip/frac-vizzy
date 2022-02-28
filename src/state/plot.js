@@ -1,8 +1,12 @@
 
 // TODO: this is all wrong.
 // It needs to be based off of `params.zoomLevel`
+
+// This might be completely unneeded now.
+// Or the current values don't make sense, but we might want to store some
+//   different kind semi-related of state,
 function calcPlotState(canvas, params) {
-  const { realRange, complexRange } = params;
+  const { zoomLevel } = params;
 
   const rLength = realRange.end - realRange.start;
   const cLength = complexRange.end - complexRange.start;

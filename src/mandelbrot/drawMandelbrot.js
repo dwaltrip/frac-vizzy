@@ -1,7 +1,6 @@
 import { round } from '../lib/round';
 import { drawPixel } from '../lib/draw';
 
-import { calcPlotState } from '../state/plot';
 import { ComputeManager } from './computeManager';
 import { buildColorMap } from './colorMap';
 
@@ -19,11 +18,11 @@ function drawMandelbrot({ canvas, params, onProgress }) {
   const computeArgs = {
     realRange: {
       ...params.realRange,
-      numSteps: plot.width,
+      numSteps: canvas.width,
     },
     complexRange: {
       ...params.complexRange,
-      numSteps: plot.height,
+      numSteps: canvas.height,
     },
     iterationLimit: params.iterationLimit,
   };
@@ -59,9 +58,10 @@ function drawMandelbrot({ canvas, params, onProgress }) {
     // -------------------------
     // I don't understand `pos` here.
     handleNewTile: ({ tile, pos }) => {
+      // TODO: this offset code is incomplete / not thought out yet. Dunno what's going on.
       const offset = { 
-        x: plot.topLeft.x + pos.x,
-        y: plot.topLeft.y + pos.y,
+        x: pos.x,
+        y: pos.y,
       };
       drawTile(ctx, offset, tile, getColor);
     },
