@@ -8,43 +8,35 @@ const NUM_WORKERS = 4;
 
 const ComputeManager = {
   computePoints: function({ computeArgs, handleNewTile, onProgress }) {
+    const { centerPos, zoomLevel, viewport, iterationLimit } = computeArgs;
 
-    const { realRange, complexRange } = computeArgs;
-    assert(
-      realRange.start >= -2 && realRange.end <= 2,
-      `Invaid realRange: ${realRange}`,
-    );
-    assert(
-      complexRange.start >= -2 && complexRange.end <= 2,
-      `Invaid yrange: ${complexRange}`,
-    );
+    const tileIds = getTileIds({ centerPos, zoomLevel, viewport });
  
-    const workerArgs = [];
-    for (let i=0; i<NUM_WORKERS; i++) {
-      workerArgs.push({
-        // main args:
-        ...computeArgs,
-        // parallelization args:
-        workerOffset: i,
-        numWorkers: NUM_WORKERS,
-      });
+    const workerArgs = [...(new Array(NUM_WORKERS))].map((_, i) => ({
+      tileIds: [],
+      iterationLimit,
+      workerNum: i,
+    }));
+
+    for (let i=0; i<tileIds; i++) {
+      const workerNum = i % NUM_WORKERS;
+      workerArgs[workerNum].tileIds.push(tileIds[i]);
     }
 
-    let totalRows = complexRange.numSteps;
-    let rowsComputed = 0;
-
+    let totalTiles = tileIds.length;
+    let tilesComputed = 0;
     const messageHandler = ({ label, data }) => {
       if (label == 'done-computing-tile') {
         handleNewTile(data);
 
-        rowsComputed += 1;
+        tilesComputed += 1;
         if (onProgress) {
-          let percentComplete = Math.floor(100 * (rowsComputed / totalRows));
+          let percentComplete = Math.floor(100 * (tilesComputed / totalTiles));
           onProgress(percentComplete);
         }
       }
     };
-    
+
     WorkerManager.terminateAllWorkers();
 
     // TODO: handle errors?

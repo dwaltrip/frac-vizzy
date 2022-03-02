@@ -1,16 +1,15 @@
 
-const TILE_ORIGIN = { real: 0, complex: 0 };
+import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 
-// TODO: import this from some centralized place
-const TILE_SIDE_LENGTH_IN_PIXELS = 100;
+const TILE_ORIGIN = { real: 0, complex: 0 };
 
 // ----------------------------------------------------------------------------
 
-function getTileIds({ centerPos, plot, zoomLevel }) {
+function getTileIds({ centerPos, viewport, zoomLevel }) {
   const sideLength = 1 / Math.pow(2, zoomLevel);
 
-  const xLen = (plot.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-  const yLen = (plot.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const xLen = (viewport.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const yLen = (viewport.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
 
   const topLeftPoint = {
     real: centerPos.x - (xLen / 2),
@@ -55,7 +54,7 @@ function getTileGrid(topLeftTileId, rows, cols) {
   return grid;
 }
 
-// Starting in the upper left quadrant and moving clockwise, the grid coords
+// Starting in the upper right quadrant and moving clockwise, the grid coords
 // for the 4 tiles near the origin are: [0, 0], [0, -1], [-1, -1], [-1, 0]
 // This is determined by using Math.floor for positive component values and
 // Math.ceil for negative component values.

@@ -1,7 +1,7 @@
 import { getMousePos } from './lib/getMousePos';
 import { truncateRange } from './lib/truncateRange';
 
-// TODO: import TILE_SIDE_LENGTH_IN_PIXELS
+import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
 
 // NOTE: this needs to be a multiple of 2!
 const CANVAS_ZOOM_FACTOR = 4;

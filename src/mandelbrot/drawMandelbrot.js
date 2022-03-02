@@ -1,6 +1,7 @@
 import { round } from '../lib/round';
 import { drawPixel } from '../lib/draw';
 
+import { getViewportInfo } from '../viewport';
 import { ComputeManager } from './computeManager';
 import { buildColorMap } from './colorMap';
 
@@ -11,20 +12,16 @@ const COMPLEX_END = 2;
 
 // ----------------------------------------------------------------
 
+// TODO: Across entire app, clean up / standardize the usage of the 
+// the terminaology (real, complex) vs. (x, y)
+
 function drawMandelbrot({ canvas, params, onProgress }) {
   console.log('======== drawMandelbrot ========');
 
-  const plot = calcPlotState(canvas, params);
+  const viewport = getViewportInfo({ params, canvas });
   const computeArgs = {
-    realRange: {
-      ...params.realRange,
-      numSteps: canvas.width,
-    },
-    complexRange: {
-      ...params.complexRange,
-      numSteps: canvas.height,
-    },
-    iterationLimit: params.iterationLimit,
+    ...params,
+    viewport,
   };
 
   // Clear the canvas
@@ -74,31 +71,15 @@ function drawMandelbrot({ canvas, params, onProgress }) {
 
 // ----------------------------------------------------------------------
 
-// TODO: how do I know how many pixels are in a tile?
-function drawTile(ctx, params, tile) {
-  const { realRange, complexRange } = params;
-
-  const { data, sideLength } = tile;
-  // const { tileRealRange, tileComplexRange } = tile;
-
-  if (tile.realRange.start - 
-
-  const visibleWidth = 
-  const visibleHeight = 
-
-  const imgDataForTile = ctx.createImageData(visibleWidth, visibleHeight);
-}
-
 // TODO: need to be able to draw part of a tile
-function drawTile(ctx, offset, tile, getColor) {
-  const [yLen, xLen] = [tile.length, (tile[0] || []).length];
-  assert(yLen > 0 && xLen > 0, `Bad tile -- xLen: ${xLen}, yLen: ${yLen}`);
-
+function drawTile(ctx, offset, points, getColor) {
+  const [yLen, xLen] = [points.length, (points[0] || []).length];
+  assert(yLen > 0 && xLen > 0, `Bad points -- xLen: ${xLen}, yLen: ${yLen}`);
 
   const imgDataForTile = ctx.createImageData(xLen, yLen);
 
   for (let y = 0; x < yLen; x++) {
-    const row = tile[y];
+    const row = points[y];
     assert(row.length === xLen, 'tile rows should be equal length');
 
     for (let x=0; x<xLen; x++) {

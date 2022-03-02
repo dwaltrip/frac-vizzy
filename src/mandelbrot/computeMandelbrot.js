@@ -1,5 +1,11 @@
 import { workerify } from '../lib/workerify';
 
+import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
+
+function getPointsPerSideLength() {
+  return TILE_SIDE_LENGTH_IN_PIXELS;
+}
+
 // `numReal, numComplex` are the real and complex parts of the number
 // that is being tested.
 // The number being tested is used in place of the constant `c` in the
@@ -72,28 +78,27 @@ function createMandelbrotComputeWorker() {
   // It must fully self-contained without any external references.
   return workerify(
     function workerCode(...args) {
-      // TODO: I think I have been drawing it inverted vertically...
-      function computeMandlebrotPoints({
-        realRange: rRange,
-        complexRange: cRange,
-        iterationLimit,
-        workerOffset,
-        numWorkers,
-      }) {
-        // For each dimension, we loop `numSteps` times. Thus, calculating the
-        // `stepSize` this way results in `numSteps` pixels for each dimension,
-        // with the first pixel corresponding exactly to the point `range.start`
-        // and the last pixel corresponding to the point `range.end`.
-        const rStepSize = (rRange.end - rRange.start) / (rRange.numSteps - 1);
-        const cStepSize = (cRange.end - cRange.start) / (cRange.numSteps - 1);
+      function computeTile(tile, iterationLimit) {
+        const { gridCoord, sideLength } = tile;
+        const numSteps = getPointsPerSideLength();
 
-        let c = workerOffset;
-        while(c < cRange.numSteps) {
-          const row = [];
+        const topLeft = {
+          real: gridCoord.x * sideLength,
+          complex: (gridCoord.y + 1) * sideLength,
+        };
 
-          for (let r=0; r<rRange.numSteps; r++) {
-            const real    = rRange.start + (r * rStepSize);
-            const complex = cRange.start + (c * cStepSize);
+        const dx = tile.sideLength / numSteps;
+        const dy = dx;
+
+        let points = [];
+
+        // TODO: Double check that I'm not accidentally flipping it verticallyl
+        for (let iy=0; iy<numSteps; iy++) {
+          let row = [];
+
+          for (let ix=0; ix<numSteps; ix++) {
+            const real    = topLeft.real + (ix * dx);
+            const complex = topLeft.complex + (iy * dy);
             const status = calcMandlebrotSetStatus(real, complex, iterationLimit);
 
             row.push({
@@ -107,19 +112,26 @@ function createMandelbrotComputeWorker() {
             });
           }
 
-          postMessage({
-            label: 'done-computing-tile',
-            // data: { y: c, xValues: row },
-            data: { tile, pos: { x: ,y : } },
-          });
-
-          c += numWorkers;
+          points.push(row);
         }
+
+        return points;
       }
 
-      return computeMandlebrotPoints(...args);
+      function computePointsTileByTile({ tileIds, iterationLimit }) {
+        tileIds.forEach(tileId => {
+          const points = computeTile(tileId, iterationLimit);
+
+          postMessage({
+            label: 'done-computing-tile',
+            data: { tileId, points },
+          });
+        });
+      }
+
+      return computePointsTileByTile(...args);
     },
-    [calcMandlebrotSetStatus],
+    [calcMandlebrotSetStatus, getPointsPerSideLength],
   );
 }
 

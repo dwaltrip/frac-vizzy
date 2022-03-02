@@ -1,5 +1,7 @@
 import qs from 'qs';
 
+import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
+
 // TODO: what are reasonable numbers here?
 const VIEWPORT_CONSTRAINTS = {
   MIN_LENGTH: 400,
