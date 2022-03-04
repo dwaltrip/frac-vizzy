@@ -1,5 +1,6 @@
-import { round } from '../lib/round';
+import { assert } from '../lib/assert';
 import { drawPixel } from '../lib/draw';
+import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 
 import { getViewportInfo } from '../viewport';
 import { ComputeManager } from './computeManager';
@@ -52,15 +53,8 @@ function drawMandelbrot({ canvas, params, onProgress }) {
     onProgress,
     // TODO: Cache the tile data!!
     // Who is in charge of that?
-    // -------------------------
-    // I don't understand `pos` here.
-    handleNewTile: ({ tile, pos }) => {
-      // TODO: this offset code is incomplete / not thought out yet. Dunno what's going on.
-      const offset = { 
-        x: pos.x,
-        y: pos.y,
-      };
-      drawTile(ctx, offset, tile, getColor);
+    handleNewTile: ({ tileId, points }) => {
+      drawTile({ ctx, tileId, points, viewport, getColor });
     },
   }).then(() => {
     let t1 = performance.now();
@@ -72,27 +66,130 @@ function drawMandelbrot({ canvas, params, onProgress }) {
 // ----------------------------------------------------------------------
 
 // TODO: need to be able to draw part of a tile
-function drawTile(ctx, offset, points, getColor) {
-  const [yLen, xLen] = [points.length, (points[0] || []).length];
-  assert(yLen > 0 && xLen > 0, `Bad points -- xLen: ${xLen}, yLen: ${yLen}`);
+function drawTile({ ctx, tileId, points, viewport, getColor} ) {
+  const [tileYLen, tileXLen] = [points.length, (points[0] || []).length];
+  assert(
+    tileYLen > 0 && tileXLen > 0,
+    `Bad points -- tileXLen: ${tileXLen}, tileYLen: ${tileYLen}`
+  );
 
-  const imgDataForTile = ctx.createImageData(xLen, yLen);
+  const { gridCoord, sideLength } = tileId;
 
-  for (let y = 0; x < yLen; x++) {
-    const row = points[y];
-    assert(row.length === xLen, 'tile rows should be equal length');
+  const tileTopLeft = {
+    real: gridCoord.x * sideLength,
+    complex: (gridCoord.y + 1) * sideLength,
+  }; 
 
-    for (let x=0; x<xLen; x++) {
-      const status = row[x];
+  const viewportRect = {
+    topLeft: viewport.topLeftPoint,
+    botRight: viewport.botRightPoint,
+  };
+  const tileRect = {
+    topLeft: tileTopLeft,
+    botRight: {
+      real: tileTopLeft.real + sideLength,
+      complex: tileTopLeft.complex - sideLength,
+    },
+  };
+  if (!doRectsOverlap(viewportRect, tileRect)) {
+    throw new Error('oops, the tile is NOT in the viewport...');
+  }
+
+  const interPixDist = viewport.interPixelDistance;
+
+  const visibleTilePointsXRange = { start: 0, end: tileXLen };
+  const visibleTilePointsYRange = { start: 0, end: tileYLen };
+
+  // ----------------------------------------------------------------------------
+  // TODO: Are there precision issues with this?
+  // Is there a more precise / cleaner way to do this? Using the gridcoords maybe?
+  if (tileRect.topLeft.real < viewportRect.topLeft.real) {
+    visibleTilePointsXRange.start = (
+      (viewportRect.topLeft.real - tileRect.topLeft.real) / interPixDist,
+    );
+  }
+  if (viewportRect.botRight.x < tileRect.botRight.x) {
+    visibleTilePointsXRange.end = (
+      (viewportRect.botRight.real - tileRect.botRight.real) / interPixDist,
+    );
+  }
+  let visibleTilePointsXLen = (
+    visibleTilePointsXRange.end - visibleTilePointsXRange.start
+  );
+
+  assert(visibleTilePointsXLen > 0);
+  assert(visibleTilePointsXLen <= tileXLen);
+  assert(visibleTilePointsXLen <= TILE_SIDE_LENGTH_IN_PIXELS);
+
+  if (tileRect.topLeft.complex > viewportRect.topLeft.complex) {
+    visibleTilePointsXRange.start = (
+      (tileRect.topLeft.complex - viewportRect.topLeft.complex) / interPixDist,
+    );
+  }
+  if (tileRect.botRight.complex > viewportRect.botRight.complex) {
+    visibleTilePointsXRange.end = (
+      (tileRect.botRight.complex - viewportRect.botRight.complex) / interPixDist,
+    );
+  }
+  let visibleTilePointsYLen = (
+    visibleTilePointsYRange.end - visibleTilePointsYRange.start
+  );
+
+  assert(visibleTilePointsYLen > 0);
+  assert(visibleTilePointsYLen <= tileYLen);
+  assert(visibleTilePointsYLen <= TILE_SIDE_LENGTH_IN_PIXELS);
+  // ----------------------------------------------------------------------------
+
+  const imgDataForTile = ctx.createImageData(
+    visibleTilePointsXLen,
+    visibleTilePointsYLen,
+  );
+
+  for (let y=0; y < visibleTilePointsYLen; y++) {
+    const row = points[visibleTilePointsYRange.start + y];
+    assert(row.length === tileXLen, 'tile rows should be equal length');
+
+    for (let x=0; x < visibleTilePointsXLen; x++) {
+      const status = row[visibleTilePointsXRange.start + x];
       // TODO: This magic number -1 should be in a shared const var somewhere,
       // as it is referenced in multiple places.
       const value = status.isInSet ? -1 : status.divergenceFactor;
       const color = getColor(value);
-      drawPixel(imgDataForTile, x, y, color.r, color.g, color.b);
+      drawPixel(imgDataForTile, x, y, color.real, color.g, color.b);
     }
   }
 
   ctx.putImageData(imgDataForTile, offset.x, offset.y);
+}
+
+// ----------------------------------------------------------------------
+
+// Need to properly standardize / cleanup our terminology
+// One of the issues is that I don't want to use "x,y" for both
+// the math plane and for the pixel grid.
+// The other issue is that "real, complex" is less ergonomic than "x,y"
+// Maybe I should just use "r,c" in place of "real,complex"
+
+function doRectsOverlap(r1, r2) {
+  const r1XRange = { start: r1.topLeft.real, end: r1.botRight.x };
+  const r2XRange = { start: r2.topLeft.real, end: r2.botRight.x };
+
+  const r1YRange = { start: r1.botRight.complex, end: r1.topLeft.complex };
+  const r2YRange = { start: r2.botRight.complex, end: r2.topLeft.complex };
+
+  return (
+    doRangesOverlap(r1XRange, r2XRange) &&
+    doRangesOverlap(r1YRange, r2YRange)
+  );
+}
+
+function doRangesOverlap(r1, r2) {
+  // If the start or beginning of r2 is within r1, they overlap.
+  // It could be done the other way around (r1 within r2), same result.
+  return (
+    (r1.start <= r2.start && r2.start <= r1.end) ||
+    (r1.start <= r2.end && r2.end <= r1.end)
+  );
 }
 
 // ----------------------------------------------------------------------

@@ -13,6 +13,10 @@ function getViewportInfo({ params, canvas }) {
     real: centerPos.x - (realLen / 2),
     complex: centerPos.y + (complexLen / 2),
   };
+  const botRightPoint = {
+    real: topLeftPoint.real + realLen,
+    complex: topLeftPoint.complex - complexLen,
+  };
 
   const interPixelDistance = realLen / canvas.width;
 
@@ -20,7 +24,8 @@ function getViewportInfo({ params, canvas }) {
     realLen,
     complexLen,
     topLeftPoint,
-    interPixelDistance:
+    botRightPoint,
+    interPixelDistance,
 
     height: canvas.height,
     width: canvas.width,
