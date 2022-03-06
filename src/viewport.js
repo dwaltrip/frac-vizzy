@@ -6,23 +6,25 @@ function getViewportInfo({ params, canvas }) {
 
   const sideLength = 1 / Math.pow(2, zoomLevel);
 
-  const realLen = (canvas.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-  const complexLen = (canvas.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const rLen = (canvas.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const cLen = (canvas.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
 
   const topLeftPoint = {
-    real: centerPos.x - (realLen / 2),
-    complex: centerPos.y + (complexLen / 2),
+    real: centerPos.r - (rLen / 2),
+    complex: centerPos.c + (cLen / 2),
   };
   const botRightPoint = {
-    real: topLeftPoint.real + realLen,
-    complex: topLeftPoint.complex - complexLen,
+    real: topLeftPoint.real + rLen,
+    complex: topLeftPoint.complex - cLen,
   };
 
-  const interPixelDistance = realLen / canvas.width;
+  // This should be exactly the same as `cLen / cavns.height`
+  // Or `TILE_SIDE_LENGTH_IN_PIXELS / sideLength`...
+  const interPixelDistance = rLen / canvas.width;
 
   return {
-    realLen,
-    complexLen,
+    realLen: rLen,
+    complexLen: cLen,
     topLeftPoint,
     botRightPoint,
     interPixelDistance,

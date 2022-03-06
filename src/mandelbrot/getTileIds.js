@@ -8,16 +8,16 @@ const TILE_ORIGIN = { real: 0, complex: 0 };
 function getTileIds({ centerPos, viewport, zoomLevel }) {
   const sideLength = 1 / Math.pow(2, zoomLevel);
 
-  const xLen = (viewport.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-  const yLen = (viewport.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const rLen = (viewport.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const cLen = (viewport.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
 
   const topLeftPoint = {
-    real: centerPos.x - (xLen / 2),
-    complex: centerPos.y + (yLen / 2),
+    real: centerPos.r - (rLen / 2),
+    complex: centerPos.c + (cLen / 2),
   };
   const botRightPoint = {
-    real: centerPos.x + (xLen / 2),
-    complex: centerPos.y - (yLen / 2),
+    real: centerPos.r + (rLen / 2),
+    complex: centerPos.c - (cLen / 2),
   };
 
   const topLeftTileId = getContainingTileId(topLeftPoint, sideLength);

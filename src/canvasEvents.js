@@ -13,12 +13,12 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
 
   const { centerPos, zoomLevel } = params;
 
-  const xLen = (canvas.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-  const yLen = (canvas.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const rLen = (canvas.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const cLen = (canvas.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
 
   const topLeftPoint = {
-    x: center.x - (xLen / 2),
-    y: center.y + (yLen / 2),
+    r: centerPos.r - (rLen / 2),
+    c: centerPos.c + (cLen / 2),
   };
 
   // TODO: can I make this cleaner / less bug-prone?
@@ -26,8 +26,8 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
   const yRatio = mousePos.y / canvas.height;
 
   const newCenter = {
-    x: topLeftPoint.x + (xRatio * xLen),
-    y: topLeftPoint.y - (yRatio * yLen),
+    r: topLeftPoint.r + (xRatio * rLen),
+    c: topLeftPoint.c - (yRatio * cLen),
   };
 
   console.log('\tnewCenter:', newCenter);

@@ -15,13 +15,13 @@ const MIN_TILES_PER_DIM = 2;
 const PIXELS_PER_TILE_DIM = 200;
 
 const DEFAULT_PARAMS = {
-  centerPos: { x: "0", y: "0" },
+  centerPos: { r: "0", c: "0" },
   iterationLimit: "250",
 };
 
 // These points draw a box around the fully zoomed out Mandelbrot
-const DEFAULT_TOP_LEFT = { x: -1.5, y: 1.2 };
-const DEFAULT_BOT_RIGHT = { x: 0.5, y: -1.2 };
+const DEFAULT_TOP_LEFT = { r: -1.5, c: 1.2 };
+const DEFAULT_BOT_RIGHT = { r: 0.5, c: -1.2 };
 
 function getInitialParams(viewport) {
   const url = new URL(window.location.href);
@@ -34,8 +34,8 @@ function getInitialParams(viewport) {
     // Compute default zoom level so the entire Mandelbrot fits in image
     // TODO: Should I move this outside of `getInitialParams`?
 
-    const xLen = DEFAULT_BOT_RIGHT.x - DEFAULT_TOP_LEFT.x;
-    const yLen = DEFAULT_TOP_LEFT.y - DEFAULT_BOT_RIGHT.y;
+    const rLen = DEFAULT_BOT_RIGHT.r - DEFAULT_TOP_LEFT.r;
+    const cLen = DEFAULT_TOP_LEFT.c - DEFAULT_BOT_RIGHT.c;
 
     const tileGrid = {
       height: Math.ceil(viewport.height / TILE_SIDE_LENGTH_IN_PIXELS),
@@ -43,9 +43,9 @@ function getInitialParams(viewport) {
     };
 
     // TODO: would be nice to have a test for this logic
-    const zoomLevelFromX = Math.floor(-1 * Math.log2(xLen / tileGrid.width));
-    const zoomLevelFromY = Math.floor(-1 * Math.log2(yLen / tileGrid.height));
-    defaults.zoomLevel = Math.min([zoomLevelFromX, zoomLevelFromY]);
+    const zoomLevelFromR = Math.floor(-1 * Math.log2(rLen / tileGrid.width));
+    const zoomLevelFromC = Math.floor(-1 * Math.log2(cLen / tileGrid.height));
+    defaults.zoomLevel = Math.min([hoomLevelFromR, zoomLevelFromC]);
     // ------------------------------------------------------------------------
   }
 
@@ -78,7 +78,7 @@ function deserializeParams(params) {
 }
 
 function parsePos(pos) {
-  return { x: parseFloat(pos.x), y: parseFloat(pos.y) };
+  return { r: parseFloat(pos.r), c: parseFloat(pos.c) };
 }
 
 export { getInitialParams, serializeParams };
