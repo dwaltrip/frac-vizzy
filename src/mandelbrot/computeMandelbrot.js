@@ -2,10 +2,6 @@ import { workerify } from '../lib/workerify';
 
 import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 
-function getPointsPerSideLength() {
-  return TILE_SIDE_LENGTH_IN_PIXELS;
-}
-
 // `numReal, numComplex` are the real and complex parts of the number
 // that is being tested.
 // The number being tested is used in place of the constant `c` in the
@@ -79,15 +75,12 @@ function createMandelbrotComputeWorker() {
   return workerify(
     function workerCode(...args) {
       function computeTile(tile, iterationLimit) {
-        const { gridCoord, sideLength } = tile;
-        const numSteps = getPointsPerSideLength();
+        const { topLeftPoint, sideLength } = tile;
+        // Declare global so eslint doesn't get angry
+        /* global $TILE_SIDE_LENGTH_IN_PIXELS */
+        const numSteps = $TILE_SIDE_LENGTH_IN_PIXELS;
 
-        const topLeft = {
-          real: gridCoord.x * sideLength,
-          complex: (gridCoord.y + 1) * sideLength,
-        };
-
-        const dx = tile.sideLength / numSteps;
+        const dx = sideLength / numSteps;
         const dy = dx;
 
         let points = [];
@@ -97,8 +90,8 @@ function createMandelbrotComputeWorker() {
           let row = [];
 
           for (let ix=0; ix<numSteps; ix++) {
-            const real    = topLeft.real + (ix * dx);
-            const complex = topLeft.complex + (iy * dy);
+            const real    = topLeftPoint.real + (ix * dx);
+            const complex = topLeftPoint.complex - (iy * dy);
             const status = calcMandlebrotSetStatus(real, complex, iterationLimit);
 
             row.push({
@@ -131,7 +124,13 @@ function createMandelbrotComputeWorker() {
 
       return computePointsTileByTile(...args);
     },
-    [calcMandlebrotSetStatus, getPointsPerSideLength],
+    [
+      calcMandlebrotSetStatus,
+    ],
+    {
+      // I had to use a different name to due to some webpack nonsense.
+      '$TILE_SIDE_LENGTH_IN_PIXELS': TILE_SIDE_LENGTH_IN_PIXELS,
+    }
   );
 }
 

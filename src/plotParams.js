@@ -45,7 +45,7 @@ function getInitialParams(viewport) {
     // TODO: would be nice to have a test for this logic
     const zoomLevelFromR = Math.floor(-1 * Math.log2(rLen / tileGrid.width));
     const zoomLevelFromC = Math.floor(-1 * Math.log2(cLen / tileGrid.height));
-    defaults.zoomLevel = Math.min([hoomLevelFromR, zoomLevelFromC]);
+    defaults.zoomLevel = Math.min(zoomLevelFromR, zoomLevelFromC);
     // ------------------------------------------------------------------------
   }
 

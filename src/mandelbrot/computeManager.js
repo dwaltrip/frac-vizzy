@@ -1,5 +1,6 @@
 import { assert } from '../lib/assert';
 import { WorkerManager } from './workerManager';
+import { getTileIds } from './getTileIds';
 
 // -----------------------------
 // TODO: ... implement this....
@@ -10,7 +11,7 @@ const ComputeManager = {
   computePoints: function({ computeArgs, handleNewTile, onProgress }) {
     const { centerPos, zoomLevel, viewport, iterationLimit } = computeArgs;
 
-    const tileIds = getTileIds({ centerPos, zoomLevel, viewport });
+    const tileIds = getTileIds({ centerPos, zoomLevel, viewport }).flat();
  
     const workerArgs = [...(new Array(NUM_WORKERS))].map((_, i) => ({
       tileIds: [],
@@ -18,7 +19,7 @@ const ComputeManager = {
       workerNum: i,
     }));
 
-    for (let i=0; i<tileIds; i++) {
+    for (let i=0; i<tileIds.length; i++) {
       const workerNum = i % NUM_WORKERS;
       workerArgs[workerNum].tileIds.push(tileIds[i]);
     }

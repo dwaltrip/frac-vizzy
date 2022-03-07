@@ -70,7 +70,6 @@ function drawMandelbrot({ canvas, params, onProgress }) {
 
 // ----------------------------------------------------------------------
 
-// TODO: need to be able to draw part of a tile
 function drawTile({ ctx, tileId, points, viewport, getColor} ) {
   const [tileYLen, tileXLen] = [points.length, (points[0] || []).length];
   assert(
@@ -78,22 +77,18 @@ function drawTile({ ctx, tileId, points, viewport, getColor} ) {
     `Bad points -- tileXLen: ${tileXLen}, tileYLen: ${tileYLen}`
   );
 
-  const { gridCoord, sideLength } = tileId;
 
-  const tileTopLeft = {
-    real: gridCoord.x * sideLength,
-    complex: (gridCoord.y + 1) * sideLength,
-  }; 
+  const { sideLength, topLeftPoint } = tileId;
 
   const viewportRect = {
     topLeft: viewport.topLeftPoint,
     botRight: viewport.botRightPoint,
   };
   const tileRect = {
-    topLeft: tileTopLeft,
+    topLeft: topLeftPoint,
     botRight: {
-      real: tileTopLeft.real + sideLength,
-      complex: tileTopLeft.complex - sideLength,
+      real: topLeftPoint.real + sideLength,
+      complex: topLeftPoint.complex - sideLength,
     },
   };
   if (!doRectsOverlap(viewportRect, tileRect)) {
@@ -105,17 +100,23 @@ function drawTile({ ctx, tileId, points, viewport, getColor} ) {
   const visibleTilePointsXRange = { start: 0, end: tileXLen };
   const visibleTilePointsYRange = { start: 0, end: tileYLen };
 
+  let tileOffset = {
+    x: (tileRect.topLeft.real - viewportRect.topLeft.real) / interPixDist,
+    y: (viewportRect.topLeft.complex - tileRect.topLeft.complex) / interPixDist,
+  };
+
   // ----------------------------------------------------------------------------
   // TODO: Are there precision issues with this?
   // Is there a more precise / cleaner way to do this? Using the gridcoords maybe?
   if (tileRect.topLeft.real < viewportRect.topLeft.real) {
     visibleTilePointsXRange.start = (
-      (viewportRect.topLeft.real - tileRect.topLeft.real) / interPixDist,
+      (viewportRect.topLeft.real - tileRect.topLeft.real) / interPixDist
     );
+    tileOffset.x = 0;
   }
   if (viewportRect.botRight.x < tileRect.botRight.x) {
     visibleTilePointsXRange.end = (
-      (viewportRect.botRight.real - tileRect.botRight.real) / interPixDist,
+      (viewportRect.botRight.real - tileRect.botRight.real) / interPixDist
     );
   }
   let visibleTilePointsXLen = (
@@ -127,13 +128,14 @@ function drawTile({ ctx, tileId, points, viewport, getColor} ) {
   assert(visibleTilePointsXLen <= TILE_SIDE_LENGTH_IN_PIXELS);
 
   if (tileRect.topLeft.complex > viewportRect.topLeft.complex) {
-    visibleTilePointsXRange.start = (
-      (tileRect.topLeft.complex - viewportRect.topLeft.complex) / interPixDist,
+    visibleTilePointsYRange.start = (
+      (tileRect.topLeft.complex - viewportRect.topLeft.complex) / interPixDist
     );
+    tileOffset.y = 0;
   }
-  if (tileRect.botRight.complex > viewportRect.botRight.complex) {
-    visibleTilePointsXRange.end = (
-      (tileRect.botRight.complex - viewportRect.botRight.complex) / interPixDist,
+  if (viewportRect.botRight.complex > tileRect.botRight.complex) {
+    visibleTilePointsYRange.end = (
+      (viewportRect.botRight.complex - tileRect.botRight.complex) / interPixDist
     );
   }
   let visibleTilePointsYLen = (
@@ -166,11 +168,11 @@ function drawTile({ ctx, tileId, points, viewport, getColor} ) {
         { r: 0, g: 0, b: 0 } :
         { r: 220, g: 230, b: 255 }
       );
-      drawPixel(imgDataForTile, x, y, color.real, color.g, color.b);
+      drawPixel(imgDataForTile, x, y, color.r, color.g, color.b);
     }
   }
 
-  ctx.putImageData(imgDataForTile, offset.x, offset.y);
+  ctx.putImageData(imgDataForTile, tileOffset.x, tileOffset.y);
 }
 
 // ----------------------------------------------------------------------
@@ -182,8 +184,8 @@ function drawTile({ ctx, tileId, points, viewport, getColor} ) {
 // Maybe I should just use "r,c" in place of "real,complex"
 
 function doRectsOverlap(r1, r2) {
-  const r1XRange = { start: r1.topLeft.real, end: r1.botRight.x };
-  const r2XRange = { start: r2.topLeft.real, end: r2.botRight.x };
+  const r1XRange = { start: r1.topLeft.real, end: r1.botRight.real };
+  const r2XRange = { start: r2.topLeft.real, end: r2.botRight.real };
 
   const r1YRange = { start: r1.botRight.complex, end: r1.topLeft.complex };
   const r2YRange = { start: r2.botRight.complex, end: r2.topLeft.complex };

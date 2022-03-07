@@ -12,6 +12,9 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
   console.log('\tmousePos:', mousePos);
 
   const { centerPos, zoomLevel } = params;
+  // TODO: we are doing this calc in multiple places... should have a single
+  // func that defines this.
+  const sideLength = 1 / Math.pow(2, zoomLevel);
 
   const rLen = (canvas.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
   const cLen = (canvas.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;

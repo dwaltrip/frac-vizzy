@@ -7,8 +7,11 @@
 // TODO: Transferables?
 const WORKERIFY_MESSAGE_IDENTIFIER = '__$WORKERIFY_MESSAGE_IDENTIFIER';
 
-function workerify(funcToWorkerify, dependencyFuncs) {
+function workerify(funcToWorkerify, dependencyFuncs, constants) {
   const workerCodeStr = [
+    ...(Object.keys(constants || {}).map(constName => {
+      return `const ${constName} = ${constants[constName]};`;
+    })),
     ...(dependencyFuncs || []).map(fn => fn.toString()),
     'const $$ = ' + funcToWorkerify.toString() + ';',
     (

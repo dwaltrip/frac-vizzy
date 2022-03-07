@@ -10,9 +10,12 @@ import { getInitialParams, serializeParams } from './plotParams';
 
 let initialLoad = true;
 
+// TODO: Fix this!!!!
+const VIEWPORT = { height: 700, width: 700 };
+
 function App() {
   console.log('=== Rendering App... ==='); 
-  const [plotParams, setParamsRaw] = useState(getInitialParams());
+  const [plotParams, setParamsRaw] = useState(getInitialParams(VIEWPORT));
 
   function setPlotParams({ ...newParams }) {
     setParamsRaw(prevParams => ({
@@ -38,10 +41,12 @@ function App() {
 
   return (
     <div className='App'>
+      {/*
       <SettingsPanel
         params={plotParams}
         setPlotParams={setPlotParams}
       />
+      */}
 
       <MandelbrotPlot
         params={plotParams}
