@@ -29,23 +29,26 @@ function drawMandelbrot({ canvas, params, onProgress }) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // ---- DISABLE_COLOR ----
   // TODO: the color stuff needs a lot of work... it doesn't look like online pics.
-  let colorMap = buildColorMap(computeArgs);
-  console.log(colorMap);
-  const maxColorKey = Math.max(...colorMap.keys());
-  let INSUFFICIENT_COLOR_MAP_COUNT = 0;
-  const getColor = val => {
-    // ----------------------------------------------------------------------
-    // TODO: This is a hack due to our shitty random sample thing.
-    // Sometimes the maxDivergenceFactor it produces is not actually the max.
-    // Fix this!!
-    // ----------------------------------------------------------------------
-    if (val > maxColorKey) {
-      val = maxColorKey;
-      INSUFFICIENT_COLOR_MAP_COUNT += 1;
-    }
-    return colorMap.get(val);
-  };
+  // let colorMap = buildColorMap(computeArgs);
+  // console.log(colorMap);
+  // const maxColorKey = Math.max(...colorMap.keys());
+  // let INSUFFICIENT_COLOR_MAP_COUNT = 0;
+  // const getColor = val => {
+  //   // ----------------------------------------------------------------------
+  //   // TODO: This is a hack due to our shitty random sample thing.
+  //   // Sometimes the maxDivergenceFactor it produces is not actually the max.
+  //   // Fix this!!
+  //   // ----------------------------------------------------------------------
+  //   if (val > maxColorKey) {
+  //     val = maxColorKey;
+  //     INSUFFICIENT_COLOR_MAP_COUNT += 1;
+  //   }
+  //   return colorMap.get(val);
+  // };
+  // ---- ------------- ----
+  const getColor = () => {};
 
   let t0 = performance.now();
   return ComputeManager.computePoints({
@@ -59,7 +62,9 @@ function drawMandelbrot({ canvas, params, onProgress }) {
   }).then(() => {
     let t1 = performance.now();
     console.log(`Timer -- ComputeManager.computePoints() took ${t1 - t0} milliseconds.`);
-    console.log('-- INSUFFICIENT_COLOR_MAP_COUNT:', INSUFFICIENT_COLOR_MAP_COUNT);
+    // ---- DISABLE_COLOR ----
+    // console.log('-- INSUFFICIENT_COLOR_MAP_COUNT:', INSUFFICIENT_COLOR_MAP_COUNT);
+    // ---- ------------- ----
   });
 }
 
@@ -151,10 +156,16 @@ function drawTile({ ctx, tileId, points, viewport, getColor} ) {
 
     for (let x=0; x < visibleTilePointsXLen; x++) {
       const status = row[visibleTilePointsXRange.start + x];
+      // ---- DISABLE_COLOR ----
       // TODO: This magic number -1 should be in a shared const var somewhere,
       // as it is referenced in multiple places.
-      const value = status.isInSet ? -1 : status.divergenceFactor;
-      const color = getColor(value);
+      // const value = status.isInSet ? -1 : status.divergenceFactor;
+      // const color = getColor(value);
+      // ---- ------------- ----
+      const color = (status.isInSet ?
+        { r: 0, g: 0, b: 0 } :
+        { r: 220, g: 230, b: 255 }
+      );
       drawPixel(imgDataForTile, x, y, color.real, color.g, color.b);
     }
   }
