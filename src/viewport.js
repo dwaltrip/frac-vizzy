@@ -18,16 +18,12 @@ function getViewportInfo({ params, canvas }) {
     complex: topLeftPoint.complex - cLen,
   };
 
-  // This should be exactly the same as `cLen / cavns.height`
-  // Or `TILE_SIDE_LENGTH_IN_PIXELS / sideLength`...
-  const interPixelDistance = rLen / canvas.width;
-
   return {
     realLen: rLen,
     complexLen: cLen,
     topLeftPoint,
     botRightPoint,
-    interPixelDistance,
+    interPixelDistance: sideLength / TILE_SIDE_LENGTH_IN_PIXELS,
 
     height: canvas.height,
     width: canvas.width,

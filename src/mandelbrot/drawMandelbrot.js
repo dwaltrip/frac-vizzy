@@ -1,15 +1,20 @@
-import { assert } from '../lib/assert';
-import { drawPixel } from '../lib/draw';
 import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 
 import { getViewportInfo } from '../viewport';
 import { ComputeManager } from './computeManager';
 import { buildColorMap } from './colorMap';
 
+import { drawTile } from './drawTile';
+
 const REAL_START = -2;
 const REAL_END = 2;
 const COMPLEX_START = -2;
 const COMPLEX_END = 2;
+
+// const DEBUG = false;
+const DEBUG = true;
+
+window.TILE_DATA = {};
 
 // ----------------------------------------------------------------
 
@@ -67,157 +72,5 @@ function drawMandelbrot({ canvas, params, onProgress }) {
     // ---- ------------- ----
   });
 }
-
-// ----------------------------------------------------------------------
-
-function drawTile({ ctx, tileId, points, viewport, getColor} ) {
-  const [tileYLen, tileXLen] = [points.length, (points[0] || []).length];
-  assert(
-    tileYLen > 0 && tileXLen > 0,
-    `Bad points -- tileXLen: ${tileXLen}, tileYLen: ${tileYLen}`
-  );
-
-
-  const { sideLength, topLeftPoint } = tileId;
-
-  const viewportRect = {
-    topLeft: viewport.topLeftPoint,
-    botRight: viewport.botRightPoint,
-  };
-  const tileRect = {
-    topLeft: topLeftPoint,
-    botRight: {
-      real: topLeftPoint.real + sideLength,
-      complex: topLeftPoint.complex - sideLength,
-    },
-  };
-  if (!doRectsOverlap(viewportRect, tileRect)) {
-    throw new Error('oops, the tile is NOT in the viewport...');
-  }
-
-  const interPixDist = viewport.interPixelDistance;
-
-  const visibleTilePointsXRange = { start: 0, end: tileXLen };
-  const visibleTilePointsYRange = { start: 0, end: tileYLen };
-
-  let tileOffset = {
-    x: Math.floor((tileRect.topLeft.real - viewportRect.topLeft.real) / interPixDist),
-    y: Math.floor((viewportRect.topLeft.complex - tileRect.topLeft.complex) / interPixDist),
-  };
-
-  // ----------------------------------------------------------------------------
-  // TODO: Are there precision issues with this?
-  // Is there a more precise / cleaner way to do this? Using the gridcoords maybe?
-  // TODO: This only works for tiles that are partially outside of (and partially
-  // inside of) the viewport.
-  // It breaks if the tile is multiple tile-widths outside of the viewport...
-
-  // tile overlaps with left edge of viewport
-  if (tileRect.topLeft.real < viewportRect.topLeft.real) {
-    visibleTilePointsXRange.start = Math.floor(
-      (viewportRect.topLeft.real - tileRect.topLeft.real) / interPixDist
-    );
-    tileOffset.x = 0;
-  }
-  // tile overlaps with right edge of viewport
-  if (viewportRect.botRight.x < tileRect.botRight.x) {
-    visibleTilePointsXRange.end = Math.floor(
-      (viewportRect.botRight.real - tileRect.botRight.real) / interPixDist
-    );
-  }
-  let visibleTilePointsXLen = (
-    visibleTilePointsXRange.end - visibleTilePointsXRange.start
-  );
-
-  assert(visibleTilePointsXLen > 0);
-  assert(visibleTilePointsXLen <= tileXLen);
-  assert(visibleTilePointsXLen <= TILE_SIDE_LENGTH_IN_PIXELS);
-
-  // tile overlaps with top edge of viewport
-  if (tileRect.topLeft.complex > viewportRect.topLeft.complex) {
-    visibleTilePointsYRange.start = Math.floor(
-      (tileRect.topLeft.complex - viewportRect.topLeft.complex) / interPixDist
-    );
-    tileOffset.y = 0;
-  }
-  // tile overlaps with bottom edge of viewport
-  if (viewportRect.botRight.complex > tileRect.botRight.complex) {
-    visibleTilePointsYRange.end = Math.floor(
-      (tileRect.topLeft.complex - viewportRect.botRight.complex) / interPixDist
-    );
-    assert(
-      0 <= visibleTilePointsYRange.end &&
-      visibleTilePointsYRange.end <= TILE_SIDE_LENGTH_IN_PIXELS,
-      'Bug adjusting visibleTilePointsYRange.end',
-    );
-  }
-  let visibleTilePointsYLen = (
-    visibleTilePointsYRange.end - visibleTilePointsYRange.start
-  );
-
-  assert(visibleTilePointsYLen > 0);
-  assert(visibleTilePointsYLen <= tileYLen);
-  assert(visibleTilePointsYLen <= TILE_SIDE_LENGTH_IN_PIXELS);
-  // ----------------------------------------------------------------------------
-
-  const imgDataForTile = ctx.createImageData(
-    visibleTilePointsXLen,
-    visibleTilePointsYLen,
-  );
-
-  for (let y=0; y < visibleTilePointsYLen; y++) {
-    const row = points[visibleTilePointsYRange.start + y];
-    assert(row.length === tileXLen, 'tile rows should be equal length');
-
-    for (let x=0; x < visibleTilePointsXLen; x++) {
-      const status = row[visibleTilePointsXRange.start + x];
-      // ---- DISABLE_COLOR ----
-      // TODO: This magic number -1 should be in a shared const var somewhere,
-      // as it is referenced in multiple places.
-      // const value = status.isInSet ? -1 : status.divergenceFactor;
-      // const color = getColor(value);
-      // ---- ------------- ----
-      const color = (status.isInSet ?
-        { r: 0, g: 0, b: 0 } :
-        { r: 220, g: 230, b: 255 }
-      );
-      drawPixel(imgDataForTile, x, y, color.r, color.g, color.b);
-    }
-  }
-
-  ctx.putImageData(imgDataForTile, tileOffset.x, tileOffset.y);
-}
-
-// ----------------------------------------------------------------------
-
-// Need to properly standardize / cleanup our terminology
-// One of the issues is that I don't want to use "x,y" for both
-// the math plane and for the pixel grid.
-// The other issue is that "real, complex" is less ergonomic than "x,y"
-// Maybe I should just use "r,c" in place of "real,complex"
-
-function doRectsOverlap(r1, r2) {
-  const r1XRange = { start: r1.topLeft.real, end: r1.botRight.real };
-  const r2XRange = { start: r2.topLeft.real, end: r2.botRight.real };
-
-  const r1YRange = { start: r1.botRight.complex, end: r1.topLeft.complex };
-  const r2YRange = { start: r2.botRight.complex, end: r2.topLeft.complex };
-
-  return (
-    doRangesOverlap(r1XRange, r2XRange) &&
-    doRangesOverlap(r1YRange, r2YRange)
-  );
-}
-
-function doRangesOverlap(r1, r2) {
-  // If the start or beginning of r2 is within r1, they overlap.
-  // It could be done the other way around (r1 within r2), same result.
-  return (
-    (r1.start <= r2.start && r2.start <= r1.end) ||
-    (r1.start <= r2.end && r2.end <= r1.end)
-  );
-}
-
-// ----------------------------------------------------------------------
 
 export { drawMandelbrot };
