@@ -101,21 +101,27 @@ function drawTile({ ctx, tileId, points, viewport, getColor} ) {
   const visibleTilePointsYRange = { start: 0, end: tileYLen };
 
   let tileOffset = {
-    x: (tileRect.topLeft.real - viewportRect.topLeft.real) / interPixDist,
-    y: (viewportRect.topLeft.complex - tileRect.topLeft.complex) / interPixDist,
+    x: Math.floor((tileRect.topLeft.real - viewportRect.topLeft.real) / interPixDist),
+    y: Math.floor((viewportRect.topLeft.complex - tileRect.topLeft.complex) / interPixDist),
   };
 
   // ----------------------------------------------------------------------------
   // TODO: Are there precision issues with this?
   // Is there a more precise / cleaner way to do this? Using the gridcoords maybe?
+  // TODO: This only works for tiles that are partially outside of (and partially
+  // inside of) the viewport.
+  // It breaks if the tile is multiple tile-widths outside of the viewport...
+
+  // tile overlaps with left edge of viewport
   if (tileRect.topLeft.real < viewportRect.topLeft.real) {
-    visibleTilePointsXRange.start = (
+    visibleTilePointsXRange.start = Math.floor(
       (viewportRect.topLeft.real - tileRect.topLeft.real) / interPixDist
     );
     tileOffset.x = 0;
   }
+  // tile overlaps with right edge of viewport
   if (viewportRect.botRight.x < tileRect.botRight.x) {
-    visibleTilePointsXRange.end = (
+    visibleTilePointsXRange.end = Math.floor(
       (viewportRect.botRight.real - tileRect.botRight.real) / interPixDist
     );
   }
@@ -127,15 +133,22 @@ function drawTile({ ctx, tileId, points, viewport, getColor} ) {
   assert(visibleTilePointsXLen <= tileXLen);
   assert(visibleTilePointsXLen <= TILE_SIDE_LENGTH_IN_PIXELS);
 
+  // tile overlaps with top edge of viewport
   if (tileRect.topLeft.complex > viewportRect.topLeft.complex) {
-    visibleTilePointsYRange.start = (
+    visibleTilePointsYRange.start = Math.floor(
       (tileRect.topLeft.complex - viewportRect.topLeft.complex) / interPixDist
     );
     tileOffset.y = 0;
   }
+  // tile overlaps with bottom edge of viewport
   if (viewportRect.botRight.complex > tileRect.botRight.complex) {
-    visibleTilePointsYRange.end = (
-      (viewportRect.botRight.complex - tileRect.botRight.complex) / interPixDist
+    visibleTilePointsYRange.end = Math.floor(
+      (tileRect.topLeft.complex - viewportRect.botRight.complex) / interPixDist
+    );
+    assert(
+      0 <= visibleTilePointsYRange.end &&
+      visibleTilePointsYRange.end <= TILE_SIDE_LENGTH_IN_PIXELS,
+      'Bug adjusting visibleTilePointsYRange.end',
     );
   }
   let visibleTilePointsYLen = (
