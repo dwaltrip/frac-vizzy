@@ -3,8 +3,8 @@ import { truncateRange } from './lib/truncateRange';
 
 import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
 
-// NOTE: this needs to be a multiple of 2!
-const CANVAS_ZOOM_FACTOR = 4;
+// NOTE: This needs a be a positive integer
+const CANVAS_ZOOM_FACTOR = 2;
 
 function zoomInPlot({ canvas, event, params, setPlotParams }) {
   console.log('======= zoomInPlot -- start =======');
@@ -33,11 +33,9 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
     c: topLeftPoint.c - (yRatio * cLen),
   };
 
-  console.log('\tnewCenter:', newCenter);
-
   setPlotParams({
     centerPos: newCenter,
-    zoomLevel: zoomLevel * CANVAS_ZOOM_FACTOR,
+    zoomLevel: zoomLevel + CANVAS_ZOOM_FACTOR,
   });
 }
 
@@ -45,7 +43,7 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
 function zoomOutPlot({ canvas, event, params, setPlotParams }) {
   console.log('======= zoomOutPlot -- start =======');
   setPlotParams({
-    zoomLevel: params.zoomLevel / CANVAS_ZOOM_FACTOR,
+    zoomLevel: params.zoomLevel - CANVAS_ZOOM_FACTOR,
   });
 }
 

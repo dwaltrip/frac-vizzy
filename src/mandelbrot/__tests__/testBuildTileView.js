@@ -9,8 +9,37 @@ describe('Test build tile view', () => {
       canvas: { height: 700, width: 700 },
       params: {
         centerPos: { r: 0, c: 0 },
-        iterationLimit: 250,
         zoomLevel: 1,
+        iterationLimit: 250,
+      },
+    },
+    {
+      description: 'Param set 2, on 700x700 canvas',
+      canvas: { height: 700, width: 700 },
+      params: {
+        centerPos: { r: -0.156875, c: 0.653125 },
+        zoomLevel: 4,
+        iterationLimit: 250,
+      },
+    },
+    {
+      description: 'Param set 3, on 700x700 canvas',
+      canvas: { height: 700, width: 700 },
+      params: {
+        centerPos: { r: -0.54107, c: 0.54249 },
+        zoomLevel: 8,
+        iterationLimit: 250,
+      },
+    },
+    // NOTE: This parameter set has the right-most tiles overlapping by
+    // less than 1/2 a pixel.
+    {
+      description: 'Param set 4, on 700x700 canvas',
+      canvas: { height: 700, width: 700 },
+      params: {
+        centerPos: { r: -0.0291742, c: 0.7506653 },
+        zoomLevel: 12,
+        iterationLimit: 250,
       },
     },
   ];

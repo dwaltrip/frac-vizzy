@@ -3,6 +3,7 @@ import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 import { getViewportInfo } from '../viewport';
 import { ComputeManager } from './computeManager';
 import { buildColorMap } from './colorMap';
+import { drawLine } from '../lib/draw';
 
 import { drawTile } from './drawTile';
 
@@ -11,8 +12,8 @@ const REAL_END = 2;
 const COMPLEX_START = -2;
 const COMPLEX_END = 2;
 
-// const DEBUG = false;
-const DEBUG = true;
+const DEBUG = false;
+// const DEBUG = true;
 
 window.TILE_DATA = {};
 
@@ -70,6 +71,11 @@ function drawMandelbrot({ canvas, params, onProgress }) {
     // ---- DISABLE_COLOR ----
     // console.log('-- INSUFFICIENT_COLOR_MAP_COUNT:', INSUFFICIENT_COLOR_MAP_COUNT);
     // ---- ------------- ----
+
+    if (DEBUG) {
+      drawLine(ctx, { x: 0, y: 350 }, { x: 700, y: 350 }, { r: 255, g: 0, b: 0, a: 0.5 }, 1);
+      drawLine(ctx, { x: 350, y: 0 }, { x: 350, y: 700 }, { r: 255, g: 0, b: 0, a: 0.5 }, 1);
+    }
   });
 }
 

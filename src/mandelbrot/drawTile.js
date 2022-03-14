@@ -7,6 +7,12 @@ function drawTile({ ctx, tileId, points, viewport, getColor}) {
   const { visibleSection, renderOffset } = buildTileView({ tileId, viewport });
   const { xRange, yRange } = visibleSection;
 
+  // Occassionaly, a tile will overlap the edge by less than half a pixel.
+  // So we don't actually need to render any pixels for this tile.
+  if (visibleSection.width === 0 || visibleSection.height === 0) {
+    return;
+  }
+
   const imgDataForTile = ctx.createImageData(
     visibleSection.width,
     visibleSection.height,
@@ -61,8 +67,8 @@ function buildTileView({ tileId, viewport }) {
   };
 
   const renderOffset = {
-    x: Math.floor((tileRect.topLeft.real - viewportRect.topLeft.real) / interPixDist),
-    y: Math.floor((viewportRect.topLeft.complex - tileRect.topLeft.complex) / interPixDist),
+    x: Math.round((tileRect.topLeft.real - viewportRect.topLeft.real) / interPixDist),
+    y: Math.round((viewportRect.topLeft.complex - tileRect.topLeft.complex) / interPixDist),
   };
 
   // ----------------------------------------------------------------------------
@@ -74,32 +80,32 @@ function buildTileView({ tileId, viewport }) {
 
   // tile overlaps with left edge of viewport
   if (tileRect.topLeft.real < viewportRect.topLeft.real) {
-    visibleSection.xRange.start = Math.floor(
+    visibleSection.xRange.start = Math.round(
       (viewportRect.topLeft.real - tileRect.topLeft.real) / interPixDist
     );
     renderOffset.x = 0;
   }
   // tile overlaps with right edge of viewport
-  if (viewportRect.botRight.x < tileRect.botRight.x) {
-    visibleSection.xRange.end = Math.floor(
-      (viewportRect.botRight.real - tileRect.botRight.real) / interPixDist
+  if (viewportRect.botRight.real < tileRect.botRight.real) {
+    visibleSection.xRange.end = Math.round(
+      (viewportRect.botRight.real - tileRect.topLeft.real) / interPixDist
     );
   }
 
   visibleSection.width = visibleSection.xRange.end - visibleSection.xRange.start;
-  assert(visibleSection.width > 0);
+  assert(visibleSection.width >= 0);
   assert(visibleSection.width <= TILE_SIDE_LENGTH_IN_PIXELS);
 
   // tile overlaps with top edge of viewport
   if (tileRect.topLeft.complex > viewportRect.topLeft.complex) {
-    visibleSection.yRange.start = Math.floor(
+    visibleSection.yRange.start = Math.round(
       (tileRect.topLeft.complex - viewportRect.topLeft.complex) / interPixDist
     );
     renderOffset.y = 0;
   }
   // tile overlaps with bottom edge of viewport
   if (viewportRect.botRight.complex > tileRect.botRight.complex) {
-    visibleSection.yRange.end = Math.floor(
+    visibleSection.yRange.end = Math.round(
       (tileRect.topLeft.complex - viewportRect.botRight.complex) / interPixDist
     );
     assert(
@@ -110,11 +116,11 @@ function buildTileView({ tileId, viewport }) {
   }
 
   visibleSection.height = visibleSection.yRange.end - visibleSection.yRange.start;
-  assert(visibleSection.height > 0);
+  assert(visibleSection.height >= 0);
   assert(visibleSection.height <= TILE_SIDE_LENGTH_IN_PIXELS);
   // ----------------------------------------------------------------------------
  
-  return { visibleSection, renderOffset };
+  return { visibleSection, renderOffset, tileId };
 }
 
 // Need to properly standardize / cleanup our terminology
