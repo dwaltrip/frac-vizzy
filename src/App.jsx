@@ -41,12 +41,10 @@ function App() {
 
   return (
     <div className='App'>
-      {/*
       <SettingsPanel
         params={plotParams}
         setPlotParams={setPlotParams}
       />
-      */}
 
       <MandelbrotPlot
         params={plotParams}

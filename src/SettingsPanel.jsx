@@ -1,6 +1,8 @@
 import './styles/SettingsPanel.css';
 
+import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
 import { SelectWithCustomValues } from './ui/SelectWithCustomValues';
+import { truncateRange } from './lib/truncateRange';
 
 const ITERATION_VALUE_OPTS = [
   100,
@@ -16,11 +18,7 @@ const ITERATION_VALUE_OPTS = [
 
 // TODO: Enable modifying the settings while points are being computed.
 function SettingsPanel({ params, setPlotParams }) {
-  const {
-    realRange,
-    complexRange,
-    iterationLimit,
-  } = params;
+  const { centerPos, zoomLevel, iterationLimit } = params;
 
   const setIterationLimit = value => {
     setPlotParams({ iterationLimit: parseInt(value) });
@@ -31,26 +29,23 @@ function SettingsPanel({ params, setPlotParams }) {
       <header>Settings</header>
 
       <section className='data-section coords-display'>
-        <div className='data-header'>Coordinates</div>
+        {/* TODO: better name for this... */}
+        <div className='data-header'>View Area</div>
 
-        <div className='data-subheader'>Real Range</div>
+        <div className='data-subheader'>Center Point</div>
         <div className='data-row'>
-          <label>Start</label>
-          <span className='value'>{realRange.start}</span>
+          <label>Real</label>
+          <span className='value'>{centerPos.r}</span>
         </div>
         <div className='data-row'>
-          <label>End</label>
-          <span className='value'>{realRange.end}</span>
+          <label>Complex</label>
+          <span className='value'>{centerPos.c}</span>
         </div>
 
-        <div className='data-subheader'>Complex Range</div>
+        {/* TODO: Zoom should be a sibling to Center Point, not a child */}
         <div className='data-row'>
-          <label>Start</label>
-          <span className='value'>{complexRange.start}</span>
-        </div>
-        <div className='data-row'>
-          <label>End</label>
-          <span className='value'>{complexRange.end}</span>
+          <label>Zoom</label>
+          <span className='value'>{zoomLevel}</span>
         </div>
       </section>
 
