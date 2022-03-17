@@ -35,26 +35,18 @@ function drawMandelbrot({ canvas, params, onProgress }) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // ---- DISABLE_COLOR ----
-  // TODO: the color stuff needs a lot of work... it doesn't look like online pics.
-  // let colorMap = buildColorMap(computeArgs);
-  // console.log(colorMap);
-  // const maxColorKey = Math.max(...colorMap.keys());
-  // let INSUFFICIENT_COLOR_MAP_COUNT = 0;
-  // const getColor = val => {
-  //   // ----------------------------------------------------------------------
-  //   // TODO: This is a hack due to our shitty random sample thing.
-  //   // Sometimes the maxDivergenceFactor it produces is not actually the max.
-  //   // Fix this!!
-  //   // ----------------------------------------------------------------------
-  //   if (val > maxColorKey) {
-  //     val = maxColorKey;
-  //     INSUFFICIENT_COLOR_MAP_COUNT += 1;
-  //   }
-  //   return colorMap.get(val);
-  // };
-  // ---- ------------- ----
-  const getColor = () => {};
+  // TODO: the color stuff needs more work... it doesn't look like online pics.
+  let colorMap = buildColorMap(computeArgs);
+  const maxColorKey = Math.max(...colorMap.keys());
+  // ----------------------------------------------------------------------
+  // TODO: `maxColorKey` is a hack due to our shitty random sample thing.
+  // Sometimes the maxDivergenceFactor it produces is not actually the max.
+  // Fix this!!
+  // ----------------------------------------------------------------------
+  const getColor = val => (val > maxColorKey ?
+    colorMap.get(maxColorKey) :
+    colorMap.get(val)
+  );
 
   let t0 = performance.now();
   return ComputeManager.computePoints({
@@ -68,9 +60,6 @@ function drawMandelbrot({ canvas, params, onProgress }) {
   }).then(() => {
     let t1 = performance.now();
     console.log(`Timer -- ComputeManager.computePoints() took ${t1 - t0} milliseconds.`);
-    // ---- DISABLE_COLOR ----
-    // console.log('-- INSUFFICIENT_COLOR_MAP_COUNT:', INSUFFICIENT_COLOR_MAP_COUNT);
-    // ---- ------------- ----
 
     if (DEBUG) {
       drawLine(ctx, { x: 0, y: 350 }, { x: 700, y: 350 }, { r: 255, g: 0, b: 0, a: 0.5 }, 1);

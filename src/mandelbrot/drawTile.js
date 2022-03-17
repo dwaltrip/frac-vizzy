@@ -23,16 +23,10 @@ function drawTile({ ctx, tileId, points, viewport, getColor}) {
 
     for (let x=0; x < visibleSection.width; x++) {
       const status = row[visibleSection.xRange.start + x];
-      // ---- DISABLE_COLOR ----
       // TODO: This magic number -1 should be in a shared const var somewhere,
       // as it is referenced in multiple places.
-      // const value = status.isInSet ? -1 : status.divergenceFactor;
-      // const color = getColor(value);
-      // ---- ------------- ----
-      const color = (status.isInSet ?
-        { r: 0, g: 0, b: 0 } :
-        { r: 220, g: 230, b: 255 }
-      );
+      const value = status.isInSet ? -1 : status.divergenceFactor;
+      const color = getColor(value);
       drawPixel(imgDataForTile, x, y, color.r, color.g, color.b);
     }
   }
