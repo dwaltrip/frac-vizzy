@@ -6,7 +6,7 @@ import './styles/App.css';
 import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
-import { getInitialParams, serializeParams } from './plotParams';
+import { getInitialParams, serializeParams, normalizeParams } from './plotParams';
 
 let initialLoad = true;
 
@@ -18,10 +18,10 @@ function App() {
   const [plotParams, setParamsRaw] = useState(getInitialParams(VIEWPORT));
 
   function setPlotParams({ ...newParams }) {
-    setParamsRaw(prevParams => ({
-      ...prevParams,
-      ...newParams,
-    }));
+    setParamsRaw(prevParams => normalizeParams(
+      { ...prevParams, ...newParams },
+      VIEWPORT,
+    ));
   }
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import qs from 'qs';
 
+import { assert } from './lib/assert';
 import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
 
 // TODO: what are reasonable numbers here?
@@ -81,4 +82,27 @@ function parsePos(pos) {
   return { r: parseFloat(pos.r), c: parseFloat(pos.c) };
 }
 
-export { getInitialParams, serializeParams };
+function normalizePos(pos, sideLength, viewport) {
+  const rLen = (viewport.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+  const cLen = (viewport.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
+
+  const numMeaningfulDecimalPlaces = Math.floor(-1 * Math.log10(Math.min(rLen, cLen) / 1000));
+  assert(numMeaningfulDecimalPlaces > 0, 'Should be positive');
+
+  const truncateFloat = num => parseFloat(num.toFixed(numMeaningfulDecimalPlaces));
+  return {
+    r: truncateFloat(pos.r),
+    c: truncateFloat(pos.c),
+  };
+}
+
+function normalizeParams(params, viewport) {
+  const { centerPos, zoomLevel } = params;
+  const sideLength = 1 / Math.pow(2, zoomLevel);
+  return {
+    ...params,
+    centerPos: normalizePos(centerPos, sideLength, viewport),
+  };
+}
+
+export { getInitialParams, serializeParams, normalizeParams };
