@@ -10,15 +10,9 @@ function buildColorMap({
   iterationLimit,
   viewport,
 }) {
-
-  // TODO: these calculations are repeated in a bunch of places.
-  const sideLength = 1 / Math.pow(2, zoomLevel);
-  const rLen = (viewport.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-  const cLen = (viewport.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-
   const makeRange = (c, delta) => ({ start: c - delta, end: c + delta });
-  const rRange = makeRange(centerPos.r, rLen / 2);
-  const cRange = makeRange(centerPos.c, cLen / 2);
+  const rRange = makeRange(centerPos.r, viewport.realLen / 2);
+  const cRange = makeRange(centerPos.c, viewport.complexLen / 2);
 
   const numPixels = viewport.width * viewport.height;
   const numSamples = Math.floor(numPixels / 1000);

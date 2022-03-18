@@ -1,19 +1,9 @@
 import qs from 'qs';
 
 import { assert } from './lib/assert';
+
 import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
-
-// TODO: what are reasonable numbers here?
-const VIEWPORT_CONSTRAINTS = {
-  MIN_LENGTH: 400,
-  MAX_LENGTH: 2000,
-};
-
-const MAX_TILES_PER_DIM = 10;
-const MIN_TILES_PER_DIM = 2;
-
-// TODO: where should this go?
-const PIXELS_PER_TILE_DIM = 200;
+import { getSideLength } from './mandelbrot/calcs';
 
 const DEFAULT_PARAMS = {
   centerPos: { r: "0", c: "0" },
@@ -97,11 +87,10 @@ function normalizePos(pos, sideLength, viewport) {
 }
 
 function normalizeParams(params, viewport) {
-  const { centerPos, zoomLevel } = params;
-  const sideLength = 1 / Math.pow(2, zoomLevel);
+  const sideLength = getSideLength(params.zoomLevel);
   return {
     ...params,
-    centerPos: normalizePos(centerPos, sideLength, viewport),
+    centerPos: normalizePos(params.centerPos, sideLength, viewport),
   };
 }
 

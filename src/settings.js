@@ -1,11 +1,13 @@
 import { assert } from './lib/assert';
 
-const TILE_SIDE_LENGTH_IN_PIXELS = 100;
+const TILE_SIDE_LENGTH_IN_PIXELS = 50;
 
-const ZOOM_FACTOR = 4;
-assert(ZOOM_FACTOR % 2 === 0, 'ZOOM_FACTOR must be a multiple of 2');
-
+const DEFAULT_VIEWPORT = {
+  width: 700,
+  height: 700,
+};
 
 export {
   TILE_SIDE_LENGTH_IN_PIXELS,
+  DEFAULT_VIEWPORT,
 };

@@ -1,12 +1,14 @@
 import { assert } from '../lib/assert';
 import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 
+import { getSideLength } from './calcs';
+
 const TILE_ORIGIN = { real: 0, complex: 0 };
 
 // ----------------------------------------------------------------------------
 
 function getTileIds({ centerPos, viewport, zoomLevel }) {
-  const sideLength = 1 / Math.pow(2, zoomLevel);
+  const sideLength = getSideLength(zoomLevel);
 
   const rLen = (viewport.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
   const cLen = (viewport.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
@@ -27,9 +29,9 @@ function getTileIds({ centerPos, viewport, zoomLevel }) {
   // pixels per side, so due to this granularity, a tile could in theory fall
   // exactly on the // viewport boundary. How should I handle that possibility??
   // Note, this also applies to the bottom right tile.
-  assert(topLeftTileId.topLeftPoint.real < topLeftPoint.real,
+  assert(topLeftTileId.topLeftPoint.real <= topLeftPoint.real,
     'top left tile should partially overlap the viewport')
-  assert(topLeftTileId.topLeftPoint.complex > topLeftPoint.complex,
+  assert(topLeftTileId.topLeftPoint.complex >= topLeftPoint.complex,
     'top left tile should partially overlap the viewport')
 
   const numRows = (topLeftTileId.gridCoord.y - bottomRightTileId.gridCoord.y) + 1;

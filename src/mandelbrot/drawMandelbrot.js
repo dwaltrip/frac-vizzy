@@ -15,8 +15,6 @@ const COMPLEX_END = 2;
 const DEBUG = false;
 // const DEBUG = true;
 
-window.TILE_DATA = {};
-
 // ----------------------------------------------------------------
 
 // TODO: Across entire app, clean up / standardize the usage of the 

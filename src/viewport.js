@@ -1,10 +1,11 @@
 
 import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
+import { getSideLength } from './mandelbrot/calcs';
 
 function getViewportInfo({ params, canvas }) {
   const { centerPos, zoomLevel } = params;
 
-  const sideLength = 1 / Math.pow(2, zoomLevel);
+  const sideLength = getSideLength(zoomLevel);
 
   const rLen = (canvas.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
   const cLen = (canvas.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;

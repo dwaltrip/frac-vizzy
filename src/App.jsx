@@ -3,24 +3,22 @@ import qs from 'qs';
 
 import './styles/App.css';
 
+import { DEFAULT_VIEWPORT } from './settings';
+import { getInitialParams, serializeParams, normalizeParams } from './plotParams';
+
 import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
-import { getInitialParams, serializeParams, normalizeParams } from './plotParams';
-
 let initialLoad = true;
-
-// TODO: Fix this!!!!
-const VIEWPORT = { height: 700, width: 700 };
 
 function App() {
   console.log('=== Rendering App... ==='); 
-  const [plotParams, setParamsRaw] = useState(getInitialParams(VIEWPORT));
+  const [plotParams, setParamsRaw] = useState(getInitialParams(DEFAULT_VIEWPORT));
 
   function setPlotParams({ ...newParams }) {
     setParamsRaw(prevParams => normalizeParams(
       { ...prevParams, ...newParams },
-      VIEWPORT,
+      DEFAULT_VIEWPORT,
     ));
   }
 

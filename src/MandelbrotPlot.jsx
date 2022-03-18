@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import './styles/MandelbrotPlot.css';
 
+import { DEFAULT_VIEWPORT } from './settings';
+
 import { drawMandelbrot } from './mandelbrot/drawMandelbrot';
 import { throttle } from './lib/throttle';
 import { zoomInPlot, zoomOutPlot } from './canvasEvents';
@@ -43,8 +45,8 @@ function MandelbrotPlot({ params, setPlotParams }) {
 
       <canvas
         className='mandelbrot-canvas'
-        height='700'
-        width='700'
+        height={DEFAULT_VIEWPORT.height}
+        width={DEFAULT_VIEWPORT.height}
         ref={canvasRef}
         // onClick={() => console.log('-- canvas event -- onClick')}
         // onMouseDown={() => console.log('.. canvas mousedown')}
