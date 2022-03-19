@@ -23,7 +23,6 @@ function App() {
   }
 
   useEffect(() => {
-    // TODO: better way of doing this?
     // We don't run this on initial load so that we don't show the plot params
     //   in the URL if they are viewing the default plot.
     if (initialLoad) {

@@ -46,10 +46,8 @@ function MandelbrotPlot({ params, setPlotParams }) {
       <canvas
         className='mandelbrot-canvas'
         height={DEFAULT_VIEWPORT.height}
-        width={DEFAULT_VIEWPORT.height}
+        width={DEFAULT_VIEWPORT.width}
         ref={canvasRef}
-        // onClick={() => console.log('-- canvas event -- onClick')}
-        // onMouseDown={() => console.log('.. canvas mousedown')}
         // TODO: Is it fine to allow react to manage our canvas event handling?
         onDoubleClick={event => {
           zoomInPlot({

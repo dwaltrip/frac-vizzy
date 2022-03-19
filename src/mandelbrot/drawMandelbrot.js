@@ -4,13 +4,7 @@ import { getViewportInfo } from '../viewport';
 import { ComputeManager } from './computeManager';
 import { buildColorMap } from './colorMap';
 import { drawLine } from '../lib/draw';
-
 import { drawTile } from './drawTile';
-
-const REAL_START = -2;
-const REAL_END = 2;
-const COMPLEX_START = -2;
-const COMPLEX_END = 2;
 
 const DEBUG = false;
 // const DEBUG = true;
