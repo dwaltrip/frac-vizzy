@@ -3,7 +3,7 @@ import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 
 import { getSideLength } from './calcs';
 
-const TILE_ORIGIN = { real: 0, complex: 0 };
+const TILE_ORIGIN = { r: 0, c: 0 };
 
 // ----------------------------------------------------------------------------
 
@@ -14,12 +14,12 @@ function getTileIds({ centerPos, viewport, zoomLevel }) {
   const cLen = (viewport.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
 
   const topLeftPoint = {
-    real: centerPos.r - (rLen / 2),
-    complex: centerPos.c + (cLen / 2),
+    r: centerPos.r - (rLen / 2),
+    c: centerPos.c + (cLen / 2),
   };
   const botRightPoint = {
-    real: centerPos.r + (rLen / 2),
-    complex: centerPos.c - (cLen / 2),
+    r: centerPos.r + (rLen / 2),
+    c: centerPos.c - (cLen / 2),
   };
 
   const topLeftTileId = getContainingTileId(topLeftPoint, sideLength);
@@ -29,9 +29,9 @@ function getTileIds({ centerPos, viewport, zoomLevel }) {
   // pixels per side, so due to this granularity, a tile could in theory fall
   // exactly on the // viewport boundary. How should I handle that possibility??
   // Note, this also applies to the bottom right tile.
-  assert(topLeftTileId.topLeftPoint.real <= topLeftPoint.real,
+  assert(topLeftTileId.topLeftPoint.r <= topLeftPoint.r,
     'top left tile should partially overlap the viewport')
-  assert(topLeftTileId.topLeftPoint.complex >= topLeftPoint.complex,
+  assert(topLeftTileId.topLeftPoint.c >= topLeftPoint.c,
     'top left tile should partially overlap the viewport')
 
   const numRows = (topLeftTileId.gridCoord.y - bottomRightTileId.gridCoord.y) + 1;
@@ -70,16 +70,16 @@ function getTileGrid(topLeftTileId, rows, cols) {
 // Math.ceil for negative component values.
 function getContainingTileId(point, sideLength) {
   let gridCoord = {
-    x: Math.floor((point.real - TILE_ORIGIN.real) / sideLength),
-    y: Math.floor((point.complex - TILE_ORIGIN.complex) / sideLength),
+    x: Math.floor((point.r - TILE_ORIGIN.r) / sideLength),
+    y: Math.floor((point.c - TILE_ORIGIN.c) / sideLength),
   };
   return createTileId(gridCoord, sideLength);
 }
 
 function createTileId(gridCoord, sideLength) {
   const topLeftPoint = {
-    real: gridCoord.x * sideLength,
-    complex: (gridCoord.y + 1) * sideLength,
+    r: gridCoord.x * sideLength,
+    c: (gridCoord.y + 1) * sideLength,
   };
   return {
     gridCoord,

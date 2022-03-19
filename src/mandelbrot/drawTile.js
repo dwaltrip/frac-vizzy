@@ -45,8 +45,8 @@ function buildTileView({ tileId, viewport }) {
   const tileRect = {
     topLeft: topLeftPoint,
     botRight: {
-      real: topLeftPoint.real + sideLength,
-      complex: topLeftPoint.complex - sideLength,
+      r: topLeftPoint.r + sideLength,
+      c: topLeftPoint.c - sideLength,
     },
   };
   if (!doRectsOverlap(viewportRect, tileRect)) {
@@ -61,8 +61,8 @@ function buildTileView({ tileId, viewport }) {
   };
 
   const renderOffset = {
-    x: Math.round((tileRect.topLeft.real - viewportRect.topLeft.real) / interPixDist),
-    y: Math.round((viewportRect.topLeft.complex - tileRect.topLeft.complex) / interPixDist),
+    x: Math.round((tileRect.topLeft.r - viewportRect.topLeft.r) / interPixDist),
+    y: Math.round((viewportRect.topLeft.c - tileRect.topLeft.c) / interPixDist),
   };
 
   // ----------------------------------------------------------------------------
@@ -73,16 +73,16 @@ function buildTileView({ tileId, viewport }) {
   // It breaks if the tile is multiple tile-widths outside of the viewport...
 
   // tile overlaps with left edge of viewport
-  if (tileRect.topLeft.real < viewportRect.topLeft.real) {
+  if (tileRect.topLeft.r < viewportRect.topLeft.r) {
     visibleSection.xRange.start = Math.round(
-      (viewportRect.topLeft.real - tileRect.topLeft.real) / interPixDist
+      (viewportRect.topLeft.r - tileRect.topLeft.r) / interPixDist
     );
     renderOffset.x = 0;
   }
   // tile overlaps with right edge of viewport
-  if (viewportRect.botRight.real < tileRect.botRight.real) {
+  if (viewportRect.botRight.r < tileRect.botRight.r) {
     visibleSection.xRange.end = Math.round(
-      (viewportRect.botRight.real - tileRect.topLeft.real) / interPixDist
+      (viewportRect.botRight.r - tileRect.topLeft.r) / interPixDist
     );
   }
 
@@ -91,16 +91,16 @@ function buildTileView({ tileId, viewport }) {
   assert(visibleSection.width <= TILE_SIDE_LENGTH_IN_PIXELS);
 
   // tile overlaps with top edge of viewport
-  if (tileRect.topLeft.complex > viewportRect.topLeft.complex) {
+  if (tileRect.topLeft.c > viewportRect.topLeft.c) {
     visibleSection.yRange.start = Math.round(
-      (tileRect.topLeft.complex - viewportRect.topLeft.complex) / interPixDist
+      (tileRect.topLeft.c - viewportRect.topLeft.c) / interPixDist
     );
     renderOffset.y = 0;
   }
   // tile overlaps with bottom edge of viewport
-  if (viewportRect.botRight.complex > tileRect.botRight.complex) {
+  if (viewportRect.botRight.c > tileRect.botRight.c) {
     visibleSection.yRange.end = Math.round(
-      (tileRect.topLeft.complex - viewportRect.botRight.complex) / interPixDist
+      (tileRect.topLeft.c - viewportRect.botRight.c) / interPixDist
     );
     assert(
       0 <= visibleSection.yRange.end &&
@@ -117,21 +117,16 @@ function buildTileView({ tileId, viewport }) {
   return { visibleSection, renderOffset, tileId };
 }
 
-// Need to properly standardize / cleanup our terminology
-// One of the issues is that I don't want to use "x,y" for both
-// the math plane and for the pixel grid.
-// The other issue is that "real, complex" is less ergonomic than "x,y"
-// Maybe I should just use "r,c" in place of "real,complex"
 function doRectsOverlap(r1, r2) {
-  const r1XRange = { start: r1.topLeft.real, end: r1.botRight.real };
-  const r2XRange = { start: r2.topLeft.real, end: r2.botRight.real };
+  const r1RealRange = { start: r1.topLeft.r, end: r1.botRight.r };
+  const r2RealRange = { start: r2.topLeft.r, end: r2.botRight.r };
 
-  const r1YRange = { start: r1.botRight.complex, end: r1.topLeft.complex };
-  const r2YRange = { start: r2.botRight.complex, end: r2.topLeft.complex };
+  const r1ComplexRange = { start: r1.botRight.c, end: r1.topLeft.c };
+  const r2ComplexRange = { start: r2.botRight.c, end: r2.topLeft.c };
 
   return (
-    doRangesOverlap(r1XRange, r2XRange) &&
-    doRangesOverlap(r1YRange, r2YRange)
+    doRangesOverlap(r1RealRange, r2RealRange) &&
+    doRangesOverlap(r1ComplexRange, r2ComplexRange)
   );
 }
 

@@ -11,12 +11,12 @@ function getViewportInfo({ params, canvas }) {
   const cLen = (canvas.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
 
   const topLeftPoint = {
-    real: centerPos.r - (rLen / 2),
-    complex: centerPos.c + (cLen / 2),
+    r: centerPos.r - (rLen / 2),
+    c: centerPos.c + (cLen / 2),
   };
   const botRightPoint = {
-    real: topLeftPoint.real + rLen,
-    complex: topLeftPoint.complex - cLen,
+    r: topLeftPoint.r + rLen,
+    c: topLeftPoint.c - cLen,
   };
 
   return {

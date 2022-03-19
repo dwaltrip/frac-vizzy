@@ -1,8 +1,7 @@
 import { getMousePos } from './lib/getMousePos';
 import { truncateRange } from './lib/truncateRange';
 
-import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
-import { getSideLength } from './mandelbrot/calcs';
+import { getViewportInfo } from './viewport';
 
 // NOTE: This needs a be a positive integer
 const CANVAS_ZOOM_FACTOR = 2;
@@ -10,26 +9,16 @@ const CANVAS_ZOOM_FACTOR = 2;
 function zoomInPlot({ canvas, event, params, setPlotParams }) {
   console.log('======= zoomInPlot -- start =======');
   const mousePos = getMousePos(canvas, event);
-  console.log('\tmousePos:', mousePos);
 
   const { centerPos, zoomLevel } = params;
-  const sideLength = getSideLength(zoomLevel);
+  const viewport = getViewportInfo({ params, canvas });
 
-  const rLen = (canvas.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-  const cLen = (canvas.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-
-  const topLeftPoint = {
-    r: centerPos.r - (rLen / 2),
-    c: centerPos.c + (cLen / 2),
-  };
-
-  // TODO: can I make this cleaner / less bug-prone?
-  const xRatio = mousePos.x / canvas.width;
-  const yRatio = mousePos.y / canvas.height;
+  const rRatio = mousePos.x / canvas.width;
+  const cRatio = mousePos.y / canvas.height;
 
   const newCenter = {
-    r: topLeftPoint.r + (xRatio * rLen),
-    c: topLeftPoint.c - (yRatio * cLen),
+    r: viewport.topLeftPoint.r + (rRatio * viewport.realLen),
+    c: viewport.topLeftPoint.c - (cRatio * viewport.complexLen),
   };
 
   setPlotParams({

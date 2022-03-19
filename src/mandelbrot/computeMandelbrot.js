@@ -80,18 +80,18 @@ function createMandelbrotComputeWorker() {
         /* global $TILE_SIDE_LENGTH_IN_PIXELS */
         const numSteps = $TILE_SIDE_LENGTH_IN_PIXELS;
 
-        const dx = sideLength / numSteps;
-        const dy = dx;
+        const dr = sideLength / numSteps;
+        const dc = dr;
 
         let points = [];
 
         // TODO: Double check that I'm not accidentally flipping it verticallyl
-        for (let iy=0; iy<numSteps; iy++) {
+        for (let cStep=0; cStep<numSteps; cStep++) {
           let row = [];
 
-          for (let ix=0; ix<numSteps; ix++) {
-            const real    = topLeftPoint.real + (ix * dx);
-            const complex = topLeftPoint.complex - (iy * dy);
+          for (let rStep=0; rStep<numSteps; rStep++) {
+            const real    = topLeftPoint.r + (rStep * dr);
+            const complex = topLeftPoint.c - (cStep * dc);
             const status = calcMandlebrotSetStatus(real, complex, iterationLimit);
 
             row.push({

@@ -15,11 +15,6 @@ const COMPLEX_END = 2;
 const DEBUG = false;
 // const DEBUG = true;
 
-// ----------------------------------------------------------------
-
-// TODO: Across entire app, clean up / standardize the usage of the 
-// the terminaology (real, complex) vs. (x, y)
-
 function drawMandelbrot({ canvas, params, onProgress }) {
   console.log('======== drawMandelbrot ========');
 
