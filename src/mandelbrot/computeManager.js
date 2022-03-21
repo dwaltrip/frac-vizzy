@@ -24,10 +24,13 @@ const ComputeManager = {
       workerArgs[workerNum].tileIds.push(tileIds[i]);
     }
 
-    let totalTiles = tileIds.length;
+    const computedTiles = [];
+    const totalTiles = tileIds.length;
     let tilesComputed = 0;
+
     const messageHandler = ({ label, data }) => {
       if (label == 'done-computing-tile') {
+        computedTiles.push(data);
         handleNewTile(data);
 
         tilesComputed += 1;
@@ -45,7 +48,9 @@ const ComputeManager = {
       const worker = WorkerManager.createWorker();
       worker.listen(messageHandler);
       return worker.run(args);
-    }));
+    })).then(() => {
+      return computedTiles;
+    });
   },
 };
 

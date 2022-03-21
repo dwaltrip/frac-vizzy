@@ -92,17 +92,7 @@ function createMandelbrotComputeWorker() {
           for (let rStep=0; rStep<numSteps; rStep++) {
             const real    = topLeftPoint.r + (rStep * dr);
             const complex = topLeftPoint.c - (cStep * dc);
-            const status = calcMandlebrotSetStatus(real, complex, iterationLimit);
-
-            row.push({
-              isInSet: status.isInSet,
-              // NOTE: Add 1 as sometimes it diverges when i=0,
-              // which would set `divergenceFactor` to -Infinity, which is bad.
-              // For the purposes of calculating the divergenceFactor, there
-              // isn't a meaningful difference between iteration values in the
-              // interval of [1, iterationLimit] versus [0, iterationLimit - 1].
-              divergenceFactor: Math.ceil(Math.log(status.iteration + 1)),
-            });
+            row.push(calcMandlebrotSetStatus(real, complex, iterationLimit));
           }
 
           points.push(row);

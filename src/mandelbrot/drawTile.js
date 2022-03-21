@@ -3,7 +3,7 @@ import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 import { assert } from '../lib/assert';
 import { drawPixel } from '../lib/draw';
 
-function drawTile({ ctx, tileId, points, viewport, getColor}) {
+function drawTile({ ctx, tileId, points, viewport, getColor }) {
   const { visibleSection, renderOffset } = buildTileView({ tileId, viewport });
   const { xRange, yRange } = visibleSection;
 
@@ -23,10 +23,7 @@ function drawTile({ ctx, tileId, points, viewport, getColor}) {
 
     for (let x=0; x < visibleSection.width; x++) {
       const status = row[visibleSection.xRange.start + x];
-      // TODO: This magic number -1 should be in a shared const var somewhere,
-      // as it is referenced in multiple places.
-      const value = status.isInSet ? -1 : status.divergenceFactor;
-      const color = getColor(value);
+      const color = getColor(status);
       drawPixel(imgDataForTile, x, y, color.r, color.g, color.b);
     }
   }

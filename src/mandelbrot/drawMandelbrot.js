@@ -2,7 +2,7 @@ import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 
 import { getViewportInfo } from '../viewport';
 import { ComputeManager } from './computeManager';
-import { buildColorMap } from './colorMap';
+import { buildGetColorForPoint, buildGetColorForPointUsingHistogram } from './colorMap';
 import { drawLine } from '../lib/draw';
 import { drawTile } from './drawTile';
 
@@ -23,17 +23,28 @@ function drawMandelbrot({ canvas, params, onProgress }) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // TODO: the color stuff needs more work... it doesn't look like online pics.
-  let colorMap = buildColorMap(computeArgs);
-  const maxColorKey = Math.max(...colorMap.keys());
-  // ----------------------------------------------------------------------
-  // TODO: `maxColorKey` is a hack due to our shitty random sample thing.
-  // Sometimes the maxDivergenceFactor it produces is not actually the max.
-  // Fix this!!
-  // ----------------------------------------------------------------------
-  const getColor = val => (val > maxColorKey ?
-    colorMap.get(maxColorKey) :
-    colorMap.get(val)
-  );
+  const getColor = buildGetColorForPoint(computeArgs);
+
+  const histogram = {
+    data: {},
+    numPoints: 0,
+
+    increment(val) {
+      if (!(val in this.data)) {
+        this.data[val] = 0;
+      }
+      this.data[val] += 1;
+    },
+
+    updateForPoints(points) {
+      points.forEach(row => {
+        row.forEach(status => {
+          this.increment(status.iteration);
+          this.numPoints += 1;
+        });
+      });
+    }
+  };
 
   let t0 = performance.now();
   return ComputeManager.computePoints({
@@ -42,11 +53,16 @@ function drawMandelbrot({ canvas, params, onProgress }) {
     // TODO: Cache the tile data!!
     // Who is in charge of that?
     handleNewTile: ({ tileId, points }) => {
-      drawTile({ ctx, tileId, points, viewport, getColor });
+      histogram.updateForPoints(points);
+      // drawTile({ ctx, tileId, points, viewport, getColor });
     },
-  }).then(() => {
+  }).then(computedTiles => {
+    const getColorV2 = buildGetColorForPointUsingHistogram(histogram);
+    computedTiles.forEach(({ tileId, points }) => {
+      drawTile({ ctx, tileId, points, viewport, getColor: getColorV2 });
+    });
     let t1 = performance.now();
-    console.log(`Timer -- ComputeManager.computePoints() took ${t1 - t0} milliseconds.`);
+    console.log(`Timer -- computing and rendering took ${t1 - t0} milliseconds.`);
 
     if (DEBUG) {
       drawLine(ctx, { x: 0, y: 350 }, { x: 700, y: 350 }, { r: 255, g: 0, b: 0, a: 0.5 }, 1);
