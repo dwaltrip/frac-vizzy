@@ -1,4 +1,4 @@
-import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
+import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from '../settings';
 
 import { getViewportInfo } from '../viewport';
 import { ComputeManager } from './computeManager';
@@ -12,6 +12,8 @@ const DEBUG = false;
 function drawMandelbrot({ canvas, params, onProgress }) {
   console.log('======== drawMandelbrot ========');
 
+  const { colorMethod } = params;
+
   const viewport = getViewportInfo({ params, canvas });
   const computeArgs = {
     ...params,
@@ -22,8 +24,10 @@ function drawMandelbrot({ canvas, params, onProgress }) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // TODO: the color stuff needs more work... it doesn't look like online pics.
-  const getColor = buildGetColorForPoint(computeArgs);
+  let getColor;
+  if (params.colorMethod !== COLOR_METHODS.histogram) {
+    getColor = buildGetColorForPoint({ colorMethod, ...computeArgs });
+  }
 
   const histogram = {
     data: {},
@@ -53,14 +57,21 @@ function drawMandelbrot({ canvas, params, onProgress }) {
     // TODO: Cache the tile data!!
     // Who is in charge of that?
     handleNewTile: ({ tileId, points }) => {
-      histogram.updateForPoints(points);
-      // drawTile({ ctx, tileId, points, viewport, getColor });
+      if (colorMethod === COLOR_METHODS.histogram) {
+        histogram.updateForPoints(points);
+      }
+      else {
+        drawTile({ ctx, tileId, points, viewport, getColor });
+      }
     },
   }).then(computedTiles => {
-    const getColorV2 = buildGetColorForPointUsingHistogram(histogram);
-    computedTiles.forEach(({ tileId, points }) => {
-      drawTile({ ctx, tileId, points, viewport, getColor: getColorV2 });
-    });
+    if (params.colorMethod === COLOR_METHODS.histogram) {
+      const getColorV2 = buildGetColorForPointUsingHistogram(histogram);
+      computedTiles.forEach(({ tileId, points }) => {
+        drawTile({ ctx, tileId, points, viewport, getColor: getColorV2 });
+      });
+    }
+
     let t1 = performance.now();
     console.log(`Timer -- computing and rendering took ${t1 - t0} milliseconds.`);
 

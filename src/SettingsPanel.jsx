@@ -1,6 +1,6 @@
 import './styles/SettingsPanel.css';
 
-import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
+import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHOD_OPTS } from './settings';
 import { SelectWithCustomValues } from './ui/SelectWithCustomValues';
 import { truncateRange } from './lib/truncateRange';
 
@@ -18,10 +18,15 @@ const ITERATION_VALUE_OPTS = [
 
 // TODO: Enable modifying the settings while points are being computed.
 function SettingsPanel({ params, setPlotParams }) {
-  const { centerPos, zoomLevel, iterationLimit } = params;
+  const { centerPos, zoomLevel, iterationLimit, colorMethod } = params;
 
   const setIterationLimit = value => {
     setPlotParams({ iterationLimit: parseInt(value) });
+  };
+
+  const setColorMethod = event => {
+    console.log(event.target.value)
+    setPlotParams({ colorMethod: event.target.value });
   };
 
   return (
@@ -60,6 +65,26 @@ function SettingsPanel({ params, setPlotParams }) {
               onChange={setIterationLimit}
             />
           </span>
+        </div>
+      </section>
+
+      <section className='data-section'>
+        <div className='data-header'>Colors</div>
+        <div className='data-row'>
+          <label>Method</label>
+          {/* TODO: clean up the classnames and stuff.
+              E.g. It should be generic, somethign like "settings-panel-select" */}
+          <select
+            className='color-method-select'
+            value={colorMethod}
+            onChange={setColorMethod}
+          >
+            {COLOR_METHOD_OPTS.map(method => (
+              <option value={method.value} key={method.value}>
+                {method.text}
+              </option>
+            ))}
+          </select>
         </div>
       </section>
     </div>

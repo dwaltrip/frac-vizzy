@@ -1,13 +1,13 @@
 import qs from 'qs';
 
 import { assert } from './lib/assert';
-
-import { TILE_SIDE_LENGTH_IN_PIXELS } from './settings';
+import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from './settings';
 import { getSideLength } from './mandelbrot/calcs';
 
 const DEFAULT_PARAMS = {
   centerPos: { r: "0", c: "0" },
   iterationLimit: "250",
+  colorMethod: COLOR_METHODS.sqrt_iters,
 };
 
 // These points draw a box around the fully zoomed out Mandelbrot
@@ -49,6 +49,7 @@ function getInitialParams(viewport) {
     }),
     zoomLevel: parseInt(urlData.zoomLevel || defaults.zoomLevel),
     iterationLimit: parseInt(urlData.iterationLimit || defaults.iterationLimit),
+    colorMethod: urlData.colorMethod || defaults.colorMethod,
   };
 }
 
@@ -57,6 +58,7 @@ function serializeParams(params) {
     pos: params.centerPos,
     z: params.zoomLevel,
     il: params.iterationLimit,
+    cm: params.colorMethod,
   };
 }
 
@@ -65,6 +67,7 @@ function deserializeParams(params) {
     centerPos: params.pos,
     zoomLevel: params.z,
     iterationLimit: params.il,
+    colorMethod: params.cm,
   };
 }
 

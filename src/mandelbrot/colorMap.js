@@ -1,5 +1,5 @@
 import { randInt } from '../lib/randInt';
-import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
+import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from '../settings';
 
 import { calcMandlebrotSetStatus } from './computeMandelbrot';
 
@@ -48,6 +48,7 @@ function buildGetColorForPointUsingHistogram(histogram) {
 }
 
 function buildGetColorForPoint({
+  colorMethod,
   centerPos,
   zoomLevel,
   iterationLimit,
@@ -76,7 +77,7 @@ function buildGetColorForPoint({
     const status = calcMandlebrotSetStatus(real, complex, iterationLimit);
     if (!status.isInSet) {
       maxDivergenceFactor = Math.max(
-        transformForColor(status.iteration),
+        transformForColor(status.iteration, colorMethod),
         maxDivergenceFactor,
       );
     }
@@ -114,7 +115,7 @@ function buildGetColorForPoint({
       return { r: 0, g: 0, b: 0 };
     }
 
-    const val = transformForColor(status.iteration);
+    const val = transformForColor(status.iteration, colorMethod);
     return (val > maxColorKey ?
       colorMap.get(maxColorKey) :
       colorMap.get(val)
@@ -126,16 +127,24 @@ function percentToRangeVal(percent, start, end) {
   return Math.floor(start + (percent * (end - start)));
 }
 
-function transformForColor(iterationCount) {
+function transformForColor(iterationCount, colorMethod) {
   // NOTE: For log functions, we need to add 1 as sometimes it diverges
   // when iteration=0. `log(0)` gives -Infinity, which is bad.
   // There isn't a meaningful difference between iteration values in the
   // interval of [1, iterationLimit] versus [0, iterationLimit - 1].
   // --------------------------------------------------------------------
-  // const val = Math.log(iterationCount+1);
-  // const val = Math.log2(iterationCount+1);
-  // const val = iterationCount / 30;
-  const val = Math.sqrt(iterationCount);
+  let val;
+  if (colorMethod === COLOR_METHODS.sqrt_iters) {
+    val = Math.sqrt(iterationCount);
+  }
+  else if (colorMethod === COLOR_METHODS.log_iters) {
+    val = Math.log(iterationCount+1);
+    // val = Math.log2(iterationCount+1);
+  }
+  else if (colorMethod === COLOR_METHODS.div_by_20) {
+    val = iterationCount / 20;
+    // val = iterationCount / 30;
+  }
   return Math.ceil(val);
 }
 

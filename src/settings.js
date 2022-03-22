@@ -1,5 +1,7 @@
 import { assert } from './lib/assert';
 
+// ----------------------------------------------------------------------------
+
 const TILE_SIDE_LENGTH_IN_PIXELS = 50;
 
 const DEFAULT_VIEWPORT = {
@@ -7,7 +9,61 @@ const DEFAULT_VIEWPORT = {
   height: 700,
 };
 
+// ----------------------------------------------------------------------------
+
+// const COLOR_METHODS = [
+//   {
+//     name: 'sqrt_iters',
+//     desc: 'sqrt(iterations)',
+//   },
+//   {
+//     name: 'log_iters',
+//     desc: 'log(iterations)',
+//   },
+//   {
+//     name: 'histogram',
+//     desc: 'histogram',
+//   },
+// ];
+
+// const COLOR_METHOD_NAMES = COLOR_METHODS.reduce((obj, method)=> {
+//   return { ...obj, [method.name]: method.name };
+// }, {});
+
+// ----------------------------------------------------------------------------
+
+const COLOR_METHODS = {
+  sqrt_iters: 'sqrt_iters',
+  log_iters: 'log_iters',
+  div_by_20: 'div_by_20',
+  histogram: 'histogram',
+};
+
+const COLOR_METHOD_OPTS = [
+  {
+    value: COLOR_METHODS.sqrt_iters,
+    text: 'sqrt(iterations)',
+  },
+  {
+    value: COLOR_METHODS.log_iters,
+    text: 'log(iterations)',
+  },
+  {
+    value: COLOR_METHODS.histogram,
+    text: 'histogram',
+  },
+  {
+    value: COLOR_METHODS.div_by_20,
+    text: 'iterations / 20'
+  },
+];
+
+// ----------------------------------------------------------------------------
+
 export {
   TILE_SIDE_LENGTH_IN_PIXELS,
   DEFAULT_VIEWPORT,
+
+  COLOR_METHODS,
+  COLOR_METHOD_OPTS,
 };
