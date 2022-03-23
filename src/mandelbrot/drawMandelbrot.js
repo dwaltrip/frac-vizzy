@@ -12,7 +12,7 @@ const DEBUG = false;
 function drawMandelbrot({ canvas, params, onProgress }) {
   console.log('======== drawMandelbrot ========');
 
-  const { colorMethod } = params;
+  const { colorMethod, colorGradient } = params;
 
   const viewport = getViewportInfo({ params, canvas });
   const computeArgs = {
@@ -26,7 +26,7 @@ function drawMandelbrot({ canvas, params, onProgress }) {
 
   let getColor;
   if (params.colorMethod !== COLOR_METHODS.histogram) {
-    getColor = buildGetColorForPoint({ colorMethod, ...computeArgs });
+    getColor = buildGetColorForPoint({ colorMethod, colorGradient, ...computeArgs });
   }
 
   const histogram = {
@@ -66,7 +66,7 @@ function drawMandelbrot({ canvas, params, onProgress }) {
     },
   }).then(computedTiles => {
     if (params.colorMethod === COLOR_METHODS.histogram) {
-      const getColorV2 = buildGetColorForPointUsingHistogram(histogram);
+      const getColorV2 = buildGetColorForPointUsingHistogram(histogram, colorGradient);
       computedTiles.forEach(({ tileId, points }) => {
         drawTile({ ctx, tileId, points, viewport, getColor: getColorV2 });
       });

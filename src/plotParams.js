@@ -8,6 +8,11 @@ const DEFAULT_PARAMS = {
   centerPos: { r: "0", c: "0" },
   iterationLimit: "250",
   colorMethod: COLOR_METHODS.sqrt_iters,
+  // TODO: Improve this serialization. Do something like `gradient=((60,60,60),(240,180,60))`.
+  colorGradient: {
+    s: { r: "60", g: "60", b: "60" },
+    e: { r: "240", g: "180", b: "60" },
+  },
 };
 
 // These points draw a box around the fully zoomed out Mandelbrot
@@ -50,15 +55,21 @@ function getInitialParams(viewport) {
     zoomLevel: parseInt(urlData.zoomLevel || defaults.zoomLevel),
     iterationLimit: parseInt(urlData.iterationLimit || defaults.iterationLimit),
     colorMethod: urlData.colorMethod || defaults.colorMethod,
+    colorGradient: parseGradient({
+      ...defaults.colorGradient,
+      ...urlData.colorGradient,
+    }),
   };
 }
 
 function serializeParams(params) {
+  const serializeGradient = gradient => ({ s: gradient.start, e: gradient.end });
   return {
     pos: params.centerPos,
     z: params.zoomLevel,
     il: params.iterationLimit,
     cm: params.colorMethod,
+    cg: serializeGradient(params.colorGradient),
   };
 }
 
@@ -68,11 +79,24 @@ function deserializeParams(params) {
     zoomLevel: params.z,
     iterationLimit: params.il,
     colorMethod: params.cm,
+    colorGradient: params.cg,
   };
 }
 
+// TODO: why is this called parse? probably should be deserialize?
+// Something else is off here... sort this out.
 function parsePos(pos) {
   return { r: parseFloat(pos.r), c: parseFloat(pos.c) };
+}
+
+function parseGradient(gradient) {
+  const parseColor = (color) => (
+    { r: parseInt(color.r), g: parseInt(color.g), b: parseInt(color.b) }
+  );
+  return {
+    start: parseColor(gradient.s),
+    end: parseColor(gradient.e),
+  };
 }
 
 function normalizePos(pos, sideLength, viewport) {

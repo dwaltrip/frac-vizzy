@@ -3,28 +3,9 @@ import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from '../settings';
 
 import { calcMandlebrotSetStatus } from './computeMandelbrot';
 
-const BG_COLOR = { r: 247, g: 243, b: 238 };
-// const BG_COLOR = { r: 227, g: 223, b: 228 };
-// const BG_COLOR = { r: 220, g: 230, b: 255 };
-// const BG_COLOR = { r: 250, g: 225, b: 220 };
-// const BG_COLOR = { r: 220, g: 245, b: 220 };
-// const BG_COLOR = { r: 250, g: 190, b: 180 };
-
-const DARKEN_PERCENT = 0.35;
-// const DARKEN_PERCENT = 0.60;
-
-function buildGetColorForPointUsingHistogram(histogram) {
+function buildGetColorForPointUsingHistogram(histogram, colorGradient) {
   const { numPoints: totalPoints, data } = histogram;
   const sortedKeys = Object.keys(data).map(num => parseInt(num)).sort();
-
-  let colorRange = {
-    start: {
-      r: BG_COLOR.r * DARKEN_PERCENT,
-      g: BG_COLOR.g * DARKEN_PERCENT,
-      b: BG_COLOR.b * DARKEN_PERCENT,
-    },
-    end: BG_COLOR,
-  };
 
   const colorMap = new Map();
 
@@ -33,9 +14,9 @@ function buildGetColorForPointUsingHistogram(histogram) {
     cumulativePointsSeen += data[iteration];
     const percent = cumulativePointsSeen / totalPoints;
 
-    const r = percentToRangeVal(percent, colorRange.start.r, colorRange.end.r);
-    const g = percentToRangeVal(percent, colorRange.start.g, colorRange.end.g);
-    const b = percentToRangeVal(percent, colorRange.start.b, colorRange.end.b);
+    const r = percentToRangeVal(percent, colorGradient.start.r, colorGradient.end.r);
+    const g = percentToRangeVal(percent, colorGradient.start.g, colorGradient.end.g);
+    const b = percentToRangeVal(percent, colorGradient.start.b, colorGradient.end.b);
     colorMap.set(iteration, { r, g, b });
   });
 
@@ -49,6 +30,7 @@ function buildGetColorForPointUsingHistogram(histogram) {
 
 function buildGetColorForPoint({
   colorMethod,
+  colorGradient,
   centerPos,
   zoomLevel,
   iterationLimit,
@@ -83,22 +65,13 @@ function buildGetColorForPoint({
     }
   }
 
-  let colorRange = {
-    start: {
-      r: BG_COLOR.r * DARKEN_PERCENT,
-      g: BG_COLOR.g * DARKEN_PERCENT,
-      b: BG_COLOR.b * DARKEN_PERCENT,
-    },
-    end: BG_COLOR,
-  };
-
   const colorMap = new Map();
 
   for (let i=0; i<=maxDivergenceFactor; i++) {
     const percent = i / maxDivergenceFactor;
-    const r = percentToRangeVal(percent, colorRange.start.r, colorRange.end.r);
-    const g = percentToRangeVal(percent, colorRange.start.g, colorRange.end.g);
-    const b = percentToRangeVal(percent, colorRange.start.b, colorRange.end.b);
+    const r = percentToRangeVal(percent, colorGradient.start.r, colorGradient.end.r);
+    const g = percentToRangeVal(percent, colorGradient.start.g, colorGradient.end.g);
+    const b = percentToRangeVal(percent, colorGradient.start.b, colorGradient.end.b);
     colorMap.set(i, { r, g, b });
   }
 
