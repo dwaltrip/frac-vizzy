@@ -3,7 +3,8 @@ import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from '../settings';
 
 import { calcMandlebrotSetStatus } from './computeMandelbrot';
 
-function buildGetColorForPointUsingHistogram(histogram, colorGradient) {
+function buildGetColorForPointUsingHistogram(histogram, params) {
+  const { colorGradient, colorMethod } = params;
   const { numPoints: totalPoints, data } = histogram;
   const sortedKeys = Object.keys(data).map(num => parseInt(num)).sort();
 
@@ -23,6 +24,9 @@ function buildGetColorForPointUsingHistogram(histogram, colorGradient) {
   return function getColor(status) {
     if (status.isInSet) {
       return { r: 0, g: 0, b: 0 };
+    }
+    if (colorMethod === COLOR_METHODS.histogram2) {
+      return colorMap.get(Math.ceil(Math.pow(status.iteration, .75)));
     }
     return colorMap.get(status.iteration);
   };
@@ -109,6 +113,9 @@ function transformForColor(iterationCount, colorMethod) {
   let val;
   if (colorMethod === COLOR_METHODS.sqrt_iters) {
     val = Math.sqrt(iterationCount);
+  }
+  if (colorMethod === COLOR_METHODS.exp_3div4_iters) {
+    val = Math.pow(iterationCount, 3/4);
   }
   else if (colorMethod === COLOR_METHODS.log_iters) {
     val = Math.log(iterationCount+1);

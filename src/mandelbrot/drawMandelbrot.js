@@ -34,6 +34,9 @@ function drawMandelbrot({ canvas, params, onProgress }) {
     numPoints: 0,
 
     increment(val) {
+      if (colorMethod === COLOR_METHODS.histogram2) {
+        val = Math.ceil(Math.pow(val, .75));
+      }
       if (!(val in this.data)) {
         this.data[val] = 0;
       }
@@ -57,7 +60,7 @@ function drawMandelbrot({ canvas, params, onProgress }) {
     // TODO: Cache the tile data!!
     // Who is in charge of that?
     handleNewTile: ({ tileId, points }) => {
-      if (colorMethod === COLOR_METHODS.histogram) {
+      if (colorMethod === COLOR_METHODS.histogram || colorMethod == COLOR_METHODS.histogram2) {
         histogram.updateForPoints(points);
       }
       else {
@@ -65,8 +68,8 @@ function drawMandelbrot({ canvas, params, onProgress }) {
       }
     },
   }).then(computedTiles => {
-    if (params.colorMethod === COLOR_METHODS.histogram) {
-      const getColorV2 = buildGetColorForPointUsingHistogram(histogram, colorGradient);
+    if (params.colorMethod === COLOR_METHODS.histogram || params.colorMethod === COLOR_METHODS.histogram2) {
+      const getColorV2 = buildGetColorForPointUsingHistogram(histogram, params);
       computedTiles.forEach(({ tileId, points }) => {
         drawTile({ ctx, tileId, points, viewport, getColor: getColorV2 });
       });
