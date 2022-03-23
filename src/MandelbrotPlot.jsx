@@ -12,7 +12,7 @@ import { zoomInPlot, zoomOutPlot } from './canvasEvents';
 // where did that artifact come from??
 // UPDATE: it does... need to check old commits to find out when
 // it was introduced.
-function MandelbrotPlot({ params, setPlotParams }) {
+function MandelbrotPlot({ params, setPlotParams, systemParams }) {
   const canvasRef = useRef(null);
   const [percentComplete, setPercentComplete] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -25,6 +25,7 @@ function MandelbrotPlot({ params, setPlotParams }) {
     drawMandelbrot({
       canvas: canvasRef.current,
       params,
+      systemParams, // TODO: This is kind of like prop-drilling... improve it?
       onProgress: percent => setPercentCompleteThrottled(percent),
     }).then(() => {
       setIsCalculating(false);

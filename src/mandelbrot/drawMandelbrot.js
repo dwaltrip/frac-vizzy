@@ -9,7 +9,7 @@ import { drawTile } from './drawTile';
 const DEBUG = false;
 // const DEBUG = true;
 
-function drawMandelbrot({ canvas, params, onProgress }) {
+function drawMandelbrot({ canvas, params, systemParams, onProgress }) {
   console.log('======== drawMandelbrot ========');
 
   const { colorMethod, colorGradient } = params;
@@ -17,6 +17,7 @@ function drawMandelbrot({ canvas, params, onProgress }) {
   const viewport = getViewportInfo({ params, canvas });
   const computeArgs = {
     ...params,
+    numWorkers: systemParams.numWorkers,
     viewport,
   };
 

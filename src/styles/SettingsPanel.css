@@ -5,7 +5,7 @@
   margin: 20px;
 }
 
-.settings-panel header {
+.settings-panel > header.primary {
   color:  #333;
   font-weight: bold;
 }
@@ -48,7 +48,7 @@
 
 .settings-panel .data-row .value,
 .settings-panel .select-with-custom-option select,
-.settings-panel select.color-method-select,
+.settings-panel select.settings-select,
 .settings-panel .select-with-custom-option .custom-value-input {
   /*color: #814e0e;*/
   color: #7a490b;
@@ -56,7 +56,7 @@
 }
 
 .settings-panel .select-with-custom-option select,
-.settings-panel select.color-method-select,
+.settings-panel select.settings-select,
 .settings-panel .select-with-custom-option .custom-value-input {
   background-color: #fffbf5;
   border: 1px solid #93887a;
@@ -74,4 +74,8 @@
   background-color: #efebe5;
   border: 1px solid #999;
   border-radius: 3px;
+}
+
+section.data-section + header.primary {
+    margin-top: 20px;
 }

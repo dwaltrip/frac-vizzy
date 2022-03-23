@@ -16,22 +16,26 @@ const ITERATION_VALUE_OPTS = [
   return { value, text: value };
 });
 
-// TODO: Enable modifying the settings while points are being computed.
-function SettingsPanel({ params, setPlotParams }) {
+function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams }) {
   const { centerPos, zoomLevel, iterationLimit, colorMethod } = params;
+  const { numWorkers, maxNumWorkers } = systemParams;
 
   const setIterationLimit = value => {
     setPlotParams({ iterationLimit: parseInt(value) });
   };
 
   const setColorMethod = event => {
-    console.log(event.target.value)
     setPlotParams({ colorMethod: event.target.value });
   };
 
+  const setNumWorkers = event => {
+    setSystemParams({ numWorkers: parseInt(event.target.value) });
+  };
+
+  // TODO: Work on improving the info heirarchy.
   return (
     <div className='settings-panel'>
-      <header>Settings</header>
+      <header className='primary'>Plot Settings</header>
 
       <section className='data-section coords-display'>
         {/* TODO: better name for this... */}
@@ -72,10 +76,8 @@ function SettingsPanel({ params, setPlotParams }) {
         <div className='data-header'>Colors</div>
         <div className='data-row'>
           <label>Method</label>
-          {/* TODO: clean up the classnames and stuff.
-              E.g. It should be generic, somethign like "settings-panel-select" */}
           <select
-            className='color-method-select'
+            className='settings-select'
             value={colorMethod}
             onChange={setColorMethod}
           >
@@ -87,8 +89,30 @@ function SettingsPanel({ params, setPlotParams }) {
           </select>
         </div>
       </section>
+
+
+      <header className='primary'>System Settings</header>
+
+      <section className='data-section'>
+        <div className='data-row'>
+          <label>Number of Workers</label>
+          <select
+            className='settings-select'
+            value={numWorkers}
+            onChange={setNumWorkers}
+          >
+            {range(maxNumWorkers).map(num => (
+              <option value={num} key={num}>{num}</option>
+            ))}
+          </select>
+        </div>
+      </section>
     </div>
   );
+}
+
+function range(n) {
+  return Array.from(new Array(n)).map((_, i) => i+1);
 }
 
 export { SettingsPanel };
