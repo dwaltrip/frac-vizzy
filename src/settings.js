@@ -11,27 +11,6 @@ const DEFAULT_VIEWPORT = {
 
 // ----------------------------------------------------------------------------
 
-// const COLOR_METHODS = [
-//   {
-//     name: 'sqrt_iters',
-//     desc: 'sqrt(iterations)',
-//   },
-//   {
-//     name: 'log_iters',
-//     desc: 'log(iterations)',
-//   },
-//   {
-//     name: 'histogram',
-//     desc: 'histogram',
-//   },
-// ];
-
-// const COLOR_METHOD_NAMES = COLOR_METHODS.reduce((obj, method)=> {
-//   return { ...obj, [method.name]: method.name };
-// }, {});
-
-// ----------------------------------------------------------------------------
-
 const COLOR_METHODS = {
   sqrt_iters: 'sqrt_iters',
   exp_3div4_iters: 'exp_3div4_iters',
