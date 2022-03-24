@@ -7,7 +7,7 @@ const TILE_ORIGIN = { r: 0, c: 0 };
 
 // ----------------------------------------------------------------------------
 
-function getTileIds({ centerPos, viewport, zoomLevel }) {
+function getTileIds({ centerPos, viewport, zoomLevel, cacheParams }) {
   const sideLength = getSideLength(zoomLevel);
 
   const rLen = (viewport.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
@@ -22,8 +22,8 @@ function getTileIds({ centerPos, viewport, zoomLevel }) {
     c: centerPos.c - (cLen / 2),
   };
 
-  const topLeftTileId = getContainingTileId(topLeftPoint, sideLength);
-  const bottomRightTileId = getContainingTileId(botRightPoint, sideLength);
+  const topLeftTileId = getContainingTileId(topLeftPoint,  zoomLevel, cacheParams);
+  const bottomRightTileId = getContainingTileId(botRightPoint, zoomLevel, cacheParams);
 
   // TODO: I think this will actually happen, as tiles have a finite number of
   // pixels per side, so due to this granularity, a tile could in theory fall
@@ -37,14 +37,13 @@ function getTileIds({ centerPos, viewport, zoomLevel }) {
   const numRows = (topLeftTileId.gridCoord.y - bottomRightTileId.gridCoord.y) + 1;
   const numCols = (bottomRightTileId.gridCoord.x - topLeftTileId.gridCoord.x) + 1;
 
-  return getTileGrid(topLeftTileId, numRows, numCols);
+  return getTileGrid(topLeftTileId, numRows, numCols, cacheParams);
 }
 
 // ----------------------------------------------------------------------------
 
-function getTileGrid(topLeftTileId, rows, cols) {
-  const topLeftCoord = topLeftTileId.gridCoord;
-  const sideLength = topLeftTileId.sideLength;
+function getTileGrid(topLeftTileId, rows, cols, cacheParams) {
+  const { gridCoord: topLeftCoord, zoomLevel } = topLeftTileId;
   const grid = [];
 
   for (let y=0; y<rows; y++) {
@@ -56,7 +55,7 @@ function getTileGrid(topLeftTileId, rows, cols) {
         // moving from topLeft to botLeft is negative in (complex / y) dim
         y: topLeftCoord.y - y,
       };
-      row.push(createTileId(gridCoord, sideLength));
+      row.push(createTileId(gridCoord, zoomLevel, cacheParams));
     }
     grid.push(row);
   }
@@ -68,23 +67,27 @@ function getTileGrid(topLeftTileId, rows, cols) {
 // for the 4 tiles near the origin are: [0, 0], [0, -1], [-1, -1], [-1, 0]
 // This is determined by using Math.floor for positive component values and
 // Math.ceil for negative component values.
-function getContainingTileId(point, sideLength) {
+function getContainingTileId(point, zoomLevel, cacheParams) {
+  const sideLength = getSideLength(zoomLevel);
   let gridCoord = {
     x: Math.floor((point.r - TILE_ORIGIN.r) / sideLength),
     y: Math.floor((point.c - TILE_ORIGIN.c) / sideLength),
   };
-  return createTileId(gridCoord, sideLength);
+  return createTileId(gridCoord, zoomLevel, cacheParams);
 }
 
-function createTileId(gridCoord, sideLength) {
+function createTileId(gridCoord, zoomLevel, cacheParams) {
+  const sideLength = getSideLength(zoomLevel);
   const topLeftPoint = {
     r: gridCoord.x * sideLength,
     c: (gridCoord.y + 1) * sideLength,
   };
   return {
     gridCoord,
-    sideLength,
     topLeftPoint,
+    sideLength,
+    zoomLevel,
+    cacheParams,
   };
 }
 

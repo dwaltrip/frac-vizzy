@@ -1,12 +1,25 @@
 import { assert } from '../lib/assert';
 import { WorkerManager } from './workerManager';
 import { getTileIds } from './getTileIds';
+import { tileCache } from './tileCache';
 
 const ComputeManager = {
-  computePoints: function({ computeArgs, handleNewTile, onProgress }) {
+  computePlot: function({
+    computeArgs,
+    handleNewTile: _handleNewTile,
+    onProgress
+  }) {
     const { centerPos, zoomLevel, viewport, iterationLimit, numWorkers } = computeArgs;
 
-    const tileIds = getTileIds({ centerPos, zoomLevel, viewport }).flat();
+    const tileIds = getTileIds({
+      centerPos, 
+      zoomLevel,
+      viewport,
+      cacheParams: { iterationLimit },
+    }).flat();
+
+    const cachedTileIds = tileIds.filter(tileId => tileCache.hasTile(tileId));
+    const uncachedTileIds = tileIds.filter(tileId => !tileCache.hasTile(tileId));
  
     const workerArgs = [...(new Array(numWorkers))].map((_, i) => ({
       tileIds: [],
@@ -14,37 +27,45 @@ const ComputeManager = {
       workerNum: i,
     }));
 
-    for (let i=0; i<tileIds.length; i++) {
+    for (let i=0; i<uncachedTileIds.length; i++) {
       const workerNum = i % numWorkers;
-      workerArgs[workerNum].tileIds.push(tileIds[i]);
+      workerArgs[workerNum].tileIds.push(uncachedTileIds[i]);
     }
 
-    const computedTiles = [];
-    const totalTiles = tileIds.length;
-    let tilesComputed = 0;
+    const tilesForPlot = [];
 
-    const messageHandler = ({ label, data }) => {
+    // Wrap `handleNewTile` so we can collect the tiles for the plot.
+    function handleNewTile(tileData) {
+      tilesForPlot.push(tileData);
+      _handleNewTile(tileData);
+    }
+
+    const numToCompute = uncachedTileIds.length;
+    let computedCount = 0;
+    const handleDataFromWorkers = ({ label, data: { tileId, points } }) => {
       if (label == 'done-computing-tile') {
-        computedTiles.push(data);
-        handleNewTile(data);
+        tileCache.addTile(tileId, points);
+        handleNewTile({ tileId, points });
 
-        tilesComputed += 1;
+        computedCount += 1;
         if (onProgress) {
-          let percentComplete = Math.floor(100 * (tilesComputed / totalTiles));
-          onProgress(percentComplete);
+          let percentDone = Math.floor(100 * (computedCount / numToCompute));
+          onProgress(percentDone);
         }
       }
     };
 
     WorkerManager.terminateAllWorkers();
 
+    cachedTileIds.forEach(tileId => handleNewTile(tileCache.getTile(tileId)));
+
     // TODO: handle errors?
     return Promise.all(workerArgs.map(args => {
       const worker = WorkerManager.createWorker();
-      worker.listen(messageHandler);
+      worker.listen(handleDataFromWorkers);
       return worker.run(args);
     })).then(() => {
-      return computedTiles;
+      return tilesForPlot;
     });
   },
 };
