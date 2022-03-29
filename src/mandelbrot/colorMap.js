@@ -22,13 +22,14 @@ function buildGetColorForPointUsingHistogram(histogram, params) {
   });
 
   return function getColor(status) {
-    if (status.isInSet) {
+    const [isInSet, iterationCount] = status;
+    if (isInSet) {
       return { r: 0, g: 0, b: 0 };
     }
     if (colorMethod === COLOR_METHODS.histogram2) {
-      return colorMap.get(Math.ceil(Math.pow(status.iteration, .75)));
+      return colorMap.get(Math.ceil(Math.pow(iterationCount, .75)));
     }
-    return colorMap.get(status.iteration);
+    return colorMap.get(iterationCount);
   };
 }
 
@@ -60,10 +61,12 @@ function buildGetColorForPoint({
     const real = rRange.start + (rIndex * rStepSize);
     const complex = cRange.start + (cIndex * cStepSize);
 
-    const status = calcMandlebrotSetStatus(real, complex, iterationLimit);
-    if (!status.isInSet) {
+    const [isInSet, iterationCount] = calcMandlebrotSetStatus(
+      real, complex, iterationLimit,
+    );
+    if (!isInSet) {
       maxDivergenceFactor = Math.max(
-        transformForColor(status.iteration, colorMethod),
+        transformForColor(iterationCount, colorMethod),
         maxDivergenceFactor,
       );
     }
@@ -88,11 +91,12 @@ function buildGetColorForPoint({
   const maxColorKey = Math.max(...colorMap.keys());
 
   return function getColor(status) {
-    if (status.isInSet) {
+    const [isInSet, iterationCount] = status;
+    if (isInSet) {
       return { r: 0, g: 0, b: 0 };
     }
 
-    const val = transformForColor(status.iteration, colorMethod);
+    const val = transformForColor(iterationCount, colorMethod);
     return (val > maxColorKey ?
       colorMap.get(maxColorKey) :
       colorMap.get(val)

@@ -34,10 +34,7 @@ function calcMandlebrotSetStatus(numReal, numComplex, iterationLimit) {
       (isNaN(currentR) || typeof currentR === 'undefined') ||
       (isNaN(currentC) || typeof currentC === 'undefined')
     ) {
-      return {
-        isInSet: false,
-        iteration: i,
-      };
+      return [false, i];
     }
 
     // check for out of bounds
@@ -45,19 +42,13 @@ function calcMandlebrotSetStatus(numReal, numComplex, iterationLimit) {
       (currentR > 2 || currentR < -2) ||
       (currentC > 2 || currentC < -2)
     ) {
-      return {
-        isInSet: false,
-        iteration: i,
-      };
+      return [false, i];
     }
   }
 
   // Final, more accurate out of bounds check
   if (Math.sqrt(Math.pow(currentR, 2) + Math.pow(currentC, 2)) > MB_RADIUS) {
-    return {
-      isInSet: false,
-      iteration: iterationLimit,
-    };
+    return [false, iterationLimit];
   }
 
   // If we reach this point, the iterations did not diverge, and the point
@@ -65,7 +56,7 @@ function calcMandlebrotSetStatus(numReal, numComplex, iterationLimit) {
   // iterations are performed.
   // I believe it is mathematically impossible to know if a point is truly
   // in the set. It is always "provisional", so to speak.
-  return { isInSet: true };
+  return [true, -1];
 }
 
 function createMandelbrotComputeWorker() {

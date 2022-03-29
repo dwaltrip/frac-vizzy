@@ -45,7 +45,8 @@ function drawMandelbrot({ canvas, params, systemParams, onProgress }) {
     updateForPoints(points) {
       points.forEach(row => {
         row.forEach(status => {
-          this.increment(status.iteration);
+          const [isInSet, iterationCount] = status;
+          this.increment(iterationCount);
           this.numPoints += 1;
         });
       });
