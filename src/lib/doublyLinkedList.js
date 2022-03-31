@@ -33,7 +33,7 @@ class DoublyLinkedList {
     }
 
     this._length -= 1;
-    return oldTail ? oldTail.data : null;
+    return oldTail || null;
   }
 
   moveNodeToHead(node) {
@@ -82,7 +82,7 @@ class DoublyLinkedList {
 }
 
 class Node {
-  constructor(data, { parent, prev, next }) {
+  constructor(data, { prev, next }) {
     this.data = data;
     this.prev = prev || null;
     this.next = next || null;

@@ -93,7 +93,7 @@ describe('Test doubly linked list', () => {
       const list = createList(['item1', 'item2', 'item3']);
 
       const oldTail = list.removeTail(); 
-      expect(oldTail).toEqual('item3');
+      expect(oldTail.data).toEqual('item3');
       expect(list.tail.data).toEqual('item2');
       expect(list.head.data).toEqual('item1');
 
