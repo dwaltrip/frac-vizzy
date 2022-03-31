@@ -1,7 +1,7 @@
 import { assert } from '../lib/assert';
 import { WorkerManager } from './workerManager';
 import { getTileIds } from './getTileIds';
-import { tileCache } from './tileCache';
+import { tileCache, MAX_TILE_CACHE_SIZE } from './tileCache';
 
 const ComputeManager = {
   computePlot: function({
@@ -18,8 +18,8 @@ const ComputeManager = {
       cacheParams: { iterationLimit },
     }).flat();
 
-    const cachedTileIds = tileIds.filter(tileId => tileCache.hasTile(tileId));
-    const uncachedTileIds = tileIds.filter(tileId => !tileCache.hasTile(tileId));
+    const cachedTileIds = tileIds.filter(tileId => tileCache.hasItem(tileId));
+    const uncachedTileIds = tileIds.filter(tileId => !tileCache.hasItem(tileId));
  
     const workerArgs = [...(new Array(numWorkers))].map((_, i) => ({
       tileIds: [],
@@ -44,7 +44,7 @@ const ComputeManager = {
     let computedCount = 0;
     const handleDataFromWorkers = ({ label, data: { tileId, points } }) => {
       if (label == 'done-computing-tile') {
-        tileCache.addTile(tileId, points);
+        tileCache.addItem({ tileId, points });
         handleNewTile({ tileId, points });
 
         computedCount += 1;
@@ -57,7 +57,7 @@ const ComputeManager = {
 
     WorkerManager.terminateAllWorkers();
 
-    cachedTileIds.forEach(tileId => handleNewTile(tileCache.getTile(tileId)));
+    cachedTileIds.forEach(tileId => handleNewTile(tileCache.getItem(tileId)));
 
     // TODO: handle errors?
     return Promise.all(workerArgs.map(args => {
