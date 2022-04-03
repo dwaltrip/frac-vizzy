@@ -1,0 +1,9 @@
+.responsive-canvas-container {
+  flex: 1;
+  position: relative;
+}
+
+canvas.responsive-canvas {
+  border:  1px solid #ccc;
+  position: absolute;
+}

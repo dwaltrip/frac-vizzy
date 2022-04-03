@@ -4,8 +4,10 @@ import './styles/MandelbrotPlot.css';
 
 import { DEFAULT_VIEWPORT } from './settings';
 
-import { drawMandelbrot } from './mandelbrot/drawMandelbrot';
 import { throttle } from './lib/throttle';
+import { ResponsiveCanvas } from './ui/ResponsiveCanvas';
+
+import { drawMandelbrot } from './mandelbrot/drawMandelbrot';
 import { zoomInPlot, zoomOutPlot } from './canvasEvents';
 
 // TODO: my old code doesn't have the thick horizontal line?
@@ -17,7 +19,7 @@ function MandelbrotPlot({ params, setPlotParams, systemParams }) {
   const [percentComplete, setPercentComplete] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
 
-  useEffect(() => {
+  function drawMandelbrotWithProgressUpdates() {
     setIsCalculating(true);
     setPercentComplete(0);
     const setPercentCompleteThrottled = throttle(setPercentComplete, 125);
@@ -31,7 +33,9 @@ function MandelbrotPlot({ params, setPlotParams, systemParams }) {
       setIsCalculating(false);
       setPercentComplete(100);
     });
-  }, [params]);
+  }
+
+  useEffect(drawMandelbrotWithProgressUpdates, [params]);
 
   return (
     <div className='mandelbrot-plot-container'>
@@ -44,12 +48,10 @@ function MandelbrotPlot({ params, setPlotParams, systemParams }) {
         </span>
       </div>
 
-      <canvas
+      <ResponsiveCanvas
         className='mandelbrot-canvas'
-        height={DEFAULT_VIEWPORT.height}
-        width={DEFAULT_VIEWPORT.width}
         ref={canvasRef}
-        // TODO: Is it fine to allow react to manage our canvas event handling?
+        onResize={drawMandelbrotWithProgressUpdates}
         onDoubleClick={event => {
           zoomInPlot({
             canvas: canvasRef.current,
@@ -67,8 +69,7 @@ function MandelbrotPlot({ params, setPlotParams, systemParams }) {
             setPlotParams,
           });
         }}
-      >
-      </canvas>
+      />
     </div>
   );
 }
