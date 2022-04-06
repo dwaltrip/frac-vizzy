@@ -109,25 +109,12 @@ function percentToRangeVal(percent, start, end) {
 }
 
 function transformForColor(iterationCount, colorMethod) {
-  // NOTE: For log functions, we need to add 1 as sometimes it diverges
-  // when iteration=0. `log(0)` gives -Infinity, which is bad.
-  // There isn't a meaningful difference between iteration values in the
-  // interval of [1, iterationLimit] versus [0, iterationLimit - 1].
-  // --------------------------------------------------------------------
   let val;
-  if (colorMethod === COLOR_METHODS.sqrt_iters) {
+  if (colorMethod === COLOR_METHODS.linear_iters) {
+    val = iterationCount;
+  }
+  else if (colorMethod === COLOR_METHODS.sqrt_iters) {
     val = Math.sqrt(iterationCount);
-  }
-  if (colorMethod === COLOR_METHODS.exp_3div4_iters) {
-    val = Math.pow(iterationCount, 3/4);
-  }
-  else if (colorMethod === COLOR_METHODS.log_iters) {
-    val = Math.log(iterationCount+1);
-    // val = Math.log2(iterationCount+1);
-  }
-  else if (colorMethod === COLOR_METHODS.div_by_20) {
-    val = iterationCount / 20;
-    // val = iterationCount / 30;
   }
   return Math.ceil(val);
 }

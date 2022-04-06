@@ -7,7 +7,7 @@ import { getSideLength } from './mandelbrot/calcs';
 const DEFAULT_PARAMS = {
   centerPos: { r: "0", c: "0" },
   iterationLimit: "250",
-  colorMethod: COLOR_METHODS.sqrt_iters,
+  colorMethod: COLOR_METHODS.linear_iters,
   // TODO: Improve this serialization. Do something like `gradient=((60,60,60),(240,180,60))`.
   colorGradient: {
     s: { r: "60", g: "60", b: "60" },
