@@ -9,6 +9,9 @@ import { LRUCache } from '../lib/LRUCache';
 // Let's just assume, conservatively, is pixel is 20 bytes for now...
 const PIXEL_SIZE = 20; // bytes
 const PIXELS_PER_TILE = Math.pow(TILE_SIDE_LENGTH_IN_PIXELS, 2);
+// NOTE: I did a very quick n dirty test in a chrome tab, and the JS heap size
+// seemed to stabilize around 950 MB. It makes sense that it would be bigger
+// than 500 MB, but I think I might have expected it to be not that high.
 const MAX_MEMORY_USAGE = 500 * (1024 * 1000); // 500 MB
 const MAX_TILE_CACHE_SIZE = MAX_MEMORY_USAGE / (20 * PIXELS_PER_TILE);
 
