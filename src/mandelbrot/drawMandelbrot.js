@@ -10,9 +10,10 @@ const DEBUG = false;
 // const DEBUG = true;
 
 function drawMandelbrot({ canvas, params, systemParams, onProgress }) {
+  console.log('------- drawMandelbrot -------')
   const { colorMethod, colorGradient } = params;
 
-  const viewport = getViewportInfo({ params, canvas });
+  const viewport = getViewportInfo(params, canvas);
   const computeArgs = {
     ...params,
     numWorkers: systemParams.numWorkers,

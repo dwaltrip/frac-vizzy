@@ -56,7 +56,7 @@ describe('Test build tile view', () => {
 function testBuildTileView({ canvas, params }) {
   // --- Setup ---
 
-  const viewport = getViewportInfo({ params, canvas });
+  const viewport = getViewportInfo(params, canvas);
   const { centerPos, zoomLevel } = params;
 
   const tileIds = getTileIds({ centerPos, zoomLevel, viewport });

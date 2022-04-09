@@ -15,35 +15,15 @@ const DEFAULT_PARAMS = {
   },
 };
 
-// These points draw a box around the fully zoomed out Mandelbrot
-const DEFAULT_TOP_LEFT = { r: -1.5, c: 1.2 };
-const DEFAULT_BOT_RIGHT = { r: 0.5, c: -1.2 };
+function areParamsReady(params) {
+  return params.zoomLevel !== null;
+}
 
-function getInitialParams(viewport) {
+function getInitialParams() {
   const url = new URL(window.location.href);
   const urlData = deserializeParams(qs.parse(url.searchParams.toString()));
 
   const defaults = { ...DEFAULT_PARAMS };
-
-  if (!urlData.zoomLevel) {
-    // ------------------------------------------------------------------------
-    // Compute default zoom level so the entire Mandelbrot fits in image
-    // TODO: Should I move this outside of `getInitialParams`?
-
-    const rLen = DEFAULT_BOT_RIGHT.r - DEFAULT_TOP_LEFT.r;
-    const cLen = DEFAULT_TOP_LEFT.c - DEFAULT_BOT_RIGHT.c;
-
-    const tileGrid = {
-      height: Math.ceil(viewport.height / TILE_SIDE_LENGTH_IN_PIXELS),
-      width: Math.ceil(viewport.width / TILE_SIDE_LENGTH_IN_PIXELS),
-    };
-
-    // TODO: would be nice to have a test for this logic
-    const zoomLevelFromR = Math.floor(-1 * Math.log2(rLen / tileGrid.width));
-    const zoomLevelFromC = Math.floor(-1 * Math.log2(cLen / tileGrid.height));
-    defaults.zoomLevel = Math.min(zoomLevelFromR, zoomLevelFromC);
-    // ------------------------------------------------------------------------
-  }
 
   // TODO: Better error handling here.
   // We need to handle any possible user input for the URL param values.
@@ -52,7 +32,9 @@ function getInitialParams(viewport) {
       ...defaults.centerPos,
       ...urlData.centerPos,
     }),
-    zoomLevel: parseInt(urlData.zoomLevel || defaults.zoomLevel),
+    // The default `zoomLevel` depends on the viewpoert size, which we don't
+    // have at this point. We set it later if urlData.zoomLevel is not present.
+    zoomLevel: urlData.zoomLevel ? parseInt(urlData.zoomLevel) : null,
     iterationLimit: parseInt(urlData.iterationLimit || defaults.iterationLimit),
     colorMethod: urlData.colorMethod || defaults.colorMethod,
     colorGradient: parseGradient({
@@ -121,4 +103,4 @@ function normalizeParams(params, viewport) {
   };
 }
 
-export { getInitialParams, serializeParams, normalizeParams };
+export { getInitialParams, areParamsReady, serializeParams, normalizeParams };

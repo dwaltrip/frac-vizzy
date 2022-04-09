@@ -1,5 +1,4 @@
 import { assert } from '../lib/assert';
-import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
 
 import { getSideLength } from './calcs';
 
@@ -8,18 +7,13 @@ const TILE_ORIGIN = { r: 0, c: 0 };
 // ----------------------------------------------------------------------------
 
 function getTileIds({ centerPos, viewport, zoomLevel, cacheParams }) {
-  const sideLength = getSideLength(zoomLevel);
-
-  const rLen = (viewport.width / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-  const cLen = (viewport.height / TILE_SIDE_LENGTH_IN_PIXELS) * sideLength;
-
   const topLeftPoint = {
-    r: centerPos.r - (rLen / 2),
-    c: centerPos.c + (cLen / 2),
+    r: centerPos.r - (viewport.realLen / 2),
+    c: centerPos.c + (viewport.complexLen / 2),
   };
   const botRightPoint = {
-    r: centerPos.r + (rLen / 2),
-    c: centerPos.c - (cLen / 2),
+    r: centerPos.r + (viewport.realLen / 2),
+    c: centerPos.c - (viewport.complexLen / 2),
   };
 
   const topLeftTileId = getContainingTileId(topLeftPoint,  zoomLevel, cacheParams);

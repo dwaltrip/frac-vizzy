@@ -11,7 +11,7 @@ function zoomInPlot({ canvas, event, params, setPlotParams }) {
   const mousePos = getMousePos(canvas, event);
 
   const { centerPos, zoomLevel } = params;
-  const viewport = getViewportInfo({ params, canvas });
+  const viewport = getViewportInfo(params, canvas);
 
   const rRatio = mousePos.x / canvas.width;
   const cRatio = mousePos.y / canvas.height;

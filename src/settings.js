@@ -1,15 +1,5 @@
-import { assert } from './lib/assert';
-
-// ----------------------------------------------------------------------------
 
 const TILE_SIDE_LENGTH_IN_PIXELS = 50;
-
-const DEFAULT_VIEWPORT = {
-  width: 700,
-  height: 700,
-};
-
-// ----------------------------------------------------------------------------
 
 const COLOR_METHODS = {
   linear_iters: 'linear_iters',
@@ -38,12 +28,8 @@ const COLOR_METHOD_OPTS = [
   },
 ];
 
-// ----------------------------------------------------------------------------
-
 export {
   TILE_SIDE_LENGTH_IN_PIXELS,
-  DEFAULT_VIEWPORT,
-
   COLOR_METHODS,
   COLOR_METHOD_OPTS,
 };

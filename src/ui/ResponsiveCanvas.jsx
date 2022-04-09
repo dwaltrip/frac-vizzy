@@ -31,6 +31,8 @@ const ResponsiveCanvas = forwardRef(({ onResize: _onResize, className, ...props 
     onResize && onResize(canvas);
   }, 100);
 
+  // Resize the canvas once in the beginning when the page renders and we find
+  // out the size of the container.
   useEffect(() => {
     resizeCanvas();
   }, []);

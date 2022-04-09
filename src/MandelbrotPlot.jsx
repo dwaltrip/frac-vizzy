@@ -2,11 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import './styles/MandelbrotPlot.css';
 
-import { DEFAULT_VIEWPORT } from './settings';
-
 import { throttle } from './lib/throttle';
 import { ResponsiveCanvas } from './ui/ResponsiveCanvas';
 
+import { areParamsReady } from './plotParams';
 import { drawMandelbrot } from './mandelbrot/drawMandelbrot';
 import { zoomInPlot, zoomOutPlot } from './canvasEvents';
 
@@ -14,7 +13,13 @@ import { zoomInPlot, zoomOutPlot } from './canvasEvents';
 // where did that artifact come from??
 // UPDATE: it does... need to check old commits to find out when
 // it was introduced.
-function MandelbrotPlot({ params, setPlotParams, systemParams }) {
+function MandelbrotPlot({
+  params,
+  setPlotParams,
+  systemParams,
+  viewportRect,
+  setViewportRect,
+}) {
   const canvasRef = useRef(null);
   const [percentComplete, setPercentComplete] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -35,7 +40,18 @@ function MandelbrotPlot({ params, setPlotParams, systemParams }) {
     });
   }
 
-  useEffect(drawMandelbrotWithProgressUpdates, [params]);
+  function onCanvasResize() {
+    const canvas = canvasRef.current;
+    const viewportRect = { height: canvas.height, width: canvas.width };
+    setViewportRect(viewportRect);
+  }
+
+  // Redraw mandlebrot plot if the params change or the viewport size changes.
+  useEffect(() => {
+    if (areParamsReady(params)) {
+      drawMandelbrotWithProgressUpdates();
+    }
+  }, [params, viewportRect]);
 
   return (
     <div className='mandelbrot-plot-container'>
@@ -51,7 +67,7 @@ function MandelbrotPlot({ params, setPlotParams, systemParams }) {
       <ResponsiveCanvas
         className='mandelbrot-canvas'
         ref={canvasRef}
-        onResize={drawMandelbrotWithProgressUpdates}
+        onResize={onCanvasResize}
         onDoubleClick={event => {
           zoomInPlot({
             canvas: canvasRef.current,
