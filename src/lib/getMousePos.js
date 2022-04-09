@@ -1,10 +1,10 @@
 
 // NOTE: topleft corner of DOM element is (0, 0)
-function getMousePos(canvas, evt) {
-  var rect = canvas.getBoundingClientRect();
+function getMousePos(event) {
+  var rect = event.target.getBoundingClientRect();
   return {
-    x: Math.floor(evt.clientX - rect.left),
-    y: Math.floor(evt.clientY - rect.top),
+    x: Math.floor(event.clientX - rect.left),
+    y: Math.floor(event.clientY - rect.top),
   };
 }
 

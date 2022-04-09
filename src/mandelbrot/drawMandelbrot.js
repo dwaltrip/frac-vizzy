@@ -11,7 +11,7 @@ const DEBUG = false;
 // const DEBUG = true;
 
 function drawMandelbrot({ canvas, params, systemParams, onProgress }) {
-  console.log('------- drawMandelbrot -------')
+  // console.log('------- drawMandelbrot -------')
   const { colorMethod, colorGradient } = params;
 
   const viewport = getViewportInfo(params, canvas);
@@ -76,7 +76,7 @@ function drawMandelbrot({ canvas, params, systemParams, onProgress }) {
     }
 
     let t1 = performance.now();
-    console.log(`Timer -- computing and rendering took ${t1 - t0} milliseconds.`);
+    // console.log(`Timer -- computing and rendering took ${t1 - t0} milliseconds.`);
 
     if (DEBUG) {
       drawDebugStuff(ctx, viewport);

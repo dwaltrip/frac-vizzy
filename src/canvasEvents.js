@@ -8,7 +8,7 @@ const CANVAS_ZOOM_FACTOR = 2;
 
 function zoomInPlot({ canvas, event, params, setPlotParams }) {
   console.log('======= zoomInPlot -- start =======');
-  const mousePos = getMousePos(canvas, event);
+  const mousePos = getMousePos(event);
 
   const { centerPos, zoomLevel } = params;
   const viewport = getViewportInfo(params, canvas);

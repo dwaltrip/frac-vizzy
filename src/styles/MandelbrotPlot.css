@@ -6,3 +6,10 @@
   justify-content: flex-end;
   color: #7a490b;
 }
+
+.mandelbrot-plot-container .plot-overlay,
+.mandelbrot-plot-container .pannable {
+  background-color: transparent;
+  display: flex;
+  flex: 1;
+}

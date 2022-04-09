@@ -3,16 +3,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import './styles/MandelbrotPlot.css';
 
 import { throttle } from './lib/throttle';
-import { ResponsiveCanvas } from './ui/ResponsiveCanvas';
 
 import { areParamsReady } from './plotParams';
 import { drawMandelbrot } from './mandelbrot/drawMandelbrot';
+import { panPlot } from './mandelbrot/plotActions';
 import { zoomInPlot, zoomOutPlot } from './canvasEvents';
+import { getViewportInfo } from './viewport';
 
-// TODO: my old code doesn't have the thick horizontal line?
-// where did that artifact come from??
-// UPDATE: it does... need to check old commits to find out when
-// it was introduced.
+import { Pannable } from './ui/Pannable';
+import { ResponsiveCanvas } from './ui/ResponsiveCanvas';
+
 function MandelbrotPlot({
   params,
   setPlotParams,
@@ -53,6 +53,20 @@ function MandelbrotPlot({
     }
   }, [params, viewportRect]);
 
+  // ----------------------------------------------------------------
+  // TODO: The panning is not quite as smooth / nice as I would like
+  // It works decently well, but I think it could be better.
+  // ----------------------------------------------------------------
+  const onPan = panVector => {
+    const direction = {
+      dx: panVector.x,
+      // y-axis pos / neg is flipped for pixel coords vs. complex coords
+      dy: -1 * panVector.y,
+    };
+    const viewport = getViewportInfo(params, canvasRef.current);
+    panPlot({ direction, params, viewport, setPlotParams })
+  };
+
   return (
     <div className='mandelbrot-plot-container'>
       <div className='computation-status'>
@@ -64,10 +78,8 @@ function MandelbrotPlot({
         </span>
       </div>
 
-      <ResponsiveCanvas
-        className='mandelbrot-canvas'
-        ref={canvasRef}
-        onResize={onCanvasResize}
+      <div
+        className='plot-overlay'
         onDoubleClick={event => {
           zoomInPlot({
             canvas: canvasRef.current,
@@ -85,7 +97,15 @@ function MandelbrotPlot({
             setPlotParams,
           });
         }}
-      />
+      >
+        <Pannable onPan={onPan} throttleDelay={100}>
+          <ResponsiveCanvas
+            className='mandelbrot-canvas'
+            ref={canvasRef}
+            onResize={onCanvasResize}
+          />
+        </Pannable>
+      </div>
     </div>
   );
 }

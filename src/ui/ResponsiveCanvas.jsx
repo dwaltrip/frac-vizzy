@@ -2,25 +2,16 @@ import React, { forwardRef, useEffect, useRef, useState } from 'react';
 
 import './ResponsiveCanvas.css';
 import { throttle } from '../lib/throttle';
-
-// `funcRef` will always have a reference to the latest `propFn` prop.
-function useNonStalePropFn(propFn) {
-  const funcRef = useRef(propFn);
-  useEffect(() => {
-    funcRef.current = propFn;
-  }, [propFn]);
-  return () => funcRef.current();
-}
+import { useNonStaleFunction } from '../lib/useNonStaleFunction';
 
 const ResponsiveCanvas = forwardRef(({ onResize: _onResize, className, ...props }, ref) => {
   const containerRef = useRef(null);
   const canvasRef = ref;
 
   // This prevents the `resize` event listener from using a stale value for
-  //   the `onResize` prop.
-  // NOTE: Not sure if this is the idiomatic way of solving this problem.
-  //   It seems nice though. The parent component doesn't need to be aware of it.
-  const onResize = useNonStalePropFn(_onResize);
+  //   the `onResize` prop. The handler for the `resize` is set once on the
+  //   first render, so it would otherwise have a stale ref for `onResize`.
+  const onResize = useNonStaleFunction(_onResize);
 
   const resizeCanvas = throttle(() => {
     const canvas = canvasRef.current;
