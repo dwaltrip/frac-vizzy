@@ -1,11 +1,17 @@
 import qs from 'qs';
 
 import { assert } from './lib/assert';
-import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from './settings';
+import { TILE_SIDE_LENGTH_IN_PIXELS, BOUNDING_BOX, COLOR_METHODS } from './settings';
 import { getSideLength } from './mandelbrot/calcs';
 
+const { topLeft, botRight } = BOUNDING_BOX;
+const DEFAULT_CENTER = {
+  r: (topLeft.r + ((botRight.r - topLeft.r) / 2)).toFixed(3),
+  c: (topLeft.c - ((topLeft.c - botRight.c) / 2)).toFixed(3),
+};
+
 const DEFAULT_PARAMS = {
-  centerPos: { r: "0", c: "0" },
+  centerPos: DEFAULT_CENTER,
   iterationLimit: "250",
   colorMethod: COLOR_METHODS.linear_iters,
   // TODO: Improve this serialization. Do something like `gradient=((60,60,60),(240,180,60))`.

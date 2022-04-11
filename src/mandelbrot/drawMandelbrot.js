@@ -3,8 +3,9 @@ import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from '../settings';
 import { getViewportInfo } from '../viewport';
 import { ComputeManager } from './computeManager';
 import { buildGetColorForPoint, buildGetColorForPointUsingHistogram } from './colorMap';
-import { drawLine } from '../lib/draw';
 import { drawTile } from './drawTile';
+import { drawLine } from '../lib/draw';
+import { getAxesInPixelCoords } from '../debugHelpers';
 
 const DEBUG = false;
 // const DEBUG = true;
@@ -78,10 +79,27 @@ function drawMandelbrot({ canvas, params, systemParams, onProgress }) {
     console.log(`Timer -- computing and rendering took ${t1 - t0} milliseconds.`);
 
     if (DEBUG) {
-      drawLine(ctx, { x: 0, y: 350 }, { x: 700, y: 350 }, { r: 255, g: 0, b: 0, a: 0.5 }, 1);
-      drawLine(ctx, { x: 350, y: 0 }, { x: 350, y: 700 }, { r: 255, g: 0, b: 0, a: 0.5 }, 1);
+      drawDebugStuff(ctx, viewport);
     }
   });
+}
+
+function drawDebugStuff(ctx, viewport) {
+  const { rAxis, cAxis } = getAxesInPixelCoords(viewport);
+
+  // draw the real and complex axes
+  if (rAxis && cAxis) {
+    drawLine(ctx, cAxis.a, cAxis.b, { r: 255, g: 0, b: 0, a: 0.8 });
+    drawLine(ctx, rAxis.a, rAxis.b, { r: 255, g: 0, b: 0, a: 0.8 });
+  }
+
+  // draw lines down the center of the plot
+  const { height: h, width: w } = viewport;
+  const xMid = Math.round(w / 2);
+  const yMid = Math.round(h / 2);
+  const color = { r: 0, g: 255, b: 0, a: 0.7 };
+  drawLine(ctx, { x: 0, y: yMid - 1 }, { x: w, y: yMid - 1 }, color);
+  drawLine(ctx, { x: xMid - 1, y: 0 }, { x: xMid - 1, y: h }, color);
 }
 
 export { drawMandelbrot };

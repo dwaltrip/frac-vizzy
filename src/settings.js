@@ -1,6 +1,12 @@
 
 const TILE_SIDE_LENGTH_IN_PIXELS = 50;
 
+// These points draw a box around the fully zoomed out Mandelbrot
+const BOUNDING_BOX = {
+  topLeft: { r: -2, c: 1.2 },
+  botRight: { r: 0.5, c: -1.2 },
+};
+
 const COLOR_METHODS = {
   linear_iters: 'linear_iters',
   sqrt_iters: 'sqrt_iters',
@@ -30,6 +36,7 @@ const COLOR_METHOD_OPTS = [
 
 export {
   TILE_SIDE_LENGTH_IN_PIXELS,
+  BOUNDING_BOX,
   COLOR_METHODS,
   COLOR_METHOD_OPTS,
 };
