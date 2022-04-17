@@ -1,6 +1,7 @@
 import qs from 'qs';
 
 import { assert } from './lib/assert';
+import { segmentArray } from './lib/segmentArray';
 import { TILE_SIDE_LENGTH_IN_PIXELS, BOUNDING_BOX, COLOR_METHODS } from './settings';
 import { getSideLength } from './mandelbrot/calcs';
 
@@ -14,11 +15,7 @@ const DEFAULT_PARAMS = {
   centerPos: DEFAULT_CENTER,
   iterationLimit: "250",
   colorMethod: COLOR_METHODS.linear_iters,
-  // TODO: Improve this serialization. Do something like `gradient=((60,60,60),(240,180,60))`.
-  colorGradient: {
-    s: { r: "60", g: "60", b: "60" },
-    e: { r: "240", g: "180", b: "60" },
-  },
+  colorGradient: "(60,60,60,240,180,60)",
 };
 
 function areParamsReady(params) {
@@ -43,15 +40,17 @@ function getInitialParams() {
     zoomLevel: urlData.zoomLevel ? parseInt(urlData.zoomLevel) : null,
     iterationLimit: parseInt(urlData.iterationLimit || defaults.iterationLimit),
     colorMethod: urlData.colorMethod || defaults.colorMethod,
-    colorGradient: parseGradient({
-      ...defaults.colorGradient,
-      ...urlData.colorGradient,
-    }),
+    colorGradient: parseGradient(urlData.colorGradient || defaults.colorGradient),
   };
 }
 
 function serializeParams(params) {
-  const serializeGradient = gradient => ({ s: gradient.start, e: gradient.end });
+  const serializeGradient = gradient => (
+    '(' +
+    gradient.map(c => `${c.r},${c.g},${c.b}`).join(',') +
+    ')'
+  );
+
   return {
     pos: params.centerPos,
     z: params.zoomLevel,
@@ -77,14 +76,29 @@ function parsePos(pos) {
   return { r: parseFloat(pos.r), c: parseFloat(pos.c) };
 }
 
+// TODO: more validation / error handling here.
 function parseGradient(gradient) {
-  const parseColor = (color) => (
-    { r: parseInt(color.r), g: parseInt(color.g), b: parseInt(color.b) }
+  const parts = gradient.replace(/[()]+/g, '').split(',');
+
+  let colors = segmentArray(parts, 3);
+  // discard last color if it doesn't have all 3 rgb values.
+  if ((colors[colors.length -1 ] || {}).length !== 3) {
+    colors = colors.slice(0, -1);
+  }
+
+  // Ugh.... TODO: review what we actually want to do here.
+  // Or if this actually happens.
+  if (colors.length === 1) {
+    const c1 = colors[0];
+    const cleanAndClamp = num => Math.min(Math.round(num), 235);
+    const c2 = c1.map(part => cleanAndClamp(part * 1.5));
+    colors.push(c2);
+  }
+
+  const parseColor = ([r, g, b]) => (
+    { r: parseInt(r), g: parseInt(g), b: parseInt(b) }
   );
-  return {
-    start: parseColor(gradient.s),
-    end: parseColor(gradient.e),
-  };
+  return colors.map(parseColor);
 }
 
 function normalizePos(pos, sideLength, viewport) {
