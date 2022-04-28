@@ -4,6 +4,8 @@ import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHOD_OPTS } from './settings';
 import { SelectWithCustomValues } from './ui/SelectWithCustomValues';
 import { truncateRange } from './lib/truncateRange';
 
+import { ColorPicker } from './ui/ColorPicker';
+
 const ITERATION_VALUE_OPTS = [
   100,
   250,
@@ -19,6 +21,10 @@ const ITERATION_VALUE_OPTS = [
 function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams }) {
   const { centerPos, zoomLevel, iterationLimit, colorMethod } = params;
   const { numWorkers, maxNumWorkers } = systemParams;
+
+  const [color1, color2] = params.colorGradient;
+  const setColor1 = val => setPlotParams({ colorGradient: [val, color2] });
+  const setColor2 = val => setPlotParams({ colorGradient: [color1, val] });
 
   const setIterationLimit = value => {
     setPlotParams({ iterationLimit: parseInt(value) });
@@ -74,6 +80,15 @@ function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams })
 
       <section className='data-section'>
         <div className='data-header'>Colors</div>
+
+        <div className='data-row color-picker-row'>
+          <label>Gradient</label>
+
+          <ColorPicker color={color1} onChange={setColor1} />
+
+          <ColorPicker color={color2} onChange={setColor2} />
+        </div>
+
         <div className='data-row'>
           <label>Method</label>
           <select

@@ -4,6 +4,7 @@
   flex-direction: column;
   margin: 20px;
   width: 170px;
+  z-index: 2; /* This allows color picker to float */
 }
 
 .settings-panel > header.primary {
@@ -42,7 +43,7 @@
 }
 
 .settings-panel .data-row label {
-  margin-right: 5px;
+  margin-right: 8px;
   /*color: #4a3822;*/
   color: #40301b;
   flex-shrink: 0;
@@ -76,12 +77,29 @@
 
 .settings-panel .select-with-custom-option button {
   color: #444;
-  background-color: #eee;
   background-color: #efebe5;
   border: 1px solid #999;
   border-radius: 3px;
 }
 
+.settings-panel .data-row.color-picker-row {
+  align-items: center;
+  margin-bottom: 7px;
+}
+
+.settings-panel .color-picker-row .color-picker + .color-picker {
+  margin-left: 8px;
+}
+
+.settings-panel .color-picker .picker-panel {
+  background-color: #e1ddd5;
+  border: 1px solid #93887a;
+}
+
+.settings-panel .color-picker .current-color {
+  border: 1px solid #93887a;
+}
+
 section.data-section + header.primary {
-    margin-top: 20px;
+  margin-top: 20px;
 }

@@ -1,0 +1,45 @@
+
+.color-picker {
+  position: relative;
+}
+
+.color-picker .picker-panel {
+  position: absolute;
+  padding: 10px;
+  z-index: 1;
+  left: 50px;
+}
+
+.color-picker .picker-panel .btn-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.color-picker {
+  height: 20px; /* current-color height + border thickness */
+}
+
+.color-picker .current-color { 
+  width:  24px;
+  height: 18px;
+  border: 1px solid #ccc;
+}
+
+.color-picker .current-color:hover {
+  cursor: pointer;
+}
+
+.color-picker .current-color:hover,
+.color-picker.is-editing .current-color {
+  border: 1px solid #d0ae29;
+}
+
+.color-picker .react-colorful {
+  border: 1px solid #999;
+}
+
+.color-picker .react-colorful__saturation,
+.color-picker .react-colorful__last-control {
+  border-radius: 0;
+}
