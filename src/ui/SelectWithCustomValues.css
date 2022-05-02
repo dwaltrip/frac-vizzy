@@ -16,7 +16,7 @@
   width: 60px;
 }
 
-.select-with-custom-option button {
+.select-with-custom-option button + button {
   margin-left: 5px;
 }
 

@@ -49,28 +49,32 @@ function SelectWithCustomValues({ value, options, onChange }) {
       </div>
 
       {(isEditingCustomValue || hasCustomValue) &&
-        <div className='select-form-row'>
-          {/* TODO: give this input focus as soon as it shows on the page */}
-          <input
-            type='text'
-            className='custom-value-input'
-            value={inputValue}
-            onChange={event => setInputValue(event.target.value)}
-          />
-          {/* TODO: the disabled / not-disabled states look far too similar */}
-          <button onClick={submitCustomValue} disabled={!hasUnsavedChanges}>
-            Apply
-          </button>
-          <button
-            onClick={() => {
-              setInputValue(value);
-              setIsEditingCustomValue(false);
-            }}
-            disabled={value === inputValue}
-          >
-            Cancel
-          </button>
-        </div>
+        <>
+          <div className='select-form-row'>
+            {/* TODO: give this input focus as soon as it shows on the page */}
+            <input
+              type='text'
+              className='custom-value-input'
+              value={inputValue}
+              onChange={event => setInputValue(event.target.value)}
+            />
+          </div>
+
+          <div className='select-form-row'>
+            <button onClick={submitCustomValue} disabled={!hasUnsavedChanges}>
+              OK
+            </button>
+            <button
+              onClick={() => {
+                setInputValue(value);
+                setIsEditingCustomValue(false);
+              }}
+              disabled={value === inputValue}
+            >
+              Cancel
+            </button>
+          </div>
+        </>
       }
     </div>
   );
