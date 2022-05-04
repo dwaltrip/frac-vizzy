@@ -64,7 +64,7 @@ function createMandelbrotComputeWorker() {
   // NOTE: `workerCode` is stringified and then called inside a worker.
   // It must fully self-contained without any external references.
   return workerify(
-    function workerCode(...args) {
+    function workerCode({ tileIds, iterationLimit }) {
       function computeTile(tile, iterationLimit) {
         const { topLeftPoint, sideLength } = tile;
         // Declare global so eslint doesn't get angry
@@ -92,18 +92,14 @@ function createMandelbrotComputeWorker() {
         return points;
       }
 
-      function computePointsTileByTile({ tileIds, iterationLimit }) {
-        tileIds.forEach(tileId => {
-          const points = computeTile(tileId, iterationLimit);
+      tileIds.forEach(tileId => {
+        const points = computeTile(tileId, iterationLimit);
 
-          postMessage({
-            label: 'done-computing-tile',
-            data: { tileId, points },
-          });
+        postMessage({
+          label: 'done-computing-tile',
+          data: { tileId, points },
         });
-      }
-
-      return computePointsTileByTile(...args);
+      });
     },
     [
       calcMandlebrotSetStatus,

@@ -14,6 +14,8 @@ function workerify(funcToWorkerify, dependencyFuncs, constants) {
     })),
     ...(dependencyFuncs || []).map(fn => fn.toString()),
     'const $$ = ' + funcToWorkerify.toString() + ';',
+    // TODO: I'm no longer using this "return result" functionality of `workerify`
+    // Should I remove it?
     (
 `onmessage = function(e) {
   const result = $$(e.data);

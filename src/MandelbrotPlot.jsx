@@ -42,8 +42,7 @@ function MandelbrotPlot({
 
   function onCanvasResize() {
     const canvas = canvasRef.current;
-    const viewportRect = { height: canvas.height, width: canvas.width };
-    setViewportRect(viewportRect);
+    setViewportRect({ height: canvas.height, width: canvas.width });
   }
 
   // Redraw mandlebrot plot if the params change or the viewport size changes.
