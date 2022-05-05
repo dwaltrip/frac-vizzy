@@ -2,7 +2,7 @@ import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from '../settings';
 
 import { getViewportInfo } from '../viewport';
 import { ComputeManager } from './computeManager';
-import { buildGetColorForPoint, buildGetColorForPointUsingHistogram } from './colorMap';
+import { buildGetColorFirstPass, buildGetColorFinalPass } from './colorMap';
 import { drawTile } from './drawTile';
 import { drawLine } from '../lib/draw';
 import { getAxesInPixelCoords } from '../debugHelpers';
@@ -25,55 +25,25 @@ function drawMandelbrot({ canvas, params, systemParams, onProgress }) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  let getColor;
-  if (params.colorMethod !== COLOR_METHODS.histogram) {
-    getColor = buildGetColorForPoint({ colorMethod, colorGradient, ...computeArgs });
-  }
-
-  const histogram = {
-    data: {},
-    numPoints: 0,
-
-    increment(val) {
-      if (colorMethod === COLOR_METHODS.histogram2) {
-        val = Math.ceil(Math.pow(val, .75));
-      }
-      if (!(val in this.data)) {
-        this.data[val] = 0;
-      }
-      this.data[val] += 1;
-    },
-
-    updateForPoints(points) {
-      points.forEach(row => {
-        row.forEach(status => {
-          const [isInSet, iterationCount] = status;
-          this.increment(iterationCount);
-          this.numPoints += 1;
-        });
-      });
-    }
-  };
+  let getColorFirstPass = buildGetColorFirstPass({ colorMethod, colorGradient, ...computeArgs });
 
   let t0 = performance.now();
   return ComputeManager.computePlot({
     computeArgs,
     onProgress,
     handleNewTile: ({ tileId, points }) => {
-      if (colorMethod === COLOR_METHODS.histogram || colorMethod == COLOR_METHODS.histogram2) {
-        histogram.updateForPoints(points);
-      }
-      else {
-        drawTile({ ctx, tileId, points, viewport, getColor });
-      }
+      drawTile({ ctx, tileId, points, viewport, getColor: getColorFirstPass });
     },
   }).then(tiles => {
-    if (params.colorMethod === COLOR_METHODS.histogram || params.colorMethod === COLOR_METHODS.histogram2) {
-      const getColorV2 = buildGetColorForPointUsingHistogram(histogram, params);
-      tiles.forEach(({ tileId, points }) => {
-        drawTile({ ctx, tileId, points, viewport, getColor: getColorV2 });
-      });
-    }
+    const getColorFinalPass = buildGetColorFinalPass({
+      tiles,
+      colorMethod,
+      colorGradient,
+    });
+
+    tiles.forEach(({ tileId, points }) => {
+      drawTile({ ctx, tileId, points, viewport, getColor: getColorFinalPass });
+    });
 
     let t1 = performance.now();
     // console.log(`Timer -- computing and rendering took ${t1 - t0} milliseconds.`);
