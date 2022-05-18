@@ -5,8 +5,6 @@
 // TODO: Review this (and online examples) more carefully. How robust is this?
 // TODO: handle errors... worker.onerror?
 // TODO: Transferables?
-const WORKERIFY_MESSAGE_IDENTIFIER = '__$WORKERIFY_MESSAGE_IDENTIFIER';
-
 function workerify(funcToWorkerify, dependencyFuncs, constants) {
   const workerCodeStr = [
     ...(Object.keys(constants || {}).map(constName => {
@@ -14,16 +12,23 @@ function workerify(funcToWorkerify, dependencyFuncs, constants) {
     })),
     ...(dependencyFuncs || []).map(fn => fn.toString()),
     'const $$ = ' + funcToWorkerify.toString() + ';',
-    // TODO: I'm no longer using this "return result" functionality of `workerify`
-    // Should I remove it?
-    (
-`onmessage = function(e) {
-  const result = $$(e.data);
-  postMessage({
-    result,
-    '${WORKERIFY_MESSAGE_IDENTIFIER}': true,
-  });
-}`),
+
+// ----------------------------------------------------------
+// TODO: If the `addEventListener` approach works,
+// then I can remove this janky way of passing messages
+// to the worker code of `workerify` users.
+// ----------------------------------------------------------
+//     (
+// `const messageHandlers = [];
+
+// function addMessageHandler(handler) {
+//   messageHandlers.push(handler);
+// }
+
+// onmessage = function(e) {
+//   messageHandlers.forEach(handler => handler(e.data));
+// }`),
+
   ].join('\n\n');
   // console.log('--- workerCodeStr -----------------------------\n');
   // console.log(workerCodeStr);
