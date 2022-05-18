@@ -1,7 +1,6 @@
 import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from '../settings';
 
 import { getViewportInfo } from '../viewport';
-import { ComputeManager } from './computeManager';
 import { buildGetColorFirstPass, buildGetColorFinalPass } from './colorMap';
 import { drawTile } from './drawTile';
 import { drawLine } from '../lib/draw';
@@ -10,14 +9,13 @@ import { getAxesInPixelCoords } from '../debugHelpers';
 const DEBUG = false;
 // const DEBUG = true;
 
-function drawMandelbrot({ canvas, params, systemParams, onProgress }) {
+function drawMandelbrot({ canvas, params, ComputeManager, onProgress }) {
   // console.log('------- drawMandelbrot -------')
   const { colorMethod, colorGradient } = params;
 
   const viewport = getViewportInfo(params, canvas);
   const computeArgs = {
     ...params,
-    numWorkers: systemParams.numWorkers,
     viewport,
   };
 
