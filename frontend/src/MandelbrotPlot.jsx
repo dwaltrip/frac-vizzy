@@ -43,13 +43,7 @@ function MandelbrotPlot({
   }
 
   useEffect(() => {
-    // ----------------------------------------------------------------------
-    // TODO: we need to have the worker / compute manager instance accessible
-    // from here. Currently that is only available in `drawMandelbrot.js`
-    // ----------------------------------------------------------------------
-    // TODO: can look at `ComputeManager.updateNumWorkers` ??
-    // ----------------------------------------------------------------------
-    ComputeManager.setNumWorkers(systemParams.numWorkers);
+    ComputeManager.updateNumWorkers(systemParams.numWorkers);
   }, [systemParams])
 
   function onCanvasResize() {
