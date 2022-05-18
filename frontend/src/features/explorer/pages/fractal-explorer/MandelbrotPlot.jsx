@@ -13,6 +13,8 @@ import { getViewportInfo } from 'mandelbrot/viewport';
 import { Pannable } from 'ui/Pannable';
 import { ResponsiveCanvas } from 'ui/ResponsiveCanvas';
 
+import { ComputeManager } from 'mandelbrot/computeManager';
+
 function MandelbrotPlot({
   params,
   setPlotParams,
@@ -37,13 +39,23 @@ function MandelbrotPlot({
     drawMandelbrot({
       canvas: canvasRef.current,
       params,
-      systemParams, // TODO: This is kind of like prop-drilling... improve it?
+      ComputeManager,
       onProgress: percent => setPercentCompleteThrottled(percent),
     }).then(() => {
       setIsCalculating(false);
       setPercentComplete(100);
     });
   }
+
+  useEffect(() => {
+    // ----------------------------------------------------------------------
+    // TODO: we need to have the worker / compute manager instance accessible
+    // from here. Currently that is only available in `drawMandelbrot.js`
+    // ----------------------------------------------------------------------
+    // TODO: can look at `ComputeManager.updateNumWorkers` ??
+    // ----------------------------------------------------------------------
+    ComputeManager.setNumWorkers(systemParams.numWorkers);
+  }, [systemParams])
 
   function onCanvasResize() {
     const canvas = canvasRef.current;
