@@ -92,6 +92,15 @@ function createMandelbrotComputeWorker() {
         return points;
       }
 
+      // This won't work as it isn't at the top-level scope for the worker.
+      onmessage = function(e) {
+        const { type, args: { tileId, iterationLimit } } = e.data;
+
+        if (type === 'compute-tile') {
+
+        }
+      };
+
       tileIds.forEach(tileId => {
         const points = computeTile(tileId, iterationLimit);
 

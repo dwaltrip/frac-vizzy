@@ -4,6 +4,28 @@ import { getTileIds } from './getTileIds';
 import { tileCache, MAX_TILE_CACHE_SIZE } from './tileCache';
 
 const ComputeManager = {
+  _workers: {
+    get count() {
+      return this.list.length;
+    },
+
+    list: [],
+
+    isBusy: {
+
+    },
+  },
+
+  computePlotV2: function({
+    computeArgs,
+    handleNewTile: _handleNewTile,
+    onProgress,
+  }) {
+    // Don't need to pass `numWorkers`. ComputeManager is already aware of that
+    // via `updateNumWorkers`
+    const { centerPos, zoomLevel, viewport, iterationLimit } = computeArgs;
+  },
+
   computePlot: function({
     computeArgs,
     handleNewTile: _handleNewTile,
@@ -68,11 +90,27 @@ const ComputeManager = {
       return tilesForPlot;
     });
   },
-};
 
-function computeArgsToTileDesc(computeArgs) {
-  const { realRange, complexRange } = computeArgs;
-  
-}
+  updateNumWorkers(numWorkers) {
+    if (numWorkers < this._workers.count) {
+      const numToRemove = this._workers.count - numWorkers;
+      for (let i=0; i<numToRemove; i++) {
+        const worker = this._workers.list.pop();
+        // TODO: what else happens here????
+        worker.cleanup(); 
+      }
+    }
+    else {
+      const numToCreate = numWorkers - this._workers.count;
+      for (let i=0; i<numToRemove; i++) {
+        const newWorker = createWorker();
+        this._workers.push(newWorker);
+        // ---------------------------------------
+        // TODO: set worker status to available???
+        // ---------------------------------------
+      }
+    }
+  },
+};
 
 export { ComputeManager };
