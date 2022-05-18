@@ -64,7 +64,7 @@ function createMandelbrotComputeWorker() {
   // NOTE: `workerCode` is stringified and then called inside a worker.
   // It must fully self-contained without any external references.
   return workerify(
-    function workerCode({ tileIds, iterationLimit }) {
+    function workerCode() {
       function computeTile(tile, iterationLimit) {
         const { topLeftPoint, sideLength } = tile;
         // Declare global so eslint doesn't get angry
@@ -92,22 +92,20 @@ function createMandelbrotComputeWorker() {
         return points;
       }
 
-      // This won't work as it isn't at the top-level scope for the worker.
-      onmessage = function(e) {
-        const { type, args: { tileId, iterationLimit } } = e.data;
+      // ---------------------------------------------
+      // TODO: verify that this approach works!
+      // ---------------------------------------------
+      addEventListener('message', (event) => {
+        const { type, args: { tileId, iterationLimit } } = event.data;
 
         if (type === 'compute-tile') {
+          const points = computeTile(tileId, iterationLimit);
 
+          postMessage({
+            label: 'done-computing-tile',
+            data: { tileId, points },
+          });
         }
-      };
-
-      tileIds.forEach(tileId => {
-        const points = computeTile(tileId, iterationLimit);
-
-        postMessage({
-          label: 'done-computing-tile',
-          data: { tileId, points },
-        });
       });
     },
     [
