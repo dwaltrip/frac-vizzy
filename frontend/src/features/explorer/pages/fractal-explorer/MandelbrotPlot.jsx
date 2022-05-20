@@ -8,7 +8,7 @@ import { areParamsReady } from 'features/explorer/pages/fractal-explorer/plotPar
 
 import { drawMandelbrot } from 'mandelbrot/drawMandelbrot';
 import { panPlot } from 'mandelbrot/plotActions';
-import { ComputeManager } from 'mandlebrot/computeManager';
+import { ComputeManager } from 'mandelbrot/computeManager';
 
 import { zoomInPlot, zoomOutPlot } from 'features/explorer/pages/fractal-explorer/canvasEvents';
 import { getViewportInfo } from 'mandelbrot/viewport';
@@ -43,6 +43,8 @@ function MandelbrotPlot({
       ComputeManager,
       onProgress: percent => setPercentCompleteThrottled(percent),
     }).then(() => {
+      // TODO: If we comment these lines, so we can see the final calculated value
+      // for  `percentComplete`, it is sometimes a little bit higher than 100%.
       setIsCalculating(false);
       setPercentComplete(100);
     });

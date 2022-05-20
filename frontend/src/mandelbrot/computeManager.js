@@ -12,15 +12,20 @@ const TTCQ = {
   _queue: [],
 
   replace(tileIds) {
-    this._queue = [...(tileIds.reverse())];
+    this._queue = ([...tileIds]).reverse();
   },
 
   pop() {
+    assert(!this.isEmpty, 'Cannot pop if the queue is empty');
     return this._queue.pop();
   },
 
+  get length() {
+    return this._queue.length;
+  },
+
   get isEmpty() {
-    return this._queue.length === 0;
+    return this.length === 0;
   },
 };
 
@@ -70,7 +75,7 @@ const WorkerManager = {
   get areAllWorkersAvailable() {
     const numAvailableWorkers = this._list.filter(worker => {
       return this.isAvailable(worker);
-    });
+    }).length;
     return numAvailableWorkers === this.count;
   },
 
@@ -108,6 +113,15 @@ const ComputeManager = {
 
     cachedTileIds.forEach(tileId => handleNewTile(tileCache.getItem(tileId)));
 
+    // -------------------------------------------------------------------------
+    // TODO: The first time the page loads, `computePlot` is called twice.
+    // As a result, the first tile that each worker picks up is computed twice.
+    // One fix possible fix is to keep track of which tiles are currently 
+    // being computed and not add those. Kind of ugly.
+    // I wonder if we can prevent `computePlot` from firing twice on page load.
+    // For example, it doesn't happen when I zoom.
+    // NOTE: I believe this issue already existed prior to any tile-queue work.
+    // -------------------------------------------------------------------------
     TTCQ.replace(uncachedTileIds);
 
     const numToCompute = uncachedTileIds.length;
@@ -124,6 +138,10 @@ const ComputeManager = {
     }
 
     return new Promise((resolve, reject) => {
+      if (WorkerManager.areAllWorkersAvailable && TTCQ.isEmpty) {
+        resolve(tilesForPlot);
+      }
+
       function handleTileDataFromWorker(
         worker,
         { type, data: { tileId, points } },
@@ -138,6 +156,8 @@ const ComputeManager = {
 
         computedCount += 1;
         if (onProgress) {
+          // TODO: there is bug in this calculation sometimes...
+          // I saw "Working... 114%" at one point. It was stuck on that amount.
           let percentDone = Math.floor(100 * (computedCount / numToCompute));
           onProgress(percentDone);
         }
@@ -156,7 +176,9 @@ const ComputeManager = {
 
       WorkerManager.forEachWorker(worker => {
         worker.replaceListen(data => handleTileDataFromWorker(worker, data));
-        if (WorkerManager.isAvailable(worker)) {
+
+        // Sometimes all the needed tiles are cached, so the queue is empty.
+        if (!TTCQ.isEmpty && WorkerManager.isAvailable(worker)) {
           sendNextTileToWorker(worker);
         }
       });
@@ -168,7 +190,7 @@ const ComputeManager = {
       const numToRemove = WorkerManager.count - numWorkers;
 
       for (let i=0; i<numToRemove; i++) {
-        // TODO: Do we need to do anything else here?
+        // TODO: What about if the worker is currently busy computing?
         const worker = WorkerManager.pop();
         worker.terminate(); 
       }
