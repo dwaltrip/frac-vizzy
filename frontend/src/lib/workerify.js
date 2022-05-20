@@ -66,6 +66,10 @@ function workerify(funcToWorkerify, dependencyFuncs, constants) {
     listen(handler) {
       state.messageListeners.push(handler);
     },
+
+    replaceListen(handler) {
+      state.messageListeners = [handler];
+    },
   };
   return WorkerifyWorker;
 }

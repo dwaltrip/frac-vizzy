@@ -2,6 +2,7 @@ import { assert } from 'lib/assert';
 
 import { getTileIds } from 'mandelbrot/getTileIds';
 import { tileCache, MAX_TILE_CACHE_SIZE } from 'mandelbrot/tileCache';
+import { createMandelbrotComputeWorker } from 'mandelbrot/computeMandelbrot';
 
 // ----------------------------------------------------------------------------
 
@@ -11,14 +12,14 @@ const TTCQ = {
   _queue: [],
 
   replace(tileIds) {
-    this._queue = [...tileIds];
-  }
-
-  pop() {
-    this._queue.pop();
+    this._queue = [...(tileIds.reverse())];
   },
 
-  isEmpty() {
+  pop() {
+    return this._queue.pop();
+  },
+
+  get isEmpty() {
     return this._queue.length === 0;
   },
 };
@@ -31,8 +32,8 @@ const WORKER_IS_BUSY = 'WORKER_IS_BUSY';
 const WorkerManager = {
   createWorker() {
     const worker = createMandelbrotComputeWorker();
-    this._workers.push(worker);
-    this._statusMap[worker.id];
+    this._list.push(worker);
+    this.setAsAvailable(worker);
     return worker;
   },
 
@@ -46,13 +47,17 @@ const WorkerManager = {
     return removed;
   },
 
-  forEachAvailableWorker(fn) {
-    this._workers.forEach(worker => {
-      if (this._statusMap[worker.id] === WORKER_IS_AVAILABLE) {
+  forEachWorker(fn) {
+    this._list.forEach(fn);
+  },
 
-      }
-    });
-  }
+  getStatus(worker) {
+    return this._statusMap[worker.id];
+  },
+
+  isAvailable(worker) {
+    return this.getStatus(worker) === WORKER_IS_AVAILABLE;
+  },
 
   setAsAvailable(worker) {
     this._statusMap[worker.id] = WORKER_IS_AVAILABLE
@@ -63,8 +68,8 @@ const WorkerManager = {
   },
 
   get areAllWorkersAvailable() {
-    const numAvailableWorkers = this._workers.filter(worker => {
-      return this._statusMap[worker.id] === WORKER_IS_AVAILABLE;
+    const numAvailableWorkers = this._list.filter(worker => {
+      return this.isAvailable(worker);
     });
     return numAvailableWorkers === this.count;
   },
@@ -107,8 +112,27 @@ const ComputeManager = {
 
     const numToCompute = uncachedTileIds.length;
     let computedCount = 0;
-    const handleDataFromWorkers = ({ type, data: { tileId, points } }) => {
-      if (type == 'done-computing-tile') {
+
+    function sendNextTileToWorker(worker) {
+      const tileId = TTCQ.pop();
+
+      WorkerManager.setAsBusy(worker);
+      worker.postMessage({
+        type: 'compute-tile', // TOOD: fix magic string, make into a constant
+        args: { tileId, iterationLimit },
+      }); 
+    }
+
+    return new Promise((resolve, reject) => {
+      function handleTileDataFromWorker(
+        worker,
+        { type, data: { tileId, points } },
+      ) {
+        // TODO: fix this magic string, use a constant
+        if (type !== 'done-computing-tile') {
+          throw new Error(`Unsupported message type: ${type}`);
+        }
+
         tileCache.addItem({ tileId, points });
         handleNewTile({ tileId, points });
 
@@ -117,23 +141,6 @@ const ComputeManager = {
           let percentDone = Math.floor(100 * (computedCount / numToCompute));
           onProgress(percentDone);
         }
-      }
-      else {
-        throw new Error(`Unsupported message type: ${type}`);
-      }
-    };
-
-    return new Promise((resolve, reject) => {
-      function handleTileDataFromWorker(
-        worker,
-        { type, data: { tileId, data } },
-      ) {
-        // TODO: fix this magic string, use a constant
-        if (type !=== 'done-computing-tile') {
-          throw new Error(`Unsupported message type: ${type}`);
-        }
-
-        handleNewTile(data);
 
         if (TTCQ.isEmpty) {
           WorkerManager.setAsAvailable(worker);
@@ -143,26 +150,16 @@ const ComputeManager = {
           }
         }
         else {
-          const tileId = TTCQ.pop();
-          worker.postMessage({
-            type: 'compute-tile' // TOOD: fix magic string, make into a constant
-            args: { tileId, iterationLimit },
-          });
+          sendNextTileToWorker(worker);
         }
       }
 
-      workers.forEach(worker => {
-        worker.listen(data => handleTileDataFromWorker(worker, data));
+      WorkerManager.forEachWorker(worker => {
+        worker.replaceListen(data => handleTileDataFromWorker(worker, data));
+        if (WorkerManager.isAvailable(worker)) {
+          sendNextTileToWorker(worker);
+        }
       });
-    });
-
-    // TODO: handle errors?
-    return Promise.all(workerArgs.map(args => {
-      const worker = WorkerManager.createWorker();
-      worker.listen(handleDataFromWorkers);
-      return worker.run(args);
-    })).then(() => {
-      return tilesForPlot;
     });
   },
 
@@ -173,13 +170,14 @@ const ComputeManager = {
       for (let i=0; i<numToRemove; i++) {
         // TODO: Do we need to do anything else here?
         const worker = WorkerManager.pop();
-        worker.cleanup(); 
+        worker.terminate(); 
       }
     }
     else {
       const numToCreate = numWorkers - WorkerManager.count;
       for (let i=0; i<numToCreate; i++) {
         const newWorker = WorkerManager.createWorker();
+        newWorker.run();
       }
     }
   },
