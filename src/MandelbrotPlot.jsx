@@ -37,6 +37,8 @@ function MandelbrotPlot({
       ComputeManager,
       onProgress: percent => setPercentCompleteThrottled(percent),
     }).then(() => {
+      // TODO: If we comment these lines, so we can see the final calculated value
+      // for  `percentComplete`, it is sometimes a little bit higher than 100%.
       setIsCalculating(false);
       setPercentComplete(100);
     });

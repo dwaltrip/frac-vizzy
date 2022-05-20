@@ -66,17 +66,6 @@ function createMandelbrotComputeWorker() {
   return workerify(
     function workerCode() {
       function computeTile(tile, iterationLimit) {
-        // =====================================================================
-        // TODO: If I drag too fast, `tile` is somehow `undefined`.
-        //       It doesn't always seem to affect the plot. Fix this...
-        // TODO: Shit, I thought doing a `console.warn` and existing would be
-        //       a very hacky temp fix. We get another error, in the tile cache.
-        if (!(tile || {}).topLeftPoint) {
-          console.warn('computeTile -- tile is invalid');
-          return; // 
-        }
-        // =====================================================================
-
         const { topLeftPoint, sideLength } = tile;
         // Declare global so eslint doesn't get angry
         /* global $TILE_SIDE_LENGTH_IN_PIXELS */

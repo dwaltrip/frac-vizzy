@@ -1,4 +1,3 @@
-
 import { randInt } from './randInt';
 
 const CHARS = 'abcdefghijklmnopqrstuvwxyz1234567890';
