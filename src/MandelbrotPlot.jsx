@@ -5,15 +5,15 @@ import './styles/MandelbrotPlot.css';
 import { throttle } from './lib/throttle';
 
 import { areParamsReady } from './plotParams';
+
 import { drawMandelbrot } from './mandelbrot/drawMandelbrot';
 import { panPlot } from './mandelbrot/plotActions';
+import { ComputeManager } from './mandelbrot/computeManager';
+
 import { zoomInPlot, zoomOutPlot } from './canvasEvents';
 import { getViewportInfo } from './viewport';
-
 import { Pannable } from './ui/Pannable';
 import { ResponsiveCanvas } from './ui/ResponsiveCanvas';
-
-import { ComputeManager } from './computeManager';
 
 function MandelbrotPlot({
   params,

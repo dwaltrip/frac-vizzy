@@ -92,6 +92,7 @@ function createMandelbrotComputeWorker() {
         return points;
       }
 
+      // eslint-disable-next-line no-restricted-globals
       addEventListener('message', (event) => {
         const { type, args: { tileId, iterationLimit } } = event.data;
 

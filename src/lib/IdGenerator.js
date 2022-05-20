@@ -1,5 +1,5 @@
 
-import { randInt } './randInt';
+import { randInt } from './randInt';
 
 const CHARS = 'abcdefghijklmnopqrstuvwxyz1234567890';
 const ID_SIZE = 4;
@@ -13,8 +13,7 @@ function randString(numChars) {
 }
 
 function createIdGenerator() {
-  const generator = new IdGenerator();
-  _previousIds = {};
+  const _previousIds = {};
 
   return function generateId() {
     let id = randString(ID_SIZE);
