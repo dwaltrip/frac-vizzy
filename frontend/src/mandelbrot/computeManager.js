@@ -1,38 +1,95 @@
 import { assert } from 'lib/assert';
 
-import { WorkerManager } from 'mandelbrot/workerManager';
 import { getTileIds } from 'mandelbrot/getTileIds';
 import { tileCache, MAX_TILE_CACHE_SIZE } from 'mandelbrot/tileCache';
 
+// ----------------------------------------------------------------------------
+
+// TODO: This could be a generic data structure??
+// TTCQ is an acronym for "Tiles to Compute Queue"
+const TTCQ = {
+  _queue: [],
+
+  replace(tileIds) {
+    this._queue = [...tileIds];
+  }
+
+  pop() {
+    this._queue.pop();
+  },
+
+  isEmpty() {
+    return this._queue.length === 0;
+  },
+};
+
+/// ----------------------------------------------------------------------------
+
+const WORKER_IS_AVAILABLE = 'WORKER_IS_AVAILABLE';
+const WORKER_IS_BUSY = 'WORKER_IS_BUSY';
+
+const WorkerManager = {
+  createWorker() {
+    const worker = createMandelbrotComputeWorker();
+    this._workers.push(worker);
+    this._statusMap[worker.id];
+    return worker;
+  },
+
+  get count() {
+    return this._list.length;
+  },
+
+  pop() {
+    const removed = this._list.pop();
+    delete this._statusMap[removed.id];
+    return removed;
+  },
+
+  forEachAvailableWorker(fn) {
+    this._workers.forEach(worker => {
+      if (this._statusMap[worker.id] === WORKER_IS_AVAILABLE) {
+
+      }
+    });
+  }
+
+  setAsAvailable(worker) {
+    this._statusMap[worker.id] = WORKER_IS_AVAILABLE
+  },
+
+  setAsBusy(worker) {
+    this._statusMap[worker.id] = WORKER_IS_BUSY;
+  },
+
+  get areAllWorkersAvailable() {
+    const numAvailableWorkers = this._workers.filter(worker => {
+      return this._statusMap[worker.id] === WORKER_IS_AVAILABLE;
+    });
+    return numAvailableWorkers === this.count;
+  },
+
+  _list: [],
+  _statusMap: {},
+};
+
+// ----------------------------------------------------------------------------
+
 const ComputeManager = {
-  _workers: {
-    get count() {
-      return this.list.length;
-    },
-
-    list: [],
-
-    isBusy: {
-
-    },
-  },
-
-  computePlotV2: function({
-    computeArgs,
-    handleNewTile: _handleNewTile,
-    onProgress,
-  }) {
-    // Don't need to pass `numWorkers`. ComputeManager is already aware of that
-    // via `updateNumWorkers`
-    const { centerPos, zoomLevel, viewport, iterationLimit } = computeArgs;
-  },
-
   computePlot: function({
     computeArgs,
     handleNewTile: _handleNewTile,
     onProgress
   }) {
-    const { centerPos, zoomLevel, viewport, iterationLimit, numWorkers } = computeArgs;
+    const { centerPos, zoomLevel, viewport, iterationLimit } = computeArgs;
+
+    const tilesForPlot = [];
+
+    // Wrap `handleNewTile` so we can collect the tiles for the plot.
+    function handleNewTile(tileData) {
+      tilesForPlot.push(tileData);
+      _handleNewTile(tileData);
+    }
 
     const tileIds = getTileIds({
       centerPos, 
@@ -43,30 +100,15 @@ const ComputeManager = {
 
     const cachedTileIds = tileIds.filter(tileId => tileCache.hasItem(tileId));
     const uncachedTileIds = tileIds.filter(tileId => !tileCache.hasItem(tileId));
- 
-    const workerArgs = [...(new Array(numWorkers))].map((_, i) => ({
-      tileIds: [],
-      iterationLimit,
-      workerNum: i,
-    }));
 
-    for (let i=0; i<uncachedTileIds.length; i++) {
-      const workerNum = i % numWorkers;
-      workerArgs[workerNum].tileIds.push(uncachedTileIds[i]);
-    }
+    cachedTileIds.forEach(tileId => handleNewTile(tileCache.getItem(tileId)));
 
-    const tilesForPlot = [];
-
-    // Wrap `handleNewTile` so we can collect the tiles for the plot.
-    function handleNewTile(tileData) {
-      tilesForPlot.push(tileData);
-      _handleNewTile(tileData);
-    }
+    TTCQ.replace(uncachedTileIds);
 
     const numToCompute = uncachedTileIds.length;
     let computedCount = 0;
-    const handleDataFromWorkers = ({ label, data: { tileId, points } }) => {
-      if (label == 'done-computing-tile') {
+    const handleDataFromWorkers = ({ type, data: { tileId, points } }) => {
+      if (type == 'done-computing-tile') {
         tileCache.addItem({ tileId, points });
         handleNewTile({ tileId, points });
 
@@ -76,11 +118,43 @@ const ComputeManager = {
           onProgress(percentDone);
         }
       }
+      else {
+        throw new Error(`Unsupported message type: ${type}`);
+      }
     };
 
-    WorkerManager.terminateAllWorkers();
+    return new Promise((resolve, reject) => {
+      function handleTileDataFromWorker(
+        worker,
+        { type, data: { tileId, data } },
+      ) {
+        // TODO: fix this magic string, use a constant
+        if (type !=== 'done-computing-tile') {
+          throw new Error(`Unsupported message type: ${type}`);
+        }
 
-    cachedTileIds.forEach(tileId => handleNewTile(tileCache.getItem(tileId)));
+        handleNewTile(data);
+
+        if (TTCQ.isEmpty) {
+          WorkerManager.setAsAvailable(worker);
+
+          if (WorkerManager.areAllWorkersAvailable) {
+            resolve(tilesForPlot);
+          }
+        }
+        else {
+          const tileId = TTCQ.pop();
+          worker.postMessage({
+            type: 'compute-tile' // TOOD: fix magic string, make into a constant
+            args: { tileId, iterationLimit },
+          });
+        }
+      }
+
+      workers.forEach(worker => {
+        worker.listen(data => handleTileDataFromWorker(worker, data));
+      });
+    });
 
     // TODO: handle errors?
     return Promise.all(workerArgs.map(args => {
@@ -93,22 +167,19 @@ const ComputeManager = {
   },
 
   updateNumWorkers(numWorkers) {
-    if (numWorkers < this._workers.count) {
-      const numToRemove = this._workers.count - numWorkers;
+    if (numWorkers < WorkerManager.count) {
+      const numToRemove = WorkerManager.count - numWorkers;
+
       for (let i=0; i<numToRemove; i++) {
-        const worker = this._workers.list.pop();
-        // TODO: what else happens here????
+        // TODO: Do we need to do anything else here?
+        const worker = WorkerManager.pop();
         worker.cleanup(); 
       }
     }
     else {
-      const numToCreate = numWorkers - this._workers.count;
-      for (let i=0; i<numToRemove; i++) {
-        const newWorker = createWorker();
-        this._workers.push(newWorker);
-        // ---------------------------------------
-        // TODO: set worker status to available???
-        // ---------------------------------------
+      const numToCreate = numWorkers - WorkerManager.count;
+      for (let i=0; i<numToCreate; i++) {
+        const newWorker = WorkerManager.createWorker();
       }
     }
   },
