@@ -92,9 +92,6 @@ function createMandelbrotComputeWorker() {
         return points;
       }
 
-      // ---------------------------------------------
-      // TODO: verify that this approach works!
-      // ---------------------------------------------
       addEventListener('message', (event) => {
         const { type, args: { tileId, iterationLimit } } = event.data;
 
