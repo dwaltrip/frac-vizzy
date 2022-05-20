@@ -1,8 +1,11 @@
 // This is heavily insired by greenlet: https://github.com/developit/greenlet
 // However, greenlet doesn't support `Worker.terminate`, which is why I roll
 //   my own version here.
+import { createIdGenerator } from '../lib/IdGenerator';
 
-const RUN_WORKER_EVENT = '__RUN_WORKER_EVENT__';
+const RUN_WORKER_EVENT = '__WORKERIFY__RUN_WORKER_EVENT__';
+
+const generateWorkerId = createIdGenerator();
 
 // TODO: Review this (and online examples) more carefully. How robust is this?
 // TODO: handle errors... worker.onerror?
@@ -14,6 +17,14 @@ function workerify(funcToWorkerify, dependencyFuncs, constants) {
     })),
     ...(dependencyFuncs || []).map(fn => fn.toString()),
     'const $$ = ' + funcToWorkerify.toString() + ';',
+    (
+`addEventListener('message', event => {
+  const { type } = event.data;
+  if (type === '${RUN_WORKER_EVENT}') {
+    $$();
+  }
+})`
+  ),
   ].join('\n\n');
   // console.log('--- workerCodeStr -----------------------------\n');
   // console.log(workerCodeStr);
@@ -34,7 +45,12 @@ function workerify(funcToWorkerify, dependencyFuncs, constants) {
   }
 
   const WorkerifyWorker = {
+    id: generateWorkerId(),
+  
     run() {
+      worker.onmessage = event => {
+        state.messageListeners.forEach(fn => fn(event.data));
+      };
       worker.postMessage({ type: RUN_WORKER_EVENT });
     },
 

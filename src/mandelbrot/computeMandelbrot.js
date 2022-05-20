@@ -99,7 +99,7 @@ function createMandelbrotComputeWorker() {
           const points = computeTile(tileId, iterationLimit);
 
           postMessage({
-            label: 'done-computing-tile',
+            type: 'done-computing-tile',
             data: { tileId, points },
           });
         }
