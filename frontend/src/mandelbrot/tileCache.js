@@ -16,6 +16,11 @@ const MAX_MEMORY_USAGE = 500 * (1024 * 1000); // 500 MB
 const MAX_TILE_CACHE_SIZE = MAX_MEMORY_USAGE / (20 * PIXELS_PER_TILE);
 
 const tileCache = new LRUCache({
+  // =========================================================================
+  // TODO: We are getting this sometimes:
+  //   Uncaught TypeError: Cannot read properties of undefined (reading 'x')
+  // It seems related to the issue in `computeTile`
+  // =========================================================================
   getKey: (item) => {
     // allow for passing both `getKey(tileId)` and `getKey({ tileId })`
     const tileId = item.tileId || item;
