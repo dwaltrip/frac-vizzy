@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+import { Pannable } from './ui/Pannable';
 import { drawPixel } from './lib/draw';
 
 // ----------------------------------------------------------------------------
@@ -15,6 +16,11 @@ const TILE_SIZE = {
   width: IMAGE_SIZE.width - (MARGIN * 2),
 };
 
+const CANVAS_SIZE = {
+  height: 600,
+  width: 800,
+};
+
 const RAW_DATA = createGradientTile(
   { r: 220, b: 170, b: 60, },
   { r: 30, b: 30, b: 150, },
@@ -23,6 +29,7 @@ const RAW_DATA = createGradientTile(
 
 function App() {
   const canvasRef = useRef();
+  const [topLeft, setTopLeft] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -31,39 +38,83 @@ function App() {
     ctx.fillStyle = "rgb(240,230,200)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const imageData = ctx.createImageData(TILE_SIZE.width, TILE_SIZE.height);
-    drawTile(imageData, RAW_DATA);
+    const imageData = drawTile(
+      RAW_DATA,
+      ctx,
+      { height: canvas.height, width: canvas.width },
+      topLeft,
+    );
     ctx.putImageData(imageData, MARGIN, MARGIN);
   }, [canvasRef]);
+
+  useEffect({
+  }, [topLeft])
+
+  const onPan = panVector => {
+    const canvas = canvasRef.current;
+    const clamp = true;
+
+    const dx = panVector.x;
+    const dy = panVector.y; // y flipped?
+    const slope = dy / dx;
+
+    let xRatio = dx / canvas.width;
+    let yRatio = dy / canvas.height;
+
+    if (clamp && (dx > canvas.width || dy > canvas.height)) {
+      // overshooting harder in the x direction
+      if (xRatio > yRatio) {
+        xRatio = 1;
+        yRatio = slope;
+      }
+      // overshooting harder in the y direction
+      else {
+        xRatio = 1 / slope;
+        yRatio = 1;
+      }
+    }
+
+    const adx = xRatio * canvas.width;
+    const ady = yRatio * canvas.height;
+
+    setTopLeft({
+      x: topLeft.x + (xRatio * canvas.width),
+      y: topLeft.y + (yRatio * canvas.height),
+    });
+  };
 
   return (
     <div className='app-2'>
       <h3>Smooth Panning Proof-of-Concept</h3>
 
-      <canvas
-        height={IMAGE_SIZE.height}
-        width={IMAGE_SIZE.width}
-        ref={canvasRef}
-      >
-      </canvas>
+      <Pannable onPan={onPan} throttleDelay={100}>
+        <canvas
+          height={IMAGE_SIZE.height}
+          width={IMAGE_SIZE.width}
+          ref={canvasRef}
+        >
+        </canvas>
+      </Pannable>
     </div>
   );
 }
 
 // ----------------------------------------------------------------------------
 
-function drawTile(imageData, tile) {
+function drawTile(tile, ctx, viewport, topLeft) {
   const tileHeight = tile.length;
   const tileWidth = tile[0].length;
 
-  if ((imageData.height !== tileHeight) || (imageData.width !== tileWidth)) {
-    throw new Error('tile does not match imageData');
-  }
+  const imageData = ctx.createImageData(viewport.width, viewport.height);
 
-  for (let y=0; y < tileHeight; y++) {
+  // if ((imageData.height !== tileHeight) || (imageData.width !== tileWidth)) {
+  //   throw new Error('tile does not match imageData');
+  // }
+
+  for (let y=topLeft.y; y < viewport.height; y++) {
     const row = tile[y];
 
-    for (let x=0; x < row.length; x++) {
+    for (let x=topLeft.x; x < viewport.width; x++) {
       const pixel = row[x];
       drawPixel(imageData, x, y, pixel.r, pixel.g, pixel.b);
     }
