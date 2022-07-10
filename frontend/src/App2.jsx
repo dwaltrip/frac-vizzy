@@ -111,11 +111,20 @@ function drawTile(tile, ctx, viewport, topLeft) {
   //   throw new Error('tile does not match imageData');
   // }
 
+  console.log('=== viewport:', viewport)
+  console.log('=== tile dims -- height:', tileHeight, '-- width:', tileWidth);
+  console.log('=== topLeft:', topLeft)
+
+
   for (let y=topLeft.y; y < viewport.height; y++) {
     const row = tile[y];
 
     for (let x=topLeft.x; x < viewport.width; x++) {
       const pixel = row[x];
+      if (!pixel) {
+        console.log('bad pixel... -- x:', x, '-- y:', y)
+        // TODO: This is currently happening because of the margin...
+      }
       drawPixel(imageData, x, y, pixel.r, pixel.g, pixel.b);
     }
   }
