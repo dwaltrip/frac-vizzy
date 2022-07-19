@@ -25,6 +25,7 @@ const RAW_DATA = createGradientTile(
   { r: 220, b: 170, b: 60, },
   { r: 30, b: 30, b: 150, },
   TILE_SIZE,
+  { size: MARGIN, color: { r: 240, g: 230, b: 200 } },
 );
 
 function App() {
@@ -35,7 +36,7 @@ function App() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = "rgb(240,230,200)";
+    ctx.fillStyle = 'rgb(255,255,255)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const imageData = drawTile(
@@ -44,11 +45,11 @@ function App() {
       { height: canvas.height, width: canvas.width },
       topLeft,
     );
-    ctx.putImageData(imageData, MARGIN, MARGIN);
+    ctx.putImageData(imageData, 0, 0);
   }, [canvasRef]);
 
-  useEffect({
-  }, [topLeft])
+  // useEffect(function() {
+  // }, [topLeft])
 
   const onPan = panVector => {
     const canvas = canvasRef.current;
@@ -113,31 +114,60 @@ function drawTile(tile, ctx, viewport, topLeft) {
 
   console.log('=== viewport:', viewport)
   console.log('=== tile dims -- height:', tileHeight, '-- width:', tileWidth);
-  console.log('=== topLeft:', topLeft)
-
+  console.log('=== topLeft:', JSON.stringify(topLeft))
 
   for (let y=topLeft.y; y < viewport.height; y++) {
     const row = tile[y];
 
     for (let x=topLeft.x; x < viewport.width; x++) {
       const pixel = row[x];
-      if (!pixel) {
-        console.log('bad pixel... -- x:', x, '-- y:', y)
-        // TODO: This is currently happening because of the margin...
-      }
       drawPixel(imageData, x, y, pixel.r, pixel.g, pixel.b);
     }
   }
+
+  return imageData;
 }
 
-function createGradientTile(color1, color2, size) {
+function createGradientTile(color1, color2, size, marginInfo) {
   const { height, width } = size;
   const tile = [];
 
-  for (let y=0; y<height; y++) {
+  const hasMargin = !!marginInfo;
+  let marginSize = hasMargin ? marginInfo.size : 0;
+
+  const tileHeight = height + (marginSize * 2);
+  const tileWidth = width + (marginSize * 2);
+
+  function addVertMargins() {
+    for (let i=0; i<marginSize; i++) {
+      const marginRow = [];
+      for (let x=0; x<tileWidth; x++) {
+        marginRow.push(marginInfo.color);
+      }
+      tile.push(marginRow);
+    }
+  }
+
+  // top margin
+  if (hasMargin) {
+    addVertMargins();
+  }
+
+  for (let y=0; y < height ; y++) {
     const row = [];
 
-    for (let x=0; x<width; x++) {
+    function addHorizMargins() {
+      for (let i=0; i<marginSize; i++) {
+        row.push(marginInfo.color);
+      }
+    }
+
+    // left margin
+    if (hasMargin) {
+      addHorizMargins()
+    }
+
+    for (let x=0; x < width; x++) {
       const percent = (x + y) / (width + height);
       row.push({
         r: percentToRangeVal(percent, color1.r, color2.r),
@@ -145,7 +175,18 @@ function createGradientTile(color1, color2, size) {
         b: percentToRangeVal(percent, color1.b, color2.b),
       });
     }
+
+    // right margin
+    if (hasMargin) {
+      addHorizMargins()
+    }
+
     tile.push(row);
+  }
+
+  // bottom margin
+  if (hasMargin) {
+    addVertMargins();
   }
 
   return tile;
