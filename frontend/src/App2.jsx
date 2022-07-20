@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+import './styles/App2.css';
+
 import { Pannable } from './ui/Pannable';
 import { drawPixel } from './lib/draw';
 
@@ -32,7 +34,7 @@ function App() {
   const canvasRef = useRef();
   const [topLeft, setTopLeft] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
+  function updateTile() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
@@ -46,12 +48,20 @@ function App() {
       topLeft,
     );
     ctx.putImageData(imageData, 0, 0);
+  }
+
+  useEffect(() => {
+    // console.log('-- useEffect -- canvasRef');
+    updateTile();
   }, [canvasRef]);
 
-  // useEffect(function() {
-  // }, [topLeft])
+  useEffect(() => {
+    // console.log('-- useEffect -- topLeft');
+    updateTile();
+  }, [topLeft]);
 
   const onPan = panVector => {
+    // console.log("--- on pan ---")
     const canvas = canvasRef.current;
     const clamp = true;
 
@@ -78,10 +88,12 @@ function App() {
     const adx = xRatio * canvas.width;
     const ady = yRatio * canvas.height;
 
-    setTopLeft({
+    const newTopLeft = {
       x: topLeft.x + (xRatio * canvas.width),
       y: topLeft.y + (yRatio * canvas.height),
-    });
+    };
+    // console.log('newTopLeft:', JSON.stringify(newTopLeft));
+    setTopLeft(newTopLeft);
   };
 
   return (
@@ -112,16 +124,31 @@ function drawTile(tile, ctx, viewport, topLeft) {
   //   throw new Error('tile does not match imageData');
   // }
 
-  console.log('=== viewport:', viewport)
-  console.log('=== tile dims -- height:', tileHeight, '-- width:', tileWidth);
-  console.log('=== topLeft:', JSON.stringify(topLeft))
+  // console.log('=== viewport:', viewport)
+  // console.log('=== tile dims -- height:', tileHeight, '-- width:', tileWidth);
+  // console.log('=== topLeft:', JSON.stringify(topLeft))
 
-  for (let y=topLeft.y; y < viewport.height; y++) {
+  for (let y=0; y<viewport.width; y++) {
+    if (topLeft.y + y > viewport.height) {
+      break;
+    }
+
     const row = tile[y];
 
-    for (let x=topLeft.x; x < viewport.width; x++) {
+    for (let x=0; x < viewport.width; x++) {
+      if (topLeft.x + x > viewport.width) {
+        break;
+      }
+
       const pixel = row[x];
-      drawPixel(imageData, x, y, pixel.r, pixel.g, pixel.b);
+      drawPixel(
+        imageData,
+        topLeft.x + x,
+        topLeft.y + y,
+        pixel.r,
+        pixel.g,
+        pixel.b,
+      );
     }
   }
 
@@ -130,6 +157,7 @@ function drawTile(tile, ctx, viewport, topLeft) {
 
 function createGradientTile(color1, color2, size, marginInfo) {
   const { height, width } = size;
+  // console.log('createGradientTile -- height:', height, '-- width:', width)
   const tile = [];
 
   const hasMargin = !!marginInfo;
@@ -188,6 +216,8 @@ function createGradientTile(color1, color2, size, marginInfo) {
   if (hasMargin) {
     addVertMargins();
   }
+
+  // console.log('createGradientTile -- tile dims -- height:', tile.length, ', width:', tile[0].length);
 
   return tile;
 }

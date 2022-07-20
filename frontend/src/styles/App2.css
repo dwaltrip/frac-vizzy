@@ -1,0 +1,8 @@
+.app-2 {
+  padding: 20px;
+  /*display: flex;*/
+}
+
+canvas {
+  border:  1px solid #999;
+}
