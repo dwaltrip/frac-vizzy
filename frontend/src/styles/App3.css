@@ -1,0 +1,10 @@
+.app3 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 20px;
+}
+
+.Drag_OUTSIDE_OF_REACT {
+  border:  1px solid #999;
+}
