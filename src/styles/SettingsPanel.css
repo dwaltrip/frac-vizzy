@@ -7,6 +7,11 @@
   z-index: 2; /* This allows color picker to float */
 }
 
+.settings-panel header.app-name {
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
 .settings-panel > header.primary {
   color:  #333;
   font-weight: bold;

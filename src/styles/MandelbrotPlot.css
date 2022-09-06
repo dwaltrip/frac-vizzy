@@ -1,10 +1,18 @@
 
 .mandelbrot-plot-container .computation-status {
-  margin-bottom: 5px;
-  font-size: 14px;
+  position: absolute;
+  z-index: 2;
   display: flex;
   justify-content: flex-end;
-  color: #7a490b;
+  padding: 3px 8px; 
+
+  font-size: 14px;
+  /*color: #b6f194;*/
+  color: #fff;
+  background-color: rgba(60, 60, 60, 0.6);
+
+  bottom: 0px;
+  left: 1px;
 }
 
 .mandelbrot-plot-container .plot-overlay,

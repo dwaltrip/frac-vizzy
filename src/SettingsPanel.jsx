@@ -41,6 +41,9 @@ function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams })
   // TODO: Work on improving the info heirarchy.
   return (
     <div className='settings-panel'>
+      {/* TODO: maybe move to App.jsx? */}
+      <header className='app-name'>Frac Vizzy</header>
+
       <header className='primary'>Plot Settings</header>
 
       <section className='data-section coords-display'>

@@ -12,6 +12,7 @@
   margin: 20px;
   margin-left: 0px;
   flex:  1;
+  position: relative;
 }
 
 canvas.mandelbrot-canvas {
