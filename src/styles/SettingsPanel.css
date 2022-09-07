@@ -9,7 +9,7 @@
 
 .settings-panel header.app-name {
   font-size: 22px;
-  margin-bottom: 15px;
+  margin-bottom: 25px;
 }
 
 .settings-panel > header.primary {
@@ -18,7 +18,7 @@
 }
 
 .settings-panel section.data-section {
-  margin-top: 20px;
+  margin-top: 15px;
   color: #333;
 }
 
@@ -106,5 +106,9 @@
 }
 
 section.data-section + header.primary {
-  margin-top: 20px;
+  margin-top: 25px;
+}
+
+section.data-section.computation .data-row label {
+  width: 58px;
 }

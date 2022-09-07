@@ -46,29 +46,8 @@ function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams })
 
       <header className='primary'>Plot Settings</header>
 
-      <section className='data-section coords-display'>
-        {/* TODO: better name for this... */}
-        <div className='data-header'>View Area</div>
-
-        <div className='data-subheader'>Center Point</div>
-        <div className='data-row'>
-          <label>Real</label>
-          <span className='value'>{centerPos.r}</span>
-        </div>
-        <div className='data-row'>
-          <label>Imaginary</label>
-          <span className='value'>{centerPos.c}</span>
-        </div>
-
-        {/* TODO: Zoom should be a sibling to Center Point, not a child */}
-        <div className='data-row'>
-          <label>Zoom</label>
-          <span className='value'>{zoomLevel}</span>
-        </div>
-      </section>
-
       <section className='data-section'>
-        <div className='data-header'>Other Settings</div>
+        <div className='data-header'>Computation</div>
         <div className='data-row'>
           <label>Iterations</label>
           <span className='value'>
@@ -82,7 +61,7 @@ function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams })
       </section>
 
       <section className='data-section'>
-        <div className='data-header'>Colors</div>
+        <div className='data-header'>Coloring</div>
 
         <div className='data-row color-picker-row'>
           <label>Gradient</label>
@@ -108,7 +87,6 @@ function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams })
         </div>
       </section>
 
-
       <header className='primary'>System Settings</header>
 
       <section className='data-section'>
@@ -125,6 +103,27 @@ function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams })
           </select>
         </div>
       </section>
+
+      <header className='primary'>Plot Metrics</header>
+
+      <section className='data-section coords-display'>
+        <div className='data-header'>Position</div>
+        <div className='data-row'>
+          <label>Real</label>
+          <span className='value'>{centerPos.r}</span>
+        </div>
+        <div className='data-row'>
+          <label>Imaginary</label>
+          <span className='value'>{centerPos.c}</span>
+        </div>
+
+        {/* TODO: Zoom should be a sibling to Center Point, not a child */}
+        <div className='data-row'>
+          <label>Zoom</label>
+          <span className='value'>{zoomLevel}</span>
+        </div>
+      </section>
+
     </div>
   );
 }
