@@ -56,7 +56,7 @@ function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams })
           <span className='value'>{centerPos.r}</span>
         </div>
         <div className='data-row'>
-          <label>Complex</label>
+          <label>Imaginary</label>
           <span className='value'>{centerPos.c}</span>
         </div>
 

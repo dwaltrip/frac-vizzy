@@ -45,6 +45,10 @@ function getInitialParams() {
 }
 
 function serializeParams(params) {
+  // FIX-IMAGINARY-PART-NAMING
+  // Mapping "c" (complex) to "i" (imaginary) in the URL
+  // So that the URLs from here-on out will have the correct naming.
+  const serializePos = pos => ({ r: pos.r, i: pos.c });
   const serializeGradient = gradient => (
     '(' +
     gradient.map(c => `${c.r},${c.g},${c.b}`).join(',') +
@@ -52,7 +56,7 @@ function serializeParams(params) {
   );
 
   return {
-    pos: params.centerPos,
+    pos: serializePos(params.centerPos),
     z: params.zoomLevel,
     il: params.iterationLimit,
     cm: params.colorMethod,
@@ -73,7 +77,21 @@ function deserializeParams(params) {
 // TODO: why is this called parse? probably should be deserialize?
 // Something else is off here... sort this out.
 function parsePos(pos) {
-  return { r: parseFloat(pos.r), c: parseFloat(pos.c) };
+  // FIX-IMAGINARY-PART-NAMING
+  // This allows old URLs to keep working.
+  // TODO: Remove this at some point.
+  let imaginaryStr;
+  if (typeof pos.c !== 'undefined') {
+    imaginaryStr = pos.c;
+  }
+  else if (typeof pos.i !== 'undefined') {
+    imaginaryStr = pos.i;
+  } else {
+    console.warn('Invalid pos param');
+    imaginaryStr = '0'
+  }
+
+  return { r: parseFloat(pos.r), c: parseFloat(imaginaryStr) };
 }
 
 // TODO: more validation / error handling here.
