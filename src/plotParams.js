@@ -81,12 +81,14 @@ function parsePos(pos) {
   // This allows old URLs to keep working.
   // TODO: Remove this at some point.
   let imaginaryStr;
-  if (typeof pos.c !== 'undefined') {
+  // TODO: This is brittle!!! We have to do the "pos.i" check first. Get rid of this.
+  if (typeof pos.i !== 'undefined') {
+    imaginaryStr = pos.i;
+  }
+  else if (typeof pos.c !== 'undefined') {
     imaginaryStr = pos.c;
   }
-  else if (typeof pos.i !== 'undefined') {
-    imaginaryStr = pos.i;
-  } else {
+  else {
     console.warn('Invalid pos param');
     imaginaryStr = '0'
   }
