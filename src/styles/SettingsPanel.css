@@ -112,3 +112,16 @@ section.data-section + header.primary {
 section.data-section.computation .data-row label {
   width: 58px;
 }
+
+
+section.data-section.guide-for-controls {
+  margin-top: 10px;
+}
+section.data-section.guide-for-controls .data-row {
+  margin-top: 5px;
+}
+section.data-section.guide-for-controls .ui-action {
+  /*color: #935915;*/
+  color: #7a490b;
+  font-style: italic;
+}

@@ -124,6 +124,29 @@ function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams })
         </div>
       </section>
 
+      <header className='primary'>Controls</header>
+
+      <section className='data-section guide-for-controls'>
+        <div className='data-row'>
+          <label>
+            <span className='ui-action'>Double-click</span>{" "}
+            to zoom in.
+          </label>
+        </div>
+        <div className='data-row'>
+          <label>
+            <span className='ui-action'>Right-click</span>{" "}
+            to zoom out.
+          </label>
+        </div>
+        <div className='data-row'>
+          <label>
+            <span className='ui-action'>Drag</span>{" "}
+            to move side to side.
+          </label>
+        </div>
+      </section>
+
     </div>
   );
 }
