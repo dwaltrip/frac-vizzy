@@ -74,9 +74,15 @@ WSGI_APPLICATION = 'base.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
+    # TODO: Switch to using dotenv for most of these values
+    # They should not be hard-coded in version controlled files
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'frac_vizzy',
+        'USER': 'db_admin',
+        'PASSWORD': 'db_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
