@@ -1,0 +1,15 @@
+{
+    "folders": [
+        {
+            "path": ".",
+            "binary_file_patterns": [
+                "*/node_modules/*",
+                "*/build/*",
+                "*/venv/*",
+            ],
+            "folder_exclude_patterns": [
+                "__pycache__",
+            ]
+        }
+    ]
+}
