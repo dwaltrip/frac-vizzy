@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'simple_poc',
+    'social',
 ]
 
 MIDDLEWARE = [
