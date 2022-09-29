@@ -1,0 +1,15 @@
+
+.mandelbrot-plot-container {
+  display: flex;
+  flex-direction: column;
+  margin: 20px;
+  margin-left: 0px;
+  flex:  1;
+  position: relative;
+}
+
+canvas.mandelbrot-canvas {
+  border: 1px solid #aaa;
+  background-color: white;
+  user-select: none;
+}
