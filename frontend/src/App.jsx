@@ -3,16 +3,13 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import './styles/App.css';
 
+import { HomePage } from './HomePage';
 import { FractalExplorer } from './FractalExplorer';
-
-const DummyHomePage = () => (
-  <h3>Frac Vizzy Home Page</h3>
-);
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <DummyHomePage />
+    element: <HomePage />
   },
   {
     path: '/explore',

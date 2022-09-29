@@ -1,4 +1,7 @@
 
+// TODO: use config files for API_URL and similar values.
+const API_URL = 'http://localhost:8000';
+
 const TILE_SIDE_LENGTH_IN_PIXELS = 50;
 
 // These points draw a box around the fully zoomed out Mandelbrot
@@ -35,6 +38,7 @@ const COLOR_METHOD_OPTS = [
 ];
 
 export {
+  API_URL,
   TILE_SIDE_LENGTH_IN_PIXELS,
   BOUNDING_BOX,
   COLOR_METHODS,
