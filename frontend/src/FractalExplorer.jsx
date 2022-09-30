@@ -3,6 +3,8 @@ import qs from 'qs';
 
 import './styles/FractalExplorer.css';
 
+import { ajax } from './api';
+
 import { getInitialParams, serializeParams, normalizeParams } from './plotParams';
 import { getInitialSystemParams, saveSystemParams } from './systemParams';
 import { getViewportInfo } from './viewport';
@@ -10,6 +12,17 @@ import { getInitialZoomLevel } from './mandelbrot/calcs';
 
 import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
+
+function createSnapshot(description) {
+  // TODO: make it a relative URL
+  const link = window.location.href;
+
+  return ajax.post('snapshots', {
+    description,
+    link,
+    region_info: {},
+  });
+}
 
 let userHasChangedParams = false;
 
@@ -71,6 +84,7 @@ function FractalExplorer() {
         setPlotParams={setPlotParams}
         systemParams={systemParams}
         setSystemParams={setSystemParams}
+        createSnapshot={createSnapshot}
       />
 
       <MandelbrotPlot

@@ -18,7 +18,13 @@ const ITERATION_VALUE_OPTS = [
   return { value, text: value };
 });
 
-function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams }) {
+function SettingsPanel({
+  params,
+  setPlotParams,
+  systemParams,
+  setSystemParams,
+  createSnapshot,
+}) {
   const { centerPos, zoomLevel, iterationLimit, colorMethod } = params;
   const { numWorkers, maxNumWorkers } = systemParams;
 
@@ -147,6 +153,19 @@ function SettingsPanel({ params, setPlotParams, systemParams, setSystemParams })
         </div>
       </section>
 
+      <section>
+        <button
+          onClick={() => {
+            const desc = window.prompt('Snapshot description:');
+            createSnapshot(desc).then(res => {
+              console.log('createSnapshot.then -- res:', res)
+            });
+          }}
+        >
+          Create Snapshot
+        </button>
+
+      </section>
     </div>
   );
 }

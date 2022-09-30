@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ajax } from './api';
 
 function fetchSnapshots() {
-  return ajax('snapshots');
+  return ajax.get('snapshots');
 }
 
 function HomePage() {
