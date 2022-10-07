@@ -5,6 +5,7 @@ class Snapshot(models.Model):
     description = models.TextField(blank=True, default='')
     link = models.TextField()
     region_info = models.JSONField()
+    thumbnail_filename = models.TextField()
 
     class Meta:
         db_table = 'snapshots'

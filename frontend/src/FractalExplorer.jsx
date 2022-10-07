@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import qs from 'qs';
 
 import './styles/FractalExplorer.css';
@@ -13,13 +13,15 @@ import { getInitialZoomLevel } from './mandelbrot/calcs';
 import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
-function createSnapshot(description) {
+function createSnapshot(description, imageData) {
   // TODO: make it a relative URL
   const link = window.location.href;
 
+  // TODO: send the image as binary data? for better perf?
   return ajax.post('snapshots', {
     description,
     link,
+    image_data: imageData,
     region_info: {},
   });
 }
@@ -27,6 +29,7 @@ function createSnapshot(description) {
 let userHasChangedParams = false;
 
 function FractalExplorer() {
+  const canvasRef = useRef();
   console.log('=== Rendering App... ==='); 
   const [viewportRect, setViewportRect] = useState(null);
   const [plotParams, setParamsRaw] = useState(getInitialParams());
@@ -79,12 +82,17 @@ function FractalExplorer() {
 
   return (
     <>
+      {/* TODO: setting panel should be a child of the plot container */}
       <SettingsPanel
         params={plotParams}
         setPlotParams={setPlotParams}
         systemParams={systemParams}
         setSystemParams={setSystemParams}
-        createSnapshot={createSnapshot}
+        createSnapshot={desc => {
+          const canvas = canvasRef.current;
+          const imageData = canvas.toDataURL();
+          return createSnapshot(desc, imageData);
+        }}
       />
 
       <MandelbrotPlot
@@ -93,6 +101,7 @@ function FractalExplorer() {
         systemParams={systemParams}
         viewportRect={viewportRect}
         setViewportRect={setViewportRect}
+        setCanvasRef={canvas => { canvasRef.current = canvas; }}
       />
     </>
   );

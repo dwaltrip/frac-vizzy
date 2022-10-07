@@ -19,10 +19,15 @@ function MandelbrotPlot({
   systemParams,
   viewportRect,
   setViewportRect,
+  setCanvasRef,
 }) {
   const canvasRef = useRef(null);
   const [percentComplete, setPercentComplete] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  if (canvasRef.current) {
+    setCanvasRef(canvasRef.current);
+  }
 
   function drawMandelbrotWithProgressUpdates() {
     setIsCalculating(true);

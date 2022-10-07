@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
+import { API_URL } from './settings';
 import { ajax } from './api';
 
 function fetchSnapshots() {
   return ajax.get('snapshots');
+}
+
+function snapshotImgUrl(shapshot) {
+  return `${API_URL}/media/${shapshot.thumbnail_filename}`;
 }
 
 function HomePage() {
@@ -20,11 +25,14 @@ function HomePage() {
       {snapshots ? 
         <ul>
           {snapshots.map(snapshot => (
-            <li>
-              <span>{snapshot.description}</span>
+            <li key={snapshot.id}>
               <a href={snapshot.link} target='_blank'>
-                {snapshot.link}
+                {snapshot.description}
               </a>
+              <img
+                src={snapshotImgUrl(snapshot)}
+                width='300'
+              />
             </li>
           ))}
         </ul> :

@@ -137,3 +137,6 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
+
+MEDIA_ROOT = BASE_DIR.parent / 'snapshot_images'
+MEDIA_URL = 'media/'

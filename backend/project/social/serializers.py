@@ -3,6 +3,7 @@ from social.models import Snapshot
 
 
 class SnapshotSerializer(serializers.HyperlinkedModelSerializer):
+    thumbnail_filename = serializers.ReadOnlyField()
 
     class Meta:
         model = Snapshot
@@ -12,4 +13,5 @@ class SnapshotSerializer(serializers.HyperlinkedModelSerializer):
             'description',
             'link',
             'region_info',
+            'thumbnail_filename',
         ]
