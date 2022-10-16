@@ -4,7 +4,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path('', include('social.urls')),
-    # path('', include('simple_poc.urls')),
     path('api-auth/', include('rest_framework.urls')),
 
     # TODO: this is apparently not suitable for production...
