@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True, default='')),
                 ('link', models.TextField()),
                 ('region_info', models.JSONField()),
-                ('thumbnail_filename', models.TextField()),
+                ('thumbnail_filename', models.TextField(default='')),
             ],
             options={
                 'db_table': 'snapshots',
