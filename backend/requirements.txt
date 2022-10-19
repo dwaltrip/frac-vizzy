@@ -6,15 +6,20 @@
 #
 asgiref==3.5.2
     # via django
+dj-rest-auth==2.2.5
+    # via -r /Users/danielwaltrip/all-files/projects/code/frac-vizzy/backend/requirements.in
 django==4.1.1
     # via
     #   -r /Users/danielwaltrip/all-files/projects/code/frac-vizzy/backend/requirements.in
+    #   dj-rest-auth
     #   django-cors-headers
     #   djangorestframework
 django-cors-headers==3.13.0
     # via -r /Users/danielwaltrip/all-files/projects/code/frac-vizzy/backend/requirements.in
 djangorestframework==3.13.1
-    # via -r /Users/danielwaltrip/all-files/projects/code/frac-vizzy/backend/requirements.in
+    # via
+    #   -r /Users/danielwaltrip/all-files/projects/code/frac-vizzy/backend/requirements.in
+    #   dj-rest-auth
 pillow==9.2.0
     # via -r /Users/danielwaltrip/all-files/projects/code/frac-vizzy/backend/requirements.in
 psycopg2==2.9.3

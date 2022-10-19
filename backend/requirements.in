@@ -1,6 +1,7 @@
 django
 django-cors-headers
 djangorestframework
+dj-rest-auth
 
 Pillow
 psycopg2

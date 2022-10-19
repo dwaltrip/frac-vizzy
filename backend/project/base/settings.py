@@ -39,6 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    # TODO: Use something more robust than `rest_framework.authtoken`
+    # See:
+    #   * https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
+    #   * https://github.com/James1345/django-rest-knox
+    'rest_framework.authtoken',
+    'dj_rest_auth',
     'social',
 ]
 
@@ -139,3 +145,9 @@ CORS_ALLOWED_ORIGINS = [
 
 MEDIA_ROOT = BASE_DIR.parent / 'snapshot_images'
 MEDIA_URL = 'media/'
+
+REST_FRAMEWORK = {
+   'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+   ),
+}

@@ -1,7 +1,14 @@
 import { API_URL } from './settings';
 
 // TODO: use some lib for this?
-function doFetch(path, { method='GET', data=null }={}) {
+function doFetch(path, {
+  method='GET',
+  data=null,
+  // ---------------------------------
+  // TODO: How do I pass this.......??
+  // ---------------------------------
+  token=null,
+}={}) {
   // TODO: do this more robustly
   const url = `${API_URL}/${path}/`;
 
@@ -9,6 +16,10 @@ function doFetch(path, { method='GET', data=null }={}) {
     method,
     headers: {
       'Content-Type': 'application/json',
+      // https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
+      // Unauthenticated responses that are denied permission will result in
+      //   an HTTP 401 Unauthorized response.
+      ...(token ? { 'Authorization': `Token ${token}` } : null),
     }
   };
 
