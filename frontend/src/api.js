@@ -4,9 +4,6 @@ import { API_URL } from './settings';
 function doFetch(path, {
   method='GET',
   data=null,
-  // ---------------------------------
-  // TODO: How do I pass this.......??
-  // ---------------------------------
   token=null,
 }={}) {
   // TODO: do this more robustly
@@ -29,13 +26,16 @@ function doFetch(path, {
 
   // TODO: error handling.
   return fetch(url, options)
-    .then((response) => response.json());
+    .then((response) => response.json())
+    .catch(error => console.error('--- Error while fetching ---\n', error));
 }
 
 const ajax = {
-  get(path) {
-    return doFetch(path);
+  // TODO: better way to pass in the token??
+  get(path, token) {
+    return doFetch(path, token ? { token } : {});
   },
+  // get(path) { return doFetch(path); },
 
   post(path, data) {
     return doFetch(path, { method: 'POST', data });
