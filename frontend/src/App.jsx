@@ -5,6 +5,7 @@ import './styles/App.css';
 
 import { HomePage } from './HomePage';
 import { FractalExplorer } from './FractalExplorer';
+import { LoginPage } from './LoginPage';
 
 const router = createBrowserRouter([
   {
@@ -15,6 +16,11 @@ const router = createBrowserRouter([
     path: '/explore',
     element: <FractalExplorer />
   },
+  {
+    path: '/login',
+    element: <LoginPage />
+  },
+
 ]);
 
 function App() {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 
 import './styles/HomePage.css';
 
@@ -17,6 +18,7 @@ function snapshotImgUrlSmall(shapshot) {
 
 function HomePage() {
   const [snapshots, setSnapshots] = useState(null);
+  const currentUser = useSelector(state => state.users.currentUser);
 
   useEffect(() => {
     console.log('Home Page -- useEffect -- fetchSnapshots');
@@ -28,8 +30,16 @@ function HomePage() {
 
   return (
     <div className='home-page-container'>
-      <h1>Frac Vizzy Home Page</h1>
-      <a href='/explore'>Explore</a>
+      <header>
+        <h1>Frac Vizzy Home Page</h1>
+        <div className='link-bar'>
+          <a href='/login'>Login</a>
+          <a href='/explore'>Explore</a>
+          <div style={{marginLeft: '30px'}}>
+            Current User: <span>{currentUser || '<Anonymous>'}</span>
+          </div>
+        </div>
+      </header>
       {snapshots ? 
         <div className='snapshot-gallery'>
           {snapshots.map(snapshot => (

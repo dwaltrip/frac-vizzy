@@ -8,6 +8,14 @@
     flex-direction: column;
 }
 
+.home-page-container > header {
+    padding-left:  20px;
+}
+
+.home-page-container > header .link-bar > a {
+    margin-right: 10px;
+}
+
 .snapshot-gallery {
     display: flex;
     flex-direction: row;
