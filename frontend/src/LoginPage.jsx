@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
-import { login } from './features/users/usersSlice';
+import { login, selectCurrentUser } from './features/users/usersSlice';
 
 import './styles/LoginPage.css';
 
 function LoginPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // TODO: Is this a good way of handling if theuser is already logged in?
+  const currentUser = useSelector(selectCurrentUser);
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/');
+    };
+  }, [currentUser]);
+
   const [username, changeUsername] = useState('');
   const [password, changePassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +27,7 @@ function LoginPage() {
     setIsLoading(true);
     await dispatch(login({ username, password }));
     setIsLoading(false);
+    navigate('/');
   }
 
   return (

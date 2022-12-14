@@ -36,7 +36,7 @@ function HomePage() {
           <a href='/login'>Login</a>
           <a href='/explore'>Explore</a>
           <div style={{marginLeft: '30px'}}>
-            Current User: <span>{currentUser || '<Anonymous>'}</span>
+            Current User: <span>{currentUser ? currentUser.username : '<Anonymous>'}</span>
           </div>
         </div>
       </header>
