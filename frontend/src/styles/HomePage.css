@@ -8,12 +8,23 @@
     flex-direction: column;
 }
 
-.home-page-container > header {
-    padding-left:  20px;
+.home-page-container .app-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
 }
 
-.home-page-container > header .link-bar > a {
-    margin-right: 10px;
+.home-page-container .app-header .app-title {
+    margin: 0;
+}
+.home-page-container .app-header nav {
+    display: flex;
+    margin: 0 30px;
+    justify-content: space-between;
+    flex: 1;
+}
+.home-page-container .app-header nav a {
+    margin: 0 15px;
 }
 
 .snapshot-gallery {

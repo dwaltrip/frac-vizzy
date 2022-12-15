@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 
 import './styles/HomePage.css';
 
@@ -22,24 +23,34 @@ function HomePage() {
 
   useEffect(() => {
     console.log('Home Page -- useEffect -- fetchSnapshots');
-    fetchSnapshots().then(data => {
-      console.log('data:', data)
-      setSnapshots(data);
-    });
+    fetchSnapshots().then(data => setSnapshots(data));
   }, []);
 
   return (
     <div className='home-page-container'>
-      <header>
-        <h1>Frac Vizzy Home Page</h1>
-        <div className='link-bar'>
-          <a href='/login'>Login</a>
-          <a href='/explore'>Explore</a>
-          <div style={{marginLeft: '30px'}}>
-            Current User: <span>{currentUser ? currentUser.username : '<Anonymous>'}</span>
+      <header className='app-header'>
+        <h1 className='app-title'>Frac Vizzy</h1>
+
+        <nav>
+          <div className='links'>
+            <Link to='explore'>Explore</Link>
           </div>
-        </div>
+          <div className='user-section'>
+            {currentUser ? (
+                <>
+                  <span className='profile-link'>
+                    Current User: {currentUser.username}
+                  </span> 
+                  <a href='#'>Logout</a>
+                </>
+              ) : (
+                <Link to='login'>Login</Link>
+              )
+            }
+          </div>
+        </nav>
       </header>
+
       {snapshots ? 
         <div className='snapshot-gallery'>
           {snapshots.map(snapshot => (
