@@ -34,6 +34,12 @@ export const login = createAsyncThunk('users/login', async ({ username, password
   });
 });
 
+export const logout = createAsyncThunk('users/logout', async (token) => {
+  const resp = await ajax.post('dj-rest-auth/logout', null, token);
+  sessionTokenStore.clear();
+  return resp;
+});
+
 export const fetchCurrentUser = createAsyncThunk('users/fetchCurrentUser', async () => {
   const token = sessionTokenStore.get();
   if (!token) {
@@ -64,6 +70,10 @@ const usersSlice = createSlice({
         state.currentUser = user;
         state.token = token;
       })
+      .addCase(logout.fulfilled, (state, action) => {
+        state.currentUser = null;
+        state.token = null;
+      })
       // TODO: This is very similar to the `login.fulfilled` case. Can we simplify?
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         const { token, user } = action.payload || { token: null, user: null };
@@ -79,6 +89,8 @@ const usersSlice = createSlice({
 // ----------------------------------------------------------------------------
 
 export const selectCurrentUser = state => state.users.currentUser;
+
+export const selectToken = state => state.users.token;
 
 // ----------------------------------------------------------------------------
 

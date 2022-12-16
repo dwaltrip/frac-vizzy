@@ -36,9 +36,6 @@ function LoginPage() {
         <h1>
           Login
         </h1>
-        <div className={'help-text'}>
-          Inspect the network requests in your browser to view headers returned by dj-rest-auth.
-        </div>
         {/* TODO: this loading UX is terrible */}
         <div>{isLoading && <h4>Loading...</h4>}</div>
         <div>

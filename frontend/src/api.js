@@ -37,8 +37,8 @@ const ajax = {
   },
   // get(path) { return doFetch(path); },
 
-  post(path, data) {
-    return doFetch(path, { method: 'POST', data });
+  post(path, data, token=null) {
+    return doFetch(path, { method: 'POST', data, token });
   },
 }
 

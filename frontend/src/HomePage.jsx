@@ -7,6 +7,9 @@ import './styles/HomePage.css';
 import { API_URL } from './settings';
 import { ajax } from './api';
 
+import { LogoutButton } from './features/home/pages/home/LogoutButton';
+
+
 function fetchSnapshots() {
   return ajax.get('snapshots');
 }
@@ -41,7 +44,7 @@ function HomePage() {
                   <span className='profile-link'>
                     Current User: {currentUser.username}
                   </span> 
-                  <a href='#'>Logout</a>
+                  <LogoutButton />
                 </>
               ) : (
                 <Link to='login'>Login</Link>
