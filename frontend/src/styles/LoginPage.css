@@ -19,3 +19,7 @@
 .LoginPage .App-link {
   color: #61dafb;
 }
+
+.LoginPage .error-message {
+  color: red;
+}

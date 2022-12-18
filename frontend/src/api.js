@@ -1,7 +1,23 @@
 import { API_URL } from './settings';
 
+class HTTPError extends Error {
+  constructor(response) {
+    super(`HTTP Error: ${response.status} ${response.statusText}`);
+    this.response = response;
+  }
+}
+
+class NetworkError extends Error {
+  constructor(error) {
+    super(`Network Error: ${error.message}`);
+    this.error = error;
+  }
+}
+
+export { HTTPError, NetworkError };
+
 // TODO: use some lib for this?
-function doFetch(path, {
+async function doFetch(path, {
   method='GET',
   data=null,
   token=null,
@@ -24,20 +40,29 @@ function doFetch(path, {
     options.body = JSON.stringify(data);
   }
 
-  // TODO: error handling.
-  return fetch(url, options)
-    .then((response) => response.json())
-    .catch(error => console.error('--- Error while fetching ---\n', error));
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new HTTPError(response);
+    }
+    return response.json();
+  }
+  catch (error) {
+    if (error instanceof TypeError) {
+      throw new NetworkError(error);
+    }
+    throw error;
+  }
 }
 
 const ajax = {
   // TODO: better way to pass in the token??
-  get(path, token) {
+  async get(path, token) {
     return doFetch(path, token ? { token } : {});
   },
   // get(path) { return doFetch(path); },
 
-  post(path, data, token=null) {
+  async post(path, data, token=null) {
     return doFetch(path, { method: 'POST', data, token });
   },
 }

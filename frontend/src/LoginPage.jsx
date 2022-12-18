@@ -10,6 +10,8 @@ function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // This navigates to home page both after login (which sets currentUser)
+  //    and if the user is already logged in.
   // TODO: Is this a good way of handling if theuser is already logged in?
   const currentUser = useSelector(selectCurrentUser);
   useEffect(() => {
@@ -18,6 +20,8 @@ function LoginPage() {
     };
   }, [currentUser]);
 
+  // TODO: selector for this??
+  const errorMessage = useSelector(state => state.users.loginErrorMessage);
   const [username, changeUsername] = useState('');
   const [password, changePassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +31,6 @@ function LoginPage() {
     setIsLoading(true);
     await dispatch(login({ username, password }));
     setIsLoading(false);
-    navigate('/');
   }
 
   return (
@@ -38,6 +41,9 @@ function LoginPage() {
         </h1>
         {/* TODO: this loading UX is terrible */}
         <div>{isLoading && <h4>Loading...</h4>}</div>
+        {errorMessage && !isLoading &&
+          <div className='error-message'>{errorMessage}</div>
+        }
         <div>
         <form onSubmit={onSubmit}>
           <div>
