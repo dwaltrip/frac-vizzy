@@ -1,17 +1,21 @@
 from django.contrib.auth.models import User
+from dj_rest_auth.serializers import UserDetailsSerializer
 from rest_framework import serializers
 
 from social.models import Snapshot, Thumbnail
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = [
-            'url',
+# remove 'pk' as we use 'id'
+user_fields = tuple([
+    field for field in UserDetailsSerializer.Meta.fields
+    if field != 'pk'
+])
+class UserSerializer(UserDetailsSerializer):
+    class Meta(UserDetailsSerializer.Meta):
+        fields = (
             'id',
-            'username',
-        ]
+        ) + user_fields
+
 
 class ThumbnailSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

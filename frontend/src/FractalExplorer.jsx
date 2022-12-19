@@ -13,10 +13,11 @@ import { getInitialZoomLevel } from './mandelbrot/calcs';
 import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
-function createSnapshot(description, imageData) {
+function createSnapshot(description, imageData, user) {
   // TODO: send the image as binary data? for better perf?
   return request.post('snapshots', {
     description,
+    user_id: user.id,
     image_data: imageData,
     region_info: {},
   });

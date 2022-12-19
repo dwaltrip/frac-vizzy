@@ -43,7 +43,7 @@ function HomePage() {
                 <>
                   <span className='profile-link'>
                     Current User: 
-                    <Link to={`profile/${currentUser.pk}`}>
+                    <Link to={`profile/${currentUser.id}`}>
                       {currentUser.username}
                     </Link>
                   </span> 
