@@ -1,9 +1,16 @@
+from django.contrib.auth.models import User
 from rest_framework import viewsets
 
 from social.models import Snapshot
-from social.serializers import SnapshotSerializer
+from social.serializers import SnapshotSerializer, UserSerializer
 
 from social.actions.snapshot_images import create_images_for_snapshot
+
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
 
 class SnapshotViewSet(viewsets.ModelViewSet):
     queryset = Snapshot.objects.all()

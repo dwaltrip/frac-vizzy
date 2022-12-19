@@ -9,6 +9,7 @@ import { fetchCurrentUser } from './features/users/usersSlice';
 import { HomePage } from './HomePage';
 import { FractalExplorer } from './FractalExplorer';
 import { LoginPage } from './LoginPage';
+import { ProfilePage } from './features/users/pages/ProfilePage';
 
 const router = createBrowserRouter([
   {
@@ -16,14 +17,17 @@ const router = createBrowserRouter([
     element: <HomePage />
   },
   {
-    path: '/explore',
+    path: 'explore',
     element: <FractalExplorer />
   },
   {
-    path: '/login',
+    path: 'profile/:userId',
+    element: <ProfilePage />,
+  },
+  {
+    path: 'login',
     element: <LoginPage />
   },
-
 ]);
 
 function App() {

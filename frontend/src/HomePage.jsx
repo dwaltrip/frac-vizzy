@@ -42,7 +42,10 @@ function HomePage() {
             {currentUser ? (
                 <>
                   <span className='profile-link'>
-                    Current User: {currentUser.username}
+                    Current User: 
+                    <Link to={`profile/${currentUser.pk}`}>
+                      {currentUser.username}
+                    </Link>
                   </span> 
                   <LogoutButton />
                 </>

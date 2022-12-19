@@ -11,6 +11,9 @@ import { sessionTokenStore } from './sessionTokenStore';
 const initialState = {
   currentUser: null,
   token: null,
+
+  entities: {},
+
   loginErrorMessage: null,
 };
 
@@ -47,6 +50,11 @@ export const fetchCurrentUser = createAsyncThunk('users/fetchCurrentUser', async
   return Promise.resolve({ token, user });
 });
 
+export const loadUserDetails = createAsyncThunk(
+  'users/loadUserDetails',
+  userId => request.get(`users/${userId}`),
+);
+
 // ----------------------------------------------------------------------------
 
 const usersSlice = createSlice({
@@ -60,7 +68,7 @@ const usersSlice = createSlice({
   },
 
   extraReducers: builder => {
-    builder
+    (builder
       .addCase(login.fulfilled, (state, action) => {
         const { token, user } = action.payload;
         state.currentUser = user;
@@ -80,7 +88,12 @@ const usersSlice = createSlice({
         state.currentUser = user;
         state.token = token;
       })
-    ;
+      .addCase(loadUserDetails.fulfilled, (state, action) => {
+        const user = action.payload;
+        console.log('loadUserDetails.fulfilled -- user:', user);
+        state.entities[user.id] = user;
+      })
+    );
   },
 });
 
@@ -91,6 +104,12 @@ const usersSlice = createSlice({
 export const selectCurrentUser = state => state.users.currentUser;
 
 export const selectToken = state => state.users.token;
+
+export const selectUserEntities = state => state.users.entities;
+
+export const selectUserById = (state, userId) => {
+  return selectUserEntities(state)[userId];
+}
 
 // ----------------------------------------------------------------------------
 
