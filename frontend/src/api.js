@@ -55,7 +55,7 @@ async function doFetch(path, {
   }
 }
 
-const ajax = {
+const request = {
   // TODO: better way to pass in the token??
   async get(path, token) {
     return doFetch(path, token ? { token } : {});
@@ -67,4 +67,4 @@ const ajax = {
   },
 }
 
-export { ajax };
+export { request };

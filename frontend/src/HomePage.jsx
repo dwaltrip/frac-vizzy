@@ -5,13 +5,13 @@ import { Link } from 'react-router-dom';
 import './styles/HomePage.css';
 
 import { API_URL } from './settings';
-import { ajax } from './api';
+import { request } from './api';
 
 import { LogoutButton } from './features/home/pages/home/LogoutButton';
 
 
 function fetchSnapshots() {
-  return ajax.get('snapshots');
+  return request.get('snapshots');
 }
 
 function snapshotImgUrlSmall(shapshot) {

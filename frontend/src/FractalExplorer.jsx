@@ -3,7 +3,7 @@ import qs from 'qs';
 
 import './styles/FractalExplorer.css';
 
-import { ajax } from './api';
+import { request } from './api';
 
 import { getInitialParams, serializeParams, normalizeParams } from './plotParams';
 import { getInitialSystemParams, saveSystemParams } from './systemParams';
@@ -14,13 +14,9 @@ import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
 function createSnapshot(description, imageData) {
-  // TODO: make it a relative URL
-  const link = window.location.href;
-
   // TODO: send the image as binary data? for better perf?
-  return ajax.post('snapshots', {
+  return request.post('snapshots', {
     description,
-    link,
     image_data: imageData,
     region_info: {},
   });

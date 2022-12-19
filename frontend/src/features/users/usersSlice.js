@@ -5,7 +5,7 @@ import {
   createSlice,
 } from '@reduxjs/toolkit';
 
-import { ajax } from '../../api';
+import { request } from '../../api';
 import { sessionTokenStore } from './sessionTokenStore';
 
 const initialState = {
@@ -17,12 +17,12 @@ const initialState = {
 export const login = createAsyncThunk(
   'users/login',
   async ({ username, password }) => {
-    const response = await ajax.post(
+    const response = await request.post(
       'dj-rest-auth/login',
       { username, password },
     );
     const { key: token } = response;
-    const user = await ajax.get('dj-rest-auth/user', token);
+    const user = await request.get('dj-rest-auth/user', token);
     // TODO: We are persisting in local storage.
     // I think a cookie set by the server would be better.
     sessionTokenStore.set(token);
@@ -31,7 +31,7 @@ export const login = createAsyncThunk(
 );
 
 export const logout = createAsyncThunk('users/logout', async (token) => {
-  const resp = await ajax.post('dj-rest-auth/logout', null, token);
+  const resp = await request.post('dj-rest-auth/logout', null, token);
   sessionTokenStore.clear();
   return resp;
 });
@@ -42,7 +42,7 @@ export const fetchCurrentUser = createAsyncThunk('users/fetchCurrentUser', async
     return Promise.resolve(null);
   }
   // TODO: handle error case where the token is expired!!
-  const user = await ajax.get('dj-rest-auth/user', token);
+  const user = await request.get('dj-rest-auth/user', token);
   // TODO: is Promise.resolve necessary here?
   return Promise.resolve({ token, user });
 });
