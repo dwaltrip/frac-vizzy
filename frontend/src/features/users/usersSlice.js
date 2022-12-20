@@ -9,7 +9,7 @@ import { request } from '../../api';
 import { sessionTokenStore } from './sessionTokenStore';
 
 const initialState = {
-  currentUser: null,
+  currentUserId: null,
   token: null,
 
   entities: {},
@@ -70,23 +70,19 @@ const usersSlice = createSlice({
   extraReducers: builder => {
     (builder
       .addCase(login.fulfilled, (state, action) => {
-        const { token, user } = action.payload;
-        state.currentUser = user;
-        state.token = token;
+        setCurrentUser(state, action.payload);
         state.loginErrorMessage = null;
       })
       .addCase(login.rejected, (state, action) => {
         state.loginErrorMessage = 'Login failed';
       })
       .addCase(logout.fulfilled, (state, action) => {
-        state.currentUser = null;
+        state.currentUserId = null;
         state.token = null;
       })
       // TODO: This is very similar to the `login.fulfilled` case. Can we simplify?
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-        const { token, user } = action.payload || { token: null, user: null };
-        state.currentUser = user;
-        state.token = token;
+        setCurrentUser(state, action.payload);
       })
       .addCase(loadUserDetails.fulfilled, (state, action) => {
         const user = action.payload;
@@ -101,15 +97,33 @@ const usersSlice = createSlice({
 
 // ----------------------------------------------------------------------------
 
-export const selectCurrentUser = state => state.users.currentUser;
+function setCurrentUser(state, payload) {
+  const { user, token } = { user: null, token: null, ...(payload || {}) };
+
+  if (!user) {
+    state.currentUserId = null;
+  }
+  else {
+    state.currentUserId = user.id;
+    state.entities[user.id] = user;
+  }
+  state.token = token;
+}
+
+
+// ----------------------------------------------------------------------------
 
 export const selectToken = state => state.users.token;
 
 export const selectUserEntities = state => state.users.entities;
 
 export const selectUserById = (state, userId) => {
-  return selectUserEntities(state)[userId];
-}
+  return userId ? selectUserEntities(state)[userId] : null;
+};
+
+export const selectCurrentUser = state => {
+  return selectUserById(state, state.users.currentUserId);
+};
 
 // ----------------------------------------------------------------------------
 

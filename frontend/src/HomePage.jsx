@@ -7,6 +7,7 @@ import './styles/HomePage.css';
 import { API_URL } from './settings';
 import { request } from './api';
 
+import { selectCurrentUser } from './features/users/usersSlice';
 import { LogoutButton } from './features/home/pages/home/LogoutButton';
 
 
@@ -22,7 +23,7 @@ function snapshotImgUrlSmall(shapshot) {
 
 function HomePage() {
   const [snapshots, setSnapshots] = useState(null);
-  const currentUser = useSelector(state => state.users.currentUser);
+  const currentUser = useSelector(selectCurrentUser);
 
   useEffect(() => {
     console.log('Home Page -- useEffect -- fetchSnapshots');
