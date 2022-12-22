@@ -1,0 +1,61 @@
+.ProfilePage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ProfilePage-header {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.ProfilePage-header img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+}
+
+.ProfilePage-header h1 {
+  margin: 0 16px;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.ProfilePage-photos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.ProfilePage-photo {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  margin: 15px;
+}
+
+.ProfilePage-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.ProfilePage-photo-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ProfilePage-photo-date {
+  font-size: 14px;
+}
