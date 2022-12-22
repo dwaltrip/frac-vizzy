@@ -1,8 +1,13 @@
+import React from 'react';
+import { useSelector } from 'react-redux';
+
 import './styles/SettingsPanel.css';
 
 import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHOD_OPTS } from './settings';
 import { SelectWithCustomValues } from './ui/SelectWithCustomValues';
 import { truncateRange } from './lib/truncateRange';
+
+import { selectCurrentUser } from './features/users/usersSlice';
 
 import { ColorPicker } from './ui/ColorPicker';
 
@@ -43,6 +48,8 @@ function SettingsPanel({
   const setNumWorkers = event => {
     setSystemParams({ numWorkers: parseInt(event.target.value) });
   };
+
+  const currentUser = useSelector(selectCurrentUser);
 
   // TODO: Work on improving the info heirarchy.
   return (
@@ -153,19 +160,20 @@ function SettingsPanel({
         </div>
       </section>
 
-      <section>
-        <button
-          onClick={() => {
-            const desc = window.prompt('Snapshot description:');
-            createSnapshot(desc).then(res => {
-              console.log('createSnapshot.then -- res:', res)
-            });
-          }}
-        >
-          Create Snapshot
-        </button>
-
-      </section>
+      {currentUser &&
+        <section>
+          <button
+            onClick={() => {
+              const desc = window.prompt('Snapshot description:');
+              createSnapshot(desc).then(res => {
+                console.log('createSnapshot.then -- res:', res)
+              });
+            }}
+          >
+            Create Snapshot
+          </button>
+        </section>
+      }
     </div>
   );
 }
