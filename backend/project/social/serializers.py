@@ -1,9 +1,7 @@
-from django.contrib.auth.models import User
 from dj_rest_auth.serializers import UserDetailsSerializer
 from rest_framework import serializers
 
-from social.models import Snapshot, Thumbnail
-
+from social.models import Snapshot, Thumbnail, User
 
 # remove 'pk' as we use 'id'
 user_fields = tuple([

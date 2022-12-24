@@ -1,7 +1,6 @@
-from django.contrib.auth.models import User
 from rest_framework import viewsets
 
-from social.models import Snapshot
+from social.models import Snapshot, User
 from social.serializers import SnapshotSerializer, UserSerializer
 
 from social.actions.snapshot_images import create_images_for_snapshot
