@@ -16,6 +16,12 @@ class Snapshot(models.Model):
     link = models.TextField()
     region_info = models.JSONField()
 
+    author = models.ForeignKey(
+        'social.User',
+        related_name='snapshots',
+        on_delete=models.PROTECT,
+    )
+
     class Meta:
         db_table = 'snapshots'
 
