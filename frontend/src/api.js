@@ -1,5 +1,6 @@
 import { API_URL } from './settings';
 
+
 class HTTPError extends Error {
   constructor(response) {
     super(`HTTP Error: ${response.status} ${response.statusText}`);
@@ -16,14 +17,15 @@ class NetworkError extends Error {
 
 export { HTTPError, NetworkError };
 
-// TODO: use some lib for this?
+
 async function doFetch(path, {
   method='GET',
+  query=null,
   data=null,
   token=null,
 }={}) {
-  // TODO: do this more robustly
-  const url = `${API_URL}/${path}/`;
+  // TODO: construct the base url more robustly
+  const url = buildURL(`${API_URL}/${path}/`, query);
 
   const options = {
     method,
@@ -36,6 +38,9 @@ async function doFetch(path, {
     }
   };
 
+  if (method === 'GET' && data) {
+    throw new Error('Cannot pass data in a GET request');
+  }
   if (method !== 'GET' && data) {
     options.body = JSON.stringify(data);
   }
@@ -57,14 +62,22 @@ async function doFetch(path, {
 
 const request = {
   // TODO: better way to pass in the token??
-  async get(path, token) {
-    return doFetch(path, token ? { token } : {});
+  async get(path, { query, token }={}) {
+    return doFetch(path, { query, token });
   },
-  // get(path) { return doFetch(path); },
 
-  async post(path, data, token=null) {
+  async post(path, data, { token }={}) {
     return doFetch(path, { method: 'POST', data, token });
   },
+}
+
+function buildURL(baseURL, queryParams) {
+  const url = new URL(baseURL);
+  if (queryParams) {
+    const searchParams = new URLSearchParams(queryParams);
+    url.search = searchParams;
+  }
+  return url.toString();
 }
 
 export { request };

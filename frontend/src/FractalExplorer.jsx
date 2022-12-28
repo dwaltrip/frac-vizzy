@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import qs from 'qs';
 
 import './styles/FractalExplorer.css';
@@ -10,14 +11,19 @@ import { getInitialSystemParams, saveSystemParams } from './systemParams';
 import { getViewportInfo } from './viewport';
 import { getInitialZoomLevel } from './mandelbrot/calcs';
 
+import { selectCurrentUser } from './features/users/usersSlice';
+
 import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
 
 function createSnapshot(description, imageData, user) {
+  const link = window.location.href;
+
   // TODO: send the image as binary data? for better perf?
   return request.post('snapshots', {
     description,
-    user_id: user.id,
+    link,
+    author: user.id,
     image_data: imageData,
     region_info: {},
   });
@@ -28,9 +34,12 @@ let userHasChangedParams = false;
 function FractalExplorer() {
   const canvasRef = useRef();
   console.log('=== Rendering App... ==='); 
+
   const [viewportRect, setViewportRect] = useState(null);
   const [plotParams, setParamsRaw] = useState(getInitialParams());
   const [systemParams, setSystemParamsRaw] = useState(getInitialSystemParams());
+
+  const currentUser = useSelector(selectCurrentUser);
 
   function setPlotParams({ ...newParams }) {
     // We are relying on the fact that `setPlotParams` currently only gets
@@ -88,7 +97,7 @@ function FractalExplorer() {
         createSnapshot={desc => {
           const canvas = canvasRef.current;
           const imageData = canvas.toDataURL();
-          return createSnapshot(desc, imageData);
+          return createSnapshot(desc, imageData, currentUser);
         }}
       />
 

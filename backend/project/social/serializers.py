@@ -29,6 +29,7 @@ class ThumbnailSerializer(serializers.HyperlinkedModelSerializer):
 
 class SnapshotSerializer(serializers.HyperlinkedModelSerializer):
     thumbnails = ThumbnailSerializer(many=True, read_only=True)
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
         model = Snapshot
@@ -39,5 +40,6 @@ class SnapshotSerializer(serializers.HyperlinkedModelSerializer):
             'description',
             'link',
             'region_info',
+            'author',
             'thumbnails',
         ]

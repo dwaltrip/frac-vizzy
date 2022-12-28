@@ -15,8 +15,8 @@ import { loadUserDetails, selectUserById } from '../usersSlice';
 import { DateTime } from '../../../ui/DateTime';
 
 
-function fetchPhotos() {
-  return request.get('snapshots');
+function fetchPhotos(userId) {
+  return request.get('snapshots', { query: { author_id: userId }});
 }
 
 // TODO: This was copied from HomePage. Make this better...
@@ -41,7 +41,7 @@ function ProfilePage() {
       //   dispatch(loadSnapshotsForUser(userId)),
       // ]);
       await dispatch(loadUserDetails(userId));
-      const photosResponse = await fetchPhotos();
+      const photosResponse = await fetchPhotos(userId);
       setPhotos(photosResponse);
       setIsLoading(false);
     }
@@ -68,6 +68,8 @@ function ProfilePage() {
       </div>
 
       <div className="ProfilePage-photos">
+        {photos.length === 0 && <div>No snapshots</div>}
+
         {photos.map(photo => (
           <div className="ProfilePage-photo" key={photo.id}>
             <img
