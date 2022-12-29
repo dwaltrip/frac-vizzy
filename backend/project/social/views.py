@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import filters, viewsets
 
 from social.models import Snapshot, User
 from social.serializers import SnapshotSerializer, UserSerializer
@@ -14,9 +14,11 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class SnapshotViewSet(viewsets.ModelViewSet):
     queryset = Snapshot.objects.all()
     serializer_class = SnapshotSerializer
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at']
 
     def get_queryset(self):
-        queryset = Snapshot.objects.all()
+        queryset = super().get_queryset()
         author_id = self.request.query_params.get('author_id', None)
         if author_id is not None:
             queryset = queryset.filter(author_id=author_id)

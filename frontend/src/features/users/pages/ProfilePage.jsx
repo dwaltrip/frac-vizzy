@@ -31,10 +31,11 @@ function ProfilePage() {
   const dispatch = useDispatch();
   const { userId } = useParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
   const [photos, setPhotos] = useState([]);
 
   useEffect(async () => {
-    if (!user) {
+    if (!hasFetched) {
       setIsLoading(true);
       // await Promise.all([
       //   dispatch(loadUserDetails(userId)),
@@ -44,8 +45,9 @@ function ProfilePage() {
       const photosResponse = await fetchPhotos(userId);
       setPhotos(photosResponse);
       setIsLoading(false);
+      setHasFetched(true);
     }
-  }, [userId]);
+  }, [userId, hasFetched]);
 
   const user = useSelector(state => selectUserById(state, userId));
   // const photos = useSelector(
@@ -63,7 +65,7 @@ function ProfilePage() {
       </div>
 
       <div className="ProfilePage-header">
-        <img src={user.profilePictureUrl} alt="Profile" />
+        {/*<img src={user.profilePictureUrl} alt="Profile" />*/}
         <h1>{user.username}</h1>
       </div>
 
