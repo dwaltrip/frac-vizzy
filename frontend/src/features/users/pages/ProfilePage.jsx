@@ -13,26 +13,22 @@ import { loadUserDetails, selectUserById } from '../usersSlice';
 // } from '../../snpashots/snapshotsSlice';
 
 import { DateTime } from '../../../ui/DateTime';
+import {
+  SnapshotThumbnail,
+  SnapshotGallery 
+} from '../../snapshots/components/SnapshotThumbnail';
 
 
-function fetchPhotos(userId) {
+function fetchSnaps(userId) {
   return request.get('snapshots', { query: { author_id: userId }});
 }
 
-// TODO: This was copied from HomePage. Make this better...
-function snapshotImgUrlSmall(shapshot) {
-  // const thumnail = shapshot.thumbnails.find(thumb => thumb.height === 180);
-  const thumnail = shapshot.thumbnails.find(thumb => thumb.height === 540);
-  return `${API_URL}/media/${thumnail.filename}`;
-}
-
-// TODO: handle case where invalid user ID is passed.
 function ProfilePage() {
   const dispatch = useDispatch();
   const { userId } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
-  const [photos, setPhotos] = useState([]);
+  const [snaps, setSnaps] = useState([]);
 
   useEffect(async () => {
     if (!hasFetched) {
@@ -42,15 +38,15 @@ function ProfilePage() {
       //   dispatch(loadSnapshotsForUser(userId)),
       // ]);
       await dispatch(loadUserDetails(userId));
-      const photosResponse = await fetchPhotos(userId);
-      setPhotos(photosResponse);
+      const snapsResponse = await fetchSnaps(userId);
+      setSnaps(snapsResponse);
       setIsLoading(false);
       setHasFetched(true);
     }
   }, [userId, hasFetched]);
 
   const user = useSelector(state => selectUserById(state, userId));
-  // const photos = useSelector(
+  // const snaps = useSelector(
   //   state => selectSnapshotsForUser(state, userId)
   // );
 
@@ -69,27 +65,13 @@ function ProfilePage() {
         <h1>{user.username}</h1>
       </div>
 
-      <div className="ProfilePage-photos">
-        {photos.length === 0 && <div>No snapshots</div>}
+      <SnapshotGallery>
+        {snaps.length === 0 && <div>No snapshots</div>}
 
-        {photos.map(photo => (
-          <div className="ProfilePage-photo" key={photo.id}>
-            <img
-              src={snapshotImgUrlSmall(photo)}
-              alt={photo.description}
-            />
-            <div className="ProfilePage-photo-info">
-              <div className="ProfilePage-photo-author">
-                {/* TODO: this should be the user who saved the snapshot */}
-                {user.username}
-              </div>
-              <div className="ProfilePage-photo-date">
-                <DateTime string={photo.created_at}/>
-              </div>
-            </div>
-          </div>
+        {snaps.map(snap => (
+          <SnapshotThumbnail snap={snap} key={snap.id} />
         ))}
-      </div>
+      </SnapshotGallery>
     </div>
   );
 }

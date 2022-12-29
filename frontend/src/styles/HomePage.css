@@ -26,35 +26,3 @@
 .home-page-container .app-header nav a {
     margin: 0 15px;
 }
-
-.snapshot-gallery {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    overflow: auto;
-    padding: 20px;
-}
-
-
-.snapshot-gallery-item {
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    flex-grow: 0;
-    margin: 10px;
-
-    overflow: hidden;
-}
-
-.snapshot-gallery-item img {
-    /*height: 100px;*/
-    /*width: 100px;*/
-}
-
-.snapshot-gallery-item > a {
-    font-size: 14px;
-    overflow: hidden;
-    /*width: 100px;*/
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}

@@ -10,15 +10,14 @@ import { request } from './api';
 import { selectCurrentUser } from './features/users/usersSlice';
 import { LogoutButton } from './features/home/pages/home/LogoutButton';
 
+import {
+  SnapshotThumbnail,
+  SnapshotGallery 
+} from './features/snapshots/components/SnapshotThumbnail';
+
 
 function fetchSnapshots() {
   return request.get('snapshots');
-}
-
-function snapshotImgUrlSmall(shapshot) {
-  // const thumnail = shapshot.thumbnails.find(thumb => thumb.height === 100);
-  const thumnail = shapshot.thumbnails.find(thumb => thumb.height === 180);
-  return `${API_URL}/media/${thumnail.filename}`;
 }
 
 function HomePage() {
@@ -58,21 +57,15 @@ function HomePage() {
         </nav>
       </header>
 
-      {snapshots ? 
-        <div className='snapshot-gallery'>
-          {snapshots.map(snapshot => (
-            <div className='snapshot-gallery-item' key={snapshot.id}>
-              <a href={snapshot.link} target='_blank'>
-                {snapshot.description}
-              </a>
-              <img
-                src={snapshotImgUrlSmall(snapshot)}
-              />
-            </div>
+      {snapshots ? (
+        <SnapshotGallery>
+          {snapshots.map(snap => (
+            <SnapshotThumbnail snap={snap} key={snap.id} />
           ))}
-        </div> :
+        </SnapshotGallery>
+      ) : (
         <p>no snapshots...</p>
-      }
+      )}
     </div>
   );
 }

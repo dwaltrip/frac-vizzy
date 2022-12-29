@@ -1,0 +1,63 @@
+
+.snapshot-thumbnail {
+  position: relative;
+  margin: 15px;
+}
+
+.snapshot-thumbnail img {
+  border-radius: 4px;
+}
+
+.snapshot-thumbnail .snap-info {
+  font-size: 12px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 10px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.snapshot-thumbnail .snap-info .snap-misc-info {
+  max-width: 160px;
+  color: white;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.snapshot-thumbnail .snap-info a {
+  color: white;
+  text-decoration: none;
+/*  overflow: hidden;*/
+/*  white-space: nowrap;*/
+/*  text-overflow: ellipsis;*/
+}
+
+.snapshot-thumbnail .snap-date {
+}
+
+
+/* ---------------------------------------------------- */
+
+.snapshot-gallery {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow: auto;
+    padding: 20px;
+}
+
+.snapshot-gallery .snapshot-thumbnail {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    flex-grow: 0;
+    margin: 10px;
+    overflow: hidden;
+}
