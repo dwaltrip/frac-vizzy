@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import { usersReducer } from './features/users/usersSlice';
+import { snapshotsReducer } from './features/snapshots/snapshotsSlice';
 
 
 const ActionLogger = (storeAPI) => (next) => (action) => {
@@ -11,6 +12,7 @@ const ActionLogger = (storeAPI) => (next) => (action) => {
 const store = configureStore({
   reducer: {
     users: usersReducer,
+    snapshots: snapshotsReducer,
   },
   middleware: (getDefaultMiddleware) => (
     getDefaultMiddleware().concat(ActionLogger)

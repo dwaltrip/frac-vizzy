@@ -86,7 +86,6 @@ const usersSlice = createSlice({
       })
       .addCase(loadUserDetails.fulfilled, (state, action) => {
         const user = action.payload;
-        console.log('loadUserDetails.fulfilled -- user:', user);
         state.entities[user.id] = user;
       })
     );

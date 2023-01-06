@@ -16,6 +16,7 @@ import {
 } from './features/snapshots/components/SnapshotThumbnail';
 
 
+// TODO: pass `ordering=-created_at` query parameter
 function fetchSnapshots() {
   return request.get('snapshots');
 }

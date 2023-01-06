@@ -7,14 +7,20 @@ import {
 
 import { request } from '../../api';
 
+
 const initialState = {
-  snapshotsForUsers: {},
+  forUser: {},
   entities: {},
 };
 
 export const loadSnapshotsForUser = createAsyncThunk(
   'users/loadSnapshotsForUser',
-  userId => request.get(`snapshots/?user=${userId}`),
+  async userId => {
+    const snapshots = await request.get('snapshots', {
+      query: { author_id: userId },
+    });
+    return { snapshots, userId };
+  },
 );
 
 // ----------------------------------------------------------------------------
@@ -29,21 +35,31 @@ const snapshotsSlice = createSlice({
   extraReducers: builder => {
     (builder
       .addCase(loadSnapshotsForUser.fulfilled, (state, action) => {
-        const { snapshots, user } = action.payload;
+        const { snapshots, userId } = action.payload;
 
-        for (let snap in snapshots) {
+        for (let snap of snapshots) {
           state.entities[snap.id] = snap;
         }
 
-        const newSnapIds = snapshots.map(snap => snap.id)
-        state.snapshotsForUsers[user.id] = mergeIds(
-          state.snapshotsForUsers[user.id],
+        const newSnapIds = snapshots.map(snap => snap.id);
+        state.forUser[userId] = combineWithoutDupes(
+          // TODO: It'd be nice if I could use `selectSnapshotsForUser` here
+          state.forUser[userId] || [],
           newSnapIds,
         );
       })
     );
   },
 });
+
+// --------------------------------------------------
+// TODO: is this fine?? Move somewhere else!!!!!!!!
+// --------------------------------------------------
+function combineWithoutDupes(array1, array2) {
+  const noDupes = new Set(array1);
+  array2.forEach(item => noDupes.add(item));
+  return Array.from(noDupes);
+}
 
 // ----------------------------------------------------------------------------
 
@@ -53,13 +69,15 @@ export const selectSnapshotById = (state, snapId) => {
   return snapId ? selectSnapshots(state)[snapId] : null;
 };
 
+// TODO: memoize this??
 export const selectSnapshotsForUser = (state, userId) => {
   if (!userId) {
     return null;
   }
-  return state.snapshotsForUsers[userId].map(id => selectSnapshotById(id));
+  const snaps = state.snapshots.forUser[userId];
+  return snaps ? snaps.map(id => selectSnapshotById(state, id)) : [];
 };
 
 // ----------------------------------------------------------------------------
 
-export const usersReducer = usersSlice.reducer;
+export const snapshotsReducer = snapshotsSlice.reducer;
