@@ -13,6 +13,8 @@ import {
 } from '../../snapshots/snapshotsSlice';
 
 import { DateTime } from '../../../ui/DateTime';
+import { AppHeader } from '../../../common/AppHeader';
+
 import {
   SnapshotThumbnail,
   SnapshotGallery 
@@ -48,13 +50,11 @@ function ProfilePage() {
 
   return (
     <div className="ProfilePage">
-      <div>
-        <Link to='/'>Home</Link>
-      </div>
+      <AppHeader />
 
       <div className="ProfilePage-header">
         {/*<img src={user.profilePictureUrl} alt="Profile" />*/}
-        <h1>{user.username}</h1>
+        <h1>{user.username}'s profile</h1>
       </div>
 
       <SnapshotGallery>

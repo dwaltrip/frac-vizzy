@@ -1,0 +1,33 @@
+
+.app-header {
+    display: flex;
+    align-items: center;
+    background-color: #264a5b;
+    color: #eee;
+    padding: 10px 20px;
+    width: 100%;
+}
+
+.app-header .app-title {
+    margin: 0;
+}
+
+.app-header .app-title a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.app-header nav {
+    display: flex;
+    margin: 0 30px;
+    justify-content: space-between;
+    flex: 1;
+}
+
+.app-header nav a {
+    margin: 0 15px;
+    color: #eee;
+}
+.app-header nav a:hover {
+    color: #7bb0ce;
+}
