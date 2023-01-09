@@ -2,23 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
 
-import '../../../styles/ProfilePage.css';
+import 'styles/ProfilePage.css';
 
-import { API_URL } from '../../../settings';
-import { request } from '../../../api';
-import { loadUserDetails, selectUserById } from '../usersSlice';
+import { API_URL } from 'settings';
+import { request } from 'api';
+import { loadUserDetails, selectUserById } from 'features/users/usersSlice';
 import {
   loadSnapshotsForUser,
   selectSnapshotsForUser,
-} from '../../snapshots/snapshotsSlice';
+} from 'features/snapshots/snapshotsSlice';
 
-import { DateTime } from '../../../ui/DateTime';
-import { AppHeader } from '../../../common/AppHeader';
+import { DateTime } from 'ui/DateTime';
+import { AppHeader } from 'common/AppHeader';
 
 import {
   SnapshotThumbnail,
   SnapshotGallery 
-} from '../../snapshots/components/SnapshotThumbnail';
+} from 'features/snapshots/components/SnapshotThumbnail';
 
 
 

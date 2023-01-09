@@ -1,15 +1,15 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
-import './styles/SettingsPanel.css';
+import 'styles/SettingsPanel.css';
 
-import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHOD_OPTS } from './settings';
-import { SelectWithCustomValues } from './ui/SelectWithCustomValues';
-import { truncateRange } from './lib/truncateRange';
+import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHOD_OPTS } from 'settings';
+import { SelectWithCustomValues } from 'ui/SelectWithCustomValues';
+import { truncateRange } from 'lib/truncateRange';
 
-import { selectCurrentUser } from './features/users/usersSlice';
+import { selectCurrentUser } from 'features/users/usersSlice';
 
-import { ColorPicker } from './ui/ColorPicker';
+import { ColorPicker } from 'ui/ColorPicker';
 
 const ITERATION_VALUE_OPTS = [
   100,

@@ -6,10 +6,10 @@ import './styles/App.css';
 
 import { fetchCurrentUser } from './features/users/usersSlice';
 
-import { HomePage } from './HomePage';
-import { FractalExplorer } from './FractalExplorer';
-import { LoginPage } from './LoginPage';
-import { ProfilePage } from './features/users/pages/ProfilePage';
+import { HomePage } from 'features/home/pages/home/HomePage';
+import { FractalExplorer } from 'features/explorer/pages/fractal-explorer/FractalExplorer';
+import { LoginPage } from 'features/users/pages/login/LoginPage';
+import { ProfilePage } from 'features/users/pages/profile/ProfilePage';
 
 const router = createBrowserRouter([
   {

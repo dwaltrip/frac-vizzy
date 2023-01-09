@@ -2,16 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import qs from 'qs';
 
-import './styles/FractalExplorer.css';
+import 'styles/FractalExplorer.css';
 
-import { request } from './api';
+import { request } from 'api';
 
 import { getInitialParams, serializeParams, normalizeParams } from './plotParams';
 import { getInitialSystemParams, saveSystemParams } from './systemParams';
-import { getViewportInfo } from './viewport';
-import { getInitialZoomLevel } from './mandelbrot/calcs';
+import { getViewportInfo } from 'mandelbrot/viewport';
+import { getInitialZoomLevel } from 'mandelbrot/calcs';
 
-import { selectCurrentUser } from './features/users/usersSlice';
+import { selectCurrentUser } from 'features/users/usersSlice';
 
 import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';

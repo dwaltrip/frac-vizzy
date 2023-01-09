@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import './styles/MandelbrotPlot.css';
+import 'styles/MandelbrotPlot.css';
 
-import { throttle } from './lib/throttle';
+import { throttle } from 'lib/throttle';
 
 import { areParamsReady } from './plotParams';
-import { drawMandelbrot } from './mandelbrot/drawMandelbrot';
-import { panPlot } from './mandelbrot/plotActions';
+import { drawMandelbrot } from 'mandelbrot/drawMandelbrot';
+import { panPlot } from 'mandelbrot/plotActions';
 import { zoomInPlot, zoomOutPlot } from './canvasEvents';
-import { getViewportInfo } from './viewport';
+import { getViewportInfo } from 'mandelbrot/viewport';
 
-import { Pannable } from './ui/Pannable';
-import { ResponsiveCanvas } from './ui/ResponsiveCanvas';
+import { Pannable } from 'ui/Pannable';
+import { ResponsiveCanvas } from 'ui/ResponsiveCanvas';
 
 function MandelbrotPlot({
   params,

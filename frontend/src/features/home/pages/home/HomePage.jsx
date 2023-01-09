@@ -2,15 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import './styles/HomePage.css';
+import 'styles/HomePage.css';
 
-import { request } from './api';
+import { request } from 'api';
 
-import { AppHeader } from './common/AppHeader';
+import { AppHeader } from 'common/AppHeader';
 import {
   SnapshotThumbnail,
   SnapshotGallery 
-} from './features/snapshots/components/SnapshotThumbnail';
+} from 'features/snapshots/components/SnapshotThumbnail';
 
 
 // TODO: pass `ordering=-created_at` query parameter

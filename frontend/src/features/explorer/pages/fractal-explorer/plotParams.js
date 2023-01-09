@@ -1,9 +1,9 @@
 import qs from 'qs';
 
-import { assert } from './lib/assert';
-import { segmentArray } from './lib/segmentArray';
-import { TILE_SIDE_LENGTH_IN_PIXELS, BOUNDING_BOX, COLOR_METHODS } from './settings';
-import { getSideLength } from './mandelbrot/calcs';
+import { assert } from 'lib/assert';
+import { segmentArray } from 'lib/segmentArray';
+import { TILE_SIDE_LENGTH_IN_PIXELS, BOUNDING_BOX, COLOR_METHODS } from 'settings';
+import { getSideLength } from 'mandelbrot/calcs';
 
 const { topLeft, botRight } = BOUNDING_BOX;
 const DEFAULT_CENTER = {

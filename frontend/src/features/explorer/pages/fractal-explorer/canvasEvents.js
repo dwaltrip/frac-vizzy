@@ -1,7 +1,7 @@
-import { getMousePos } from './lib/getMousePos';
-import { truncateRange } from './lib/truncateRange';
+import { getMousePos } from 'lib/getMousePos';
+import { truncateRange } from 'lib/truncateRange';
 
-import { getViewportInfo } from './viewport';
+import { getViewportInfo } from 'mandelbrot/viewport';
 
 // NOTE: This needs a be a positive integer
 const CANVAS_ZOOM_FACTOR = 2;

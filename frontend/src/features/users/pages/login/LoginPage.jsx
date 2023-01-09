@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-import { login, selectCurrentUser } from './features/users/usersSlice';
+import { login, selectCurrentUser } from 'features/users/usersSlice';
 
-import './styles/LoginPage.css';
+import 'styles/LoginPage.css';
 
 function LoginPage() {
   const dispatch = useDispatch();
