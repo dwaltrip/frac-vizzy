@@ -1,4 +1,4 @@
-import { LRUCache } from '../LRUCache';
+import { LRUCache } from 'lib/LRUCache';
 
 describe('Test LRUCache', () => {
 

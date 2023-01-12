@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 
-import { throttle } from './throttle';
+import { throttle } from 'lib/throttle';
 
 function useThrottledValue(value, intervalLength) {
   const [_value, _setValue] = useState(value);

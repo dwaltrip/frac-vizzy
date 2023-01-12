@@ -20,8 +20,6 @@ import {
   SnapshotGallery 
 } from 'features/snapshots/components/SnapshotThumbnail';
 
-
-
 function ProfilePage() {
   const dispatch = useDispatch();
   const { userId } = useParams();

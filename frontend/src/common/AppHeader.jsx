@@ -2,11 +2,10 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import '../styles/common/AppHeader.css';
+import 'styles/common/AppHeader.css';
 
-import { selectCurrentUser } from '../features/users/usersSlice';
-import { LogoutButton } from '../features/home/pages/home/LogoutButton';
-
+import { selectCurrentUser } from 'features/users/usersSlice';
+import { LogoutButton } from 'features/home/pages/home/LogoutButton';
 
 function AppHeader() {
   const currentUser = useSelector(selectCurrentUser);

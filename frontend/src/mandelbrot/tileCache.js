@@ -1,5 +1,5 @@
-import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
-import { LRUCache } from '../lib/LRUCache';
+import { TILE_SIDE_LENGTH_IN_PIXELS } from 'settings';
+import { LRUCache } from 'lib/LRUCache';
 
 // TODO: Need to do more research to determine a good limit.
 // This is a conservative estimate for now.

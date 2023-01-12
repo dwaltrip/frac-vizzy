@@ -1,6 +1,6 @@
-import { getViewportInfo } from '../../viewport';
-import { getTileIds } from '../getTileIds';
-import { buildTileView } from '../drawTile';
+import { getViewportInfo } from 'mandelbrot/viewport';
+import { getTileIds } from 'mandelbrot/getTileIds';
+import { buildTileView } from 'mandelbrot/drawTile';
 
 describe('Test build tile view', () => {
   const testCases = [

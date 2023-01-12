@@ -1,6 +1,6 @@
-import { workerify } from '../lib/workerify';
+import { workerify } from 'lib/workerify';
 
-import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
+import { TILE_SIDE_LENGTH_IN_PIXELS } from 'settings';
 
 // `numReal, numComplex` are the real and complex parts of the number
 // that is being tested.

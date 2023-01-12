@@ -6,15 +6,23 @@ import 'styles/FractalExplorer.css';
 
 import { request } from 'api';
 
-import { getInitialParams, serializeParams, normalizeParams } from './plotParams';
-import { getInitialSystemParams, saveSystemParams } from './systemParams';
+import {
+  getInitialParams,
+  serializeParams,
+  normalizeParams,
+} from 'features/explorer/pages/fractal-explorer/plotParams';
+import {
+  getInitialSystemParams,
+  saveSystemParams,
+} from 'features/explorer/pages/fractal-explorer/systemParams';
+
 import { getViewportInfo } from 'mandelbrot/viewport';
 import { getInitialZoomLevel } from 'mandelbrot/calcs';
 
 import { selectCurrentUser } from 'features/users/usersSlice';
 
-import { SettingsPanel } from './SettingsPanel';
-import { MandelbrotPlot } from './MandelbrotPlot';
+import { SettingsPanel } from 'features/explorer/pages/fractal-explorer/SettingsPanel';
+import { MandelbrotPlot } from 'features/explorer/pages/fractal-explorer/MandelbrotPlot';
 
 function createSnapshot(description, imageData, user) {
   const link = window.location.href;

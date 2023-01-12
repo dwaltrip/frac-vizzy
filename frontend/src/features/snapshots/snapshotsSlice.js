@@ -5,8 +5,7 @@ import {
   createSlice,
 } from '@reduxjs/toolkit';
 
-import { request } from '../../api';
-
+import { request } from 'api';
 
 const initialState = {
   forUser: {},

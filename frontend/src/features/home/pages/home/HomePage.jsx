@@ -12,7 +12,6 @@ import {
   SnapshotGallery 
 } from 'features/snapshots/components/SnapshotThumbnail';
 
-
 // TODO: pass `ordering=-created_at` query parameter
 // TODO: make a thunk
 function fetchSnapshots() {

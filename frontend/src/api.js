@@ -1,5 +1,4 @@
-import { API_URL } from './settings';
-
+import { API_URL } from 'settings';
 
 class HTTPError extends Error {
   constructor(response) {

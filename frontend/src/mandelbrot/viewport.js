@@ -1,4 +1,3 @@
-
 import { TILE_SIDE_LENGTH_IN_PIXELS } from 'settings';
 import { getSideLength } from 'mandelbrot/calcs';
 

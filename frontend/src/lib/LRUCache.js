@@ -1,5 +1,5 @@
-import { assert } from './assert';
-import { DoublyLinkedList } from './doublyLinkedList';
+import { assert } from 'lib/assert';
+import { DoublyLinkedList } from 'lib/doublyLinkedList';
 
 class LRUCache {
   _cache = {};

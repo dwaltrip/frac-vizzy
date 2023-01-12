@@ -1,4 +1,4 @@
-import { TILE_SIDE_LENGTH_IN_PIXELS, BOUNDING_BOX } from '../settings';
+import { TILE_SIDE_LENGTH_IN_PIXELS, BOUNDING_BOX } from 'settings';
 
 function getSideLength(zoomLevel) {
   return 1 / Math.pow(2, zoomLevel);

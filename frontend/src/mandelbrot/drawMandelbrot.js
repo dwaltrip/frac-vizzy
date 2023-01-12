@@ -1,11 +1,12 @@
-import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from '../settings';
+import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from 'settings';
 
-import { getViewportInfo } from './viewport';
-import { ComputeManager } from './computeManager';
-import { buildGetColorFirstPass, buildGetColorFinalPass } from './colorMap';
-import { drawTile } from './drawTile';
-import { drawLine } from '../lib/draw';
-import { getAxesInPixelCoords } from './debugHelpers';
+import { drawLine } from 'lib/draw';
+
+import { getViewportInfo } from 'mandelbrot/viewport';
+import { ComputeManager } from 'mandelbrot/computeManager';
+import { buildGetColorFirstPass, buildGetColorFinalPass } from 'mandelbrot/colorMap';
+import { drawTile } from 'mandelbrot/drawTile';
+import { getAxesInPixelCoords } from 'mandelbrot/debugHelpers';
 
 const DEBUG = false;
 // const DEBUG = true;

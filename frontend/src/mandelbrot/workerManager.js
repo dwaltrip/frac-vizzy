@@ -1,4 +1,4 @@
-import { createMandelbrotComputeWorker } from './computeMandelbrot';
+import { createMandelbrotComputeWorker } from 'mandelbrot/computeMandelbrot';
 
 let workers = [];
 

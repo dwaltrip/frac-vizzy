@@ -1,8 +1,9 @@
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 
 import './ResponsiveCanvas.css';
-import { throttle } from '../lib/throttle';
-import { useNonStaleFunction } from '../lib/useNonStaleFunction';
+
+import { throttle } from 'lib/throttle';
+import { useNonStaleFunction } from 'lib/useNonStaleFunction';
 
 const ResponsiveCanvas = forwardRef(({ onResize: _onResize, className, ...props }, ref) => {
   const containerRef = useRef(null);

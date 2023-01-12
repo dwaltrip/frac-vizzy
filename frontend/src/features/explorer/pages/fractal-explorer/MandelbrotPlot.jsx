@@ -4,10 +4,10 @@ import 'styles/MandelbrotPlot.css';
 
 import { throttle } from 'lib/throttle';
 
-import { areParamsReady } from './plotParams';
+import { areParamsReady } from 'features/explorer/pages/fractal-explorer/plotParams';
 import { drawMandelbrot } from 'mandelbrot/drawMandelbrot';
 import { panPlot } from 'mandelbrot/plotActions';
-import { zoomInPlot, zoomOutPlot } from './canvasEvents';
+import { zoomInPlot, zoomOutPlot } from 'features/explorer/pages/fractal-explorer/canvasEvents';
 import { getViewportInfo } from 'mandelbrot/viewport';
 
 import { Pannable } from 'ui/Pannable';

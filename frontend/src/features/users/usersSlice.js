@@ -5,8 +5,8 @@ import {
   createSlice,
 } from '@reduxjs/toolkit';
 
-import { request } from '../../api';
-import { sessionTokenStore } from './sessionTokenStore';
+import { request } from 'api';
+import { sessionTokenStore } from 'features/users/sessionTokenStore';
 
 const initialState = {
   currentUserId: null,

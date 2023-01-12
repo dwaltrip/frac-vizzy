@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { getMousePos } from '../lib/getMousePos';
-import { useThrottledFunc } from '../lib/useThrottledFunc';
+import { getMousePos } from 'lib/getMousePos';
+import { useThrottledFunc } from 'lib/useThrottledFunc';
 
 const MIN_PAN_THRESHOLD = 4;
 

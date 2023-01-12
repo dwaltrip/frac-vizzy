@@ -1,7 +1,7 @@
-import { TILE_SIDE_LENGTH_IN_PIXELS } from '../settings';
+import { TILE_SIDE_LENGTH_IN_PIXELS } from 'settings';
 
-import { assert } from '../lib/assert';
-import { drawPixel } from '../lib/draw';
+import { assert } from 'lib/assert';
+import { drawPixel } from 'lib/draw';
 
 function drawTile({ ctx, tileId, points, viewport, getColor }) {
   const { visibleSection, renderOffset } = buildTileView({ tileId, viewport });

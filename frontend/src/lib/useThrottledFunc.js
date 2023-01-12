@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
-import { throttle } from './throttle';
-import {  useNonStaleFunction } from './useNonStaleFunction';
+import { throttle } from 'lib/throttle';
+import {  useNonStaleFunction } from 'lib/useNonStaleFunction';
 
 function useThrottledFunc(fn, wait) {
   const nonStaleFn = useNonStaleFunction(fn);

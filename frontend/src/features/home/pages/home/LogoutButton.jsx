@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { useSelector, useDispatch } from 'react-redux';
-import { logout, selectToken } from '../../../users/usersSlice';
-
+import { logout, selectToken } from 'features/users/usersSlice';
 
 function LogoutButton() {
   const dispatch = useDispatch();

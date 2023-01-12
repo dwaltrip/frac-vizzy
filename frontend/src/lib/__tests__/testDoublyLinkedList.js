@@ -1,5 +1,5 @@
-import { DoublyLinkedList } from '../doublyLinkedList';
-import { randInt } from '../randInt';
+import { DoublyLinkedList } from 'lib/doublyLinkedList';
+import { randInt } from 'lib/randInt';
 
 describe('Test doubly linked list', () => {
 

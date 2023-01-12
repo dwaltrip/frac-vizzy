@@ -1,9 +1,8 @@
 import './SnapshotThumbnail.css';
 
-import { API_URL } from '../../../settings';
+import { API_URL } from 'settings';
 
-import { DateTime } from '../../../ui/DateTime';
-
+import { DateTime } from 'ui/DateTime';
 
 // TODO: Make this better..?
 function thumbnailUrl(snap) {

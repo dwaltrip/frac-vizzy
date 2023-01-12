@@ -1,6 +1,6 @@
-import { assert } from '../lib/assert';
+import { assert } from 'lib/assert';
 
-import { getSideLength } from './calcs';
+import { getSideLength } from 'mandelbrot/calcs';
 
 const TILE_ORIGIN = { r: 0, c: 0 };
 

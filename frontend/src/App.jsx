@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-import './styles/App.css';
+import 'styles/App.css';
 
-import { fetchCurrentUser } from './features/users/usersSlice';
+import { fetchCurrentUser } from 'features/users/usersSlice';
 
 import { HomePage } from 'features/home/pages/home/HomePage';
 import { FractalExplorer } from 'features/explorer/pages/fractal-explorer/FractalExplorer';

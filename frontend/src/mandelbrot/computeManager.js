@@ -1,7 +1,8 @@
-import { assert } from '../lib/assert';
-import { WorkerManager } from './workerManager';
-import { getTileIds } from './getTileIds';
-import { tileCache, MAX_TILE_CACHE_SIZE } from './tileCache';
+import { assert } from 'lib/assert';
+
+import { WorkerManager } from 'mandelbrot/workerManager';
+import { getTileIds } from 'mandelbrot/getTileIds';
+import { tileCache, MAX_TILE_CACHE_SIZE } from 'mandelbrot/tileCache';
 
 const ComputeManager = {
   computePlot: function({

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import { RgbColorPicker } from 'react-colorful';
 import classnames from 'classnames';
 
-import '../styles/ui/ColorPicker.css';
+import 'styles/ui/ColorPicker.css';
 
-import { RgbColorPicker } from 'react-colorful'
 
 function ColorPicker({ onChange, color }) {
   const [isShowing, setIsShowing] = useState(false);

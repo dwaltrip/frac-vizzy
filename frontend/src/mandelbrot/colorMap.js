@@ -1,8 +1,8 @@
-import { assert } from '../lib/assert';
-import { randInt } from '../lib/randInt';
-import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from '../settings';
+import { assert } from 'lib/assert';
+import { randInt } from 'lib/randInt';
+import { TILE_SIDE_LENGTH_IN_PIXELS, COLOR_METHODS } from 'settings';
 
-import { calcMandlebrotSetStatus } from './computeMandelbrot';
+import { calcMandlebrotSetStatus } from 'mandelbrot/computeMandelbrot';
 
 const IN_SET_COLOR = { r: 0, g: 0, b: 0 };
 

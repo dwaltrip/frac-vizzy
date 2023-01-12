@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import { usersReducer } from './features/users/usersSlice';
-import { snapshotsReducer } from './features/snapshots/snapshotsSlice';
+import { usersReducer } from 'features/users/usersSlice';
+import { snapshotsReducer } from 'features/snapshots/snapshotsSlice';
 
 
 const ActionLogger = (storeAPI) => (next) => (action) => {
