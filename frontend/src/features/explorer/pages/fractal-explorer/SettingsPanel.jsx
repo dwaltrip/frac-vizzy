@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 import 'styles/SettingsPanel.css';
@@ -54,8 +55,9 @@ function SettingsPanel({
   // TODO: Work on improving the info heirarchy.
   return (
     <div className='settings-panel'>
-      {/* TODO: maybe move to App.jsx? */}
-      <header className='app-name'>Frac Vizzy</header>
+      <header className='app-name'>
+        <Link to='/'>Frac Vizzy</Link>
+      </header>
 
       <header className='primary'>Plot Settings</header>
 

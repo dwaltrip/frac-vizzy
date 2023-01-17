@@ -12,6 +12,14 @@
   margin-bottom: 25px;
 }
 
+.settings-panel header.app-name a {
+  text-decoration: none;
+  color: inherit;
+}
+.settings-panel header.app-name a:hover {
+  color: #6a6a6a;
+}
+
 .settings-panel > header.primary {
   color:  #333;
   font-weight: bold;
