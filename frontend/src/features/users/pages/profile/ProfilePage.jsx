@@ -26,18 +26,21 @@ function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
 
-  useEffect(async () => {
-    if (!hasFetched) {
-      setIsLoading(true);
-      // TODO: handle case where invalid user ID is passed.
-      await Promise.all([
-        dispatch(loadUserDetails(userId)),
-        dispatch(loadSnapshotsForUser(userId)),
-      ]);
-      setIsLoading(false);
-      setHasFetched(true);
-    }
-  }, [userId, hasFetched]);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!hasFetched) {
+        setIsLoading(true);
+        // TODO: handle case where invalid user ID is passed.
+        await Promise.all([
+          dispatch(loadUserDetails(userId)),
+          dispatch(loadSnapshotsForUser(userId)),
+        ]);
+        setIsLoading(false);
+        setHasFetched(true);
+      }
+    };
+    fetchData();
+  }, [dispatch, userId, hasFetched]);
 
   const user = useSelector(state => selectUserById(state, userId));
   const snaps = useSelector(state => selectSnapshotsForUser(state, userId));

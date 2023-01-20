@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 
 import 'styles/HomePage.css';
 
-import { request } from 'api';
+import {
+  loadAllSnapshots,
+  selectAllSnapshotsOrderedByDate,
+} from 'features/snapshots/snapshotsSlice';
 
 import { AppHeader } from 'common/AppHeader';
 import {
@@ -12,31 +14,37 @@ import {
   SnapshotGallery 
 } from 'features/snapshots/components/SnapshotThumbnail';
 
-// TODO: pass `ordering=-created_at` query parameter
-// TODO: make a thunk
-function fetchSnapshots() {
-  return request.get('snapshots');
-}
-
 function HomePage() {
-  const [snapshots, setSnapshots] = useState(null);
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetchSnapshots().then(data => setSnapshots(data));
-  }, []);
+    const fetchData = async () => {
+      setIsLoading(true);
+      await dispatch(loadAllSnapshots());
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [dispatch]);
+
+  const snapshots = useSelector(state => selectAllSnapshotsOrderedByDate(state));
 
   return (
     <div className='home-page-container'>
       <AppHeader />
 
-      {snapshots ? (
-        <SnapshotGallery>
-          {snapshots.map(snap => (
-            <SnapshotThumbnail snap={snap} key={snap.id} />
-          ))}
-        </SnapshotGallery>
+      {isLoading ? (
+        <p>Loading...</p>
       ) : (
-        <p>no snapshots...</p>
+        snapshots ? (
+          <SnapshotGallery>
+            {snapshots.map(snap => (
+              <SnapshotThumbnail snap={snap} key={snap.id} />
+            ))}
+          </SnapshotGallery>
+        ) : (
+          <p>no snapshots...</p>
+        )
       )}
     </div>
   );
