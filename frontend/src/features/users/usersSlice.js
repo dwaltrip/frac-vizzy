@@ -65,6 +65,9 @@ const usersSlice = createSlice({
     // updateCurrentUser(state, action) {
     //   state.currentUser = action.payload;
     // },
+    updateUsers(state, action) {
+      _updateUsers(state, action.payload);
+    },
   },
 
   extraReducers: builder => {
@@ -109,6 +112,16 @@ function setCurrentUser(state, payload) {
   state.token = token;
 }
 
+// TODO: RTK has built-in stuff for this, switch to using that.
+function _updateUsers(state, users) {
+  for (let user of users) {
+    state.entities[user.id] = user;
+  }
+}
+
+// ----------------------------------------------------------------------------
+
+export const { updateUsers } = usersSlice.actions;
 
 // ----------------------------------------------------------------------------
 

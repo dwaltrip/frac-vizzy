@@ -129,6 +129,28 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Logging
+# https://docs.djangoproject.com/en/4.1/topics/logging/#configuring-logging
+
+# TODO: Make this SQL debug logging toggleable via an ENV var or equivalent
+
+# if True:
+if False:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+            },
+        },
+        'loggers': {
+            'django.db.backends': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+            }
+        }
+    }
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/

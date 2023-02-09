@@ -13,7 +13,7 @@ html, body, #root, .App {
   flex-direction: column;
 }
 
-div, p, header, ul, li {
+div, p, header, ul, li, img {
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;

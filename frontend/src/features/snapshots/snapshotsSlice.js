@@ -7,6 +7,8 @@ import {
 
 import { request } from 'api';
 
+import { updateUsers, selectUserEntities } from 'features/users/usersSlice';
+
 const initialState = {
   forUser: {},
   entities: {},
@@ -14,16 +16,40 @@ const initialState = {
 
 export const loadAllSnapshots = createAsyncThunk(
   'snapshots/loadAllSnapshots', 
-  () => request.get('snapshots'),
+  async (_, { dispatch }) => {
+    // NOTE: could possibly abstract this logic with a helper, as we are
+    // doing the same data extraction here and in `loadSnapshotsForUser`.
+    // Something like: extractSnapsAndAuthors
+    const {
+      data: snapshots,
+      sideload: { users },
+    } = await request.get('snapshots');
+    dispatch(updateUsers(users));
+    return snapshots;
+  },
 );
 
 export const loadSnapshotsForUser = createAsyncThunk(
   'snapshots/loadSnapshotsForUser',
-  async userId => {
-    const snapshots = await request.get('snapshots', {
-      query: { author_id: userId },
-    });
+  async (userId, { dispatch }) => {
+    const {
+      data: snapshots,
+      sideload: { users },
+    } = await request.get('snapshots', { query: { author_id: userId } });
+    dispatch(updateUsers(users));
     return { snapshots, userId };
+  },
+);
+
+export const loadSnapDetails = createAsyncThunk(
+  'snapshots/loadSnapDetails',
+  async (id, { dispatch }) => {
+    const {
+      data: snap,
+      sideload: { users },
+    } = await request.get(`snapshots/${id}`);
+    dispatch(updateUsers(users));
+    return snap;
   },
 );
 
@@ -52,10 +78,14 @@ const snapshotsSlice = createSlice({
 
         const newSnapIds = snapshots.map(snap => snap.id);
         state.forUser[userId] = combineWithoutDupes(
-          // TODO: It'd be nice if I could use `selectSnapshotsForUser` here
           state.forUser[userId] || [],
           newSnapIds,
         );
+      })
+      .addCase(loadSnapDetails.fulfilled, (state, action) => {
+        // TODO: update state.forUser ????
+        const snap = action.payload;
+        state.entities[snap.id] = snap;
       })
     );
   },
@@ -77,33 +107,62 @@ function sortedByDate(snapshots) {
 
 // ----------------------------------------------------------------------------
 
-// TODO: Look into basic / simple perf stuff for all of these selectors.
+export const selectSnapshotEntities = state => state.snapshots.entities;
 
-export const selectSnapshots = state => state.snapshots.entities;
+export const selectSnapshots = createSelector(
+  selectSnapshotEntities,
+  entities => Object.values(entities),
+);
 
-// TODO: look up how to use `createSelector`, memoize this
-export const selectAllSnapshots = state => {
-  return Object.values(selectSnapshots(state));
+export const selectSnapshotEntitiesWithAuthors = createSelector(
+  [selectSnapshots, selectUserEntities],
+  (snapshots, userEntities) => (
+    snapshots.reduce((memo, snap) => {
+      memo[snap.id] = { ...snap, author: userEntities[snap.author] };
+      return memo;
+    }, {})
+  ),
+);
+
+export const selectSnapshotsWithAuthors = createSelector(
+  selectSnapshotEntitiesWithAuthors,
+  entitiesWithAuthors => Object.values(entitiesWithAuthors),
+);
+
+export const selectSnapshotsWithAuthorsOrderedByDate = createSelector(
+  selectSnapshotsWithAuthors,
+  snaps => sortedByDate(snaps),
+);
+
+export const selectSnapshotWithAuthorById = (state, snapId) => {
+  if (!snapId) {
+    return null;
+  }
+  return selectSnapshotEntitiesWithAuthors(state)[snapId];
 };
 
-// TODO: look up how to use `createSelector`, memoize this
-export const selectAllSnapshotsOrderedByDate = state => {
-  const snaps = selectAllSnapshots(state);
-  return sortedByDate(snaps);
-};
-
-export const selectSnapshotById = (state, snapId) => {
-  return snapId ? selectSnapshots(state)[snapId] : null;
-};
-
-// TODO: memoize this??
-export const selectSnapshotsForUser = (state, userId) => {
+const selectSnapshotIdsForUser = (state, userId) => {
   if (!userId) {
     return null;
   }
-  const snaps = (state.snapshots.forUser[userId] || []);
-  return sortedByDate(snaps.map(id => selectSnapshotById(state, id)));
-};
+  return state.snapshots.forUser[userId] || [];
+}
+
+// TODO: Possibly turn this into a selector factory.
+// Right now, it isn't an issue as we aren't calling with different args.
+export const selectSnapshotsForUser = createSelector(
+  [
+    selectSnapshotIdsForUser,
+    selectSnapshotEntitiesWithAuthors,
+    (state, userId) => userId,
+  ],
+  (snapIds, snapshotEntities, userId) => {
+    if (!userId) {
+      return null;
+    }
+    return sortedByDate(snapIds.map(id => snapshotEntities[id]));
+  }
+);
 
 // ----------------------------------------------------------------------------
 

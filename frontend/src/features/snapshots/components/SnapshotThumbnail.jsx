@@ -1,24 +1,17 @@
+import { Link } from 'react-router-dom';
+
 import './SnapshotThumbnail.css';
 
 import { API_URL } from 'settings';
 
 import { DateTime } from 'ui/DateTime';
+import { thumbnailUrlBySize } from 'features/snapshots/common/thumbnailUrl';
 
-// TODO: Make this better..?
-function thumbnailUrl(snap) {
-  const thumbnail = snap.thumbnails.find(t => t.height === 180);
-  return `${API_URL}/media/${thumbnail.filename}`;
-}
-
-// TODO: implement isAuthorVisible
-function SnapshotThumbnail({ snap, isAuthorVisible=false }) {
-  // TODO: Populate this!! Right now it's just an ID.
-  const user = snap.author;
-
+function SnapshotThumbnail({ snap }) {
   return (
     <div className='snapshot-thumbnail' key={snap.id}>
       <img
-        src={thumbnailUrl(snap)}
+        src={thumbnailUrlBySize(snap, { height: 180 })}
         alt={snap.description}
       />
 
@@ -26,9 +19,18 @@ function SnapshotThumbnail({ snap, isAuthorVisible=false }) {
       <div className='snap-info'>
         {/* <div className='snap-author'>{user.username}</div> */}
         <div className='snap-misc-info'>
-          <a href={snap.link} target='_blank'>
+          {/*
+            TODO: use target=_blank ??
+            The link should be something other than the description.
+            How do other social sites do it? Twitter uses timestamp I think?
+          */}
+          <Link to={`/snapshot/${snap.id}`}>
             {snap.description}
-          </a>
+          </Link>
+
+          <div>
+            {snap.author.username}
+          </div>
         </div>
 
         <div className='snap-date'>

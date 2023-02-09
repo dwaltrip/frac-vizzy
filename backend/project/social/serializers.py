@@ -43,3 +43,19 @@ class SnapshotSerializer(serializers.HyperlinkedModelSerializer):
             'author',
             'thumbnails',
         ]
+
+
+class SnapshotWithAuthorSerializer(SnapshotSerializer):
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        # TODO: This check is here because I copied it from a stackoverflow thing
+        # Not sure if it is actually what I want...
+        if self.context.get('request').method == 'GET':
+            author_data = UserSerializer(instance.author).data
+            return {
+                "data": data,
+                "sideload": { "users": [author_data] }
+            }
+        return data

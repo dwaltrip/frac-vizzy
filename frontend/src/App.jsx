@@ -8,6 +8,7 @@ import { fetchCurrentUser } from 'features/users/usersSlice';
 
 import { HomePage } from 'features/home/pages/home/HomePage';
 import { FractalExplorer } from 'features/explorer/pages/fractal-explorer/FractalExplorer';
+import { SnapshotDetail } from 'features/snapshots/pages/snapshot-detail/SnapshotDetail';
 import { LoginPage } from 'features/users/pages/login/LoginPage';
 import { ProfilePage } from 'features/users/pages/profile/ProfilePage';
 
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
   {
     path: 'explore',
     element: <FractalExplorer />
+  },
+  {
+    path: 'snapshot/:snapId',
+    element: <SnapshotDetail />
   },
   {
     path: 'profile/:userId',

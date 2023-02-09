@@ -1,0 +1,27 @@
+
+.snapshot-detail-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.snapshot-detail-page .page-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  /* 58px = height of AppHeader. This is very brittle.
+     TODO: Fix this when we work on a more polished UI design for this page. */
+  height: calc(100% - 58px); 
+  padding: 20px;
+}
+
+.snapshot-detail-page .img-container {
+  display: flex;
+  overflow: auto;
+}
+
+.snapshot-detail-page .img-container img {
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}

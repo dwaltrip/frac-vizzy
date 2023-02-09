@@ -5,7 +5,7 @@ import 'styles/HomePage.css';
 
 import {
   loadAllSnapshots,
-  selectAllSnapshotsOrderedByDate,
+  selectSnapshotsWithAuthorsOrderedByDate,
 } from 'features/snapshots/snapshotsSlice';
 
 import { AppHeader } from 'common/AppHeader';
@@ -27,7 +27,7 @@ function HomePage() {
     fetchData();
   }, [dispatch]);
 
-  const snapshots = useSelector(state => selectAllSnapshotsOrderedByDate(state));
+  const snapshots = useSelector(selectSnapshotsWithAuthorsOrderedByDate);
 
   return (
     <div className='home-page-container'>
