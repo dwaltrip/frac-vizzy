@@ -8,10 +8,12 @@ user_fields = tuple([
     field for field in UserDetailsSerializer.Meta.fields
     if field != 'pk'
 ])
-class UserSerializer(UserDetailsSerializer):
-    class Meta(UserDetailsSerializer.Meta):
+class UserSerializer(UserDetailsSerializer, serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = User
         fields = (
             'id',
+            'url',
         ) + user_fields
 
 
@@ -52,8 +54,10 @@ class SnapshotWithAuthorSerializer(SnapshotSerializer):
 
         # TODO: This check is here because I copied it from a stackoverflow thing
         # Not sure if it is actually what I want...
-        if self.context.get('request').method == 'GET':
-            author_data = UserSerializer(instance.author).data
+        request = self.context.get('request')
+        if request.method == 'GET':
+            context = { 'request': request }
+            author_data = UserSerializer(instance.author, context=context).data
             return {
                 "data": data,
                 "sideload": { "users": [author_data] }

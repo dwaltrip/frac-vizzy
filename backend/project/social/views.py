@@ -45,18 +45,17 @@ class SnapshotViewSet(viewsets.ModelViewSet):
 
     # Modified from mixins.ListModelMixin
     def list(self, request):
+        context = { 'request': request }
         data = self.filter_queryset(self.get_queryset())
+
         # This is solely to de-dupe the authors for sideloading.
         authors_by_id = { item.author.id: item.author for item in data }
         authors = [
-            UserSerializer(author).data for author in authors_by_id.values()
+            UserSerializer(author, context=context).data
+            for author in authors_by_id.values()
         ]
 
-        serializer = SnapshotSerializer(
-            data,
-            many=True,
-            context={ 'request': self.request },
-        )
+        serializer = SnapshotSerializer(data, many=True, context=context)
         return Response({
             'data': serializer.data,
             'sideload': { 'users': authors },
