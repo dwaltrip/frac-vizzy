@@ -1,10 +1,11 @@
 from rest_framework import filters, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from social.models import Snapshot, User
 from social.serializers import (
     SnapshotSerializer,
-    SnapshotWithAuthorSerializer,
+    SnapshotDetailSerializer,
     UserSerializer,
 )
 
@@ -18,12 +19,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class SnapshotViewSet(viewsets.ModelViewSet):
     queryset = Snapshot.objects.all()
-    serializer_class = SnapshotWithAuthorSerializer
+    serializer_class = SnapshotDetailSerializer
 
     # TODO: Think about better patterns, once I've done more of this.
     eager_loading = {
         'select_related': ['author'],
-        'prefetch_related': ['thumbnails'],
+        'prefetch_related': ['thumbnails', 'liked_by'],
     }
 
     def handle_eager_loading(self, queryset):
@@ -44,21 +45,24 @@ class SnapshotViewSet(viewsets.ModelViewSet):
         return queryset
 
     # Modified from mixins.ListModelMixin
+    # NOTE: We don't use the actual `liked_by` objects in this view.
+    #   But we do count them. It's not important at all any time soon,
+    #   but one day we can optimize, so we don't have to prefetch `liked_by`.
+    #   Maybe with some sort of `SnapshotStats` abstraction / table?
     def list(self, request):
         context = { 'request': request }
         data = self.filter_queryset(self.get_queryset())
-
-        # This is solely to de-dupe the authors for sideloading.
-        authors_by_id = { item.author.id: item.author for item in data }
-        authors = [
-            UserSerializer(author, context=context).data
-            for author in authors_by_id.values()
-        ]
-
         serializer = SnapshotSerializer(data, many=True, context=context)
+
+        deduped_authors = set(snap.author for snap in data)
         return Response({
             'data': serializer.data,
-            'sideload': { 'users': authors },
+            'sideload': {
+                'users': [
+                    UserSerializer(user, context=context).data
+                    for user in deduped_authors
+                ]
+            }
         })
 
     # TODO: wrap requests in a transaction so this entire operation
@@ -69,3 +73,9 @@ class SnapshotViewSet(viewsets.ModelViewSet):
             snapshot,
             self.request.data.get('image_data')
         )
+
+    @action(detail=True, methods=['post'])
+    def like(self, request, pk=None):
+        snap = self.get_object()
+        snap.liked_by.add(request.user)
+        return Response(self.get_serializer(snap).data)

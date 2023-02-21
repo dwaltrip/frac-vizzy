@@ -53,6 +53,18 @@ export const loadSnapDetails = createAsyncThunk(
   },
 );
 
+export const likeSnapshot = createAsyncThunk(
+  'snapshots/likeSnapshot',
+  async ({ snap, token }) => {
+    // TODO: I shouldn't have to pass the token here..
+    // It should happen automatically for all API calls
+    const {
+      data: updatedSnap,
+    } = await request.post(`snapshots/${snap.id}/like`, null, { token });
+    return updatedSnap;
+  },
+);
+
 // ----------------------------------------------------------------------------
 
 const snapshotsSlice = createSlice({
@@ -69,6 +81,7 @@ const snapshotsSlice = createSlice({
           state.entities[snap.id] = snap;
         }
       })
+
       .addCase(loadSnapshotsForUser.fulfilled, (state, action) => {
         const { snapshots, userId } = action.payload;
 
@@ -82,9 +95,15 @@ const snapshotsSlice = createSlice({
           newSnapIds,
         );
       })
+
       .addCase(loadSnapDetails.fulfilled, (state, action) => {
         // TODO: update state.forUser ????
         const snap = action.payload;
+        state.entities[snap.id] = snap;
+      })
+
+      .addCase(likeSnapshot.fulfilled, (state, action) => {
+        const snap = action.payload
         state.entities[snap.id] = snap;
       })
     );
@@ -163,6 +182,21 @@ export const selectSnapshotsForUser = createSelector(
     return sortedByDate(snapIds.map(id => snapshotEntities[id]));
   }
 );
+
+// Snapshots with `author` and `liked_by` populated
+export const selectSnapshotWithDetails = (state, snapId) => {
+  if (!snapId) {
+    return null;
+  }
+  const snap = selectSnapshotEntitiesWithAuthors(state)[snapId];
+  if (!snap) {
+    return null;
+  }
+
+  const userEntities = selectUserEntities(state);
+  const liked_by = (snap.liked_by || []).map(userId => userEntities[userId]);
+  return { ...snap, liked_by };
+};
 
 // ----------------------------------------------------------------------------
 

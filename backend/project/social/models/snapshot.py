@@ -21,6 +21,11 @@ class Snapshot(models.Model):
         related_name='snapshots',
         on_delete=models.PROTECT,
     )
+    liked_by = models.ManyToManyField(
+        'social.User',
+        through='SnapshotLike',
+        related_name='liked_snapshots',
+    )
 
     class Meta:
         db_table = 'snapshots'

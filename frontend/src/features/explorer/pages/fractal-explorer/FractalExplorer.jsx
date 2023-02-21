@@ -24,6 +24,7 @@ import { selectCurrentUser } from 'features/users/usersSlice';
 import { SettingsPanel } from 'features/explorer/pages/fractal-explorer/SettingsPanel';
 import { MandelbrotPlot } from 'features/explorer/pages/fractal-explorer/MandelbrotPlot';
 
+// TODO: Hook up to our redux store....
 function createSnapshot(description, imageData, user) {
   const link = window.location.href;
 

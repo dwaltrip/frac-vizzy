@@ -31,7 +31,13 @@ class ThumbnailSerializer(serializers.HyperlinkedModelSerializer):
 
 class SnapshotSerializer(serializers.HyperlinkedModelSerializer):
     thumbnails = ThumbnailSerializer(many=True, read_only=True)
-    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
+    liked_by = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    like_count = serializers.SerializerMethodField()
+
+    def get_like_count(self, snap):
+        return snap.liked_by.count()
 
     class Meta:
         model = Snapshot
@@ -44,10 +50,12 @@ class SnapshotSerializer(serializers.HyperlinkedModelSerializer):
             'region_info',
             'author',
             'thumbnails',
+            'liked_by',
+            'like_count',
         ]
 
 
-class SnapshotWithAuthorSerializer(SnapshotSerializer):
+class SnapshotDetailSerializer(SnapshotSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -57,9 +65,16 @@ class SnapshotWithAuthorSerializer(SnapshotSerializer):
         request = self.context.get('request')
         if request.method == 'GET':
             context = { 'request': request }
-            author_data = UserSerializer(instance.author, context=context).data
+            users = set([*instance.liked_by.all(), instance.author])
+            # TODO: Once we are more confident about this pattern and related
+            #   patterns, create some simple abstractions.
             return {
                 "data": data,
-                "sideload": { "users": [author_data] }
+                "sideload": {
+                    "users": [
+                        UserSerializer(user, context=context).data
+                        for user in users
+                    ]
+                }
             }
-        return data
+        return { "data": data }

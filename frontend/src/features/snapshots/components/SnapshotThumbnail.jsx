@@ -4,6 +4,7 @@ import './SnapshotThumbnail.css';
 
 import { API_URL } from 'settings';
 
+import { pluralize } from 'ui/lib/pluralize';
 import { DateTime } from 'ui/DateTime';
 import { thumbnailUrlBySize } from 'features/snapshots/common/thumbnailUrl';
 
@@ -27,14 +28,18 @@ function SnapshotThumbnail({ snap }) {
           <Link to={`/snapshot/${snap.id}`}>
             {snap.description}
           </Link>
-
-          <div>
-            {snap.author.username}
+          <div className='like-count'>
+            {pluralize(snap.like_count, 'like')}
           </div>
         </div>
 
-        <div className='snap-date'>
-          <DateTime string={snap.created_at}/>
+        <div className='snap-misc-info'>
+          <div>
+            {snap.author.username}
+          </div>
+          <div className='snap-date'>
+            <DateTime string={snap.created_at}/>
+          </div>
         </div>
       </div>
     </div>
