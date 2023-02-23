@@ -65,6 +65,16 @@ export const likeSnapshot = createAsyncThunk(
   },
 );
 
+export const unlikeSnapshot = createAsyncThunk(
+  'snapshots/unlikeSnapshot',
+  async ({ snap, token }) => {
+    const {
+      data: updatedSnap
+    } = await request.post(`snapshots/${snap.id}/unlike`, null, { token });
+    return updatedSnap;
+  },
+);
+
 // ----------------------------------------------------------------------------
 
 const snapshotsSlice = createSlice({
@@ -103,6 +113,11 @@ const snapshotsSlice = createSlice({
       })
 
       .addCase(likeSnapshot.fulfilled, (state, action) => {
+        const snap = action.payload
+        state.entities[snap.id] = snap;
+      })
+
+      .addCase(unlikeSnapshot.fulfilled, (state, action) => {
         const snap = action.payload
         state.entities[snap.id] = snap;
       })

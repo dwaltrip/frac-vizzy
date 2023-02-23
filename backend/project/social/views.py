@@ -79,3 +79,9 @@ class SnapshotViewSet(viewsets.ModelViewSet):
         snap = self.get_object()
         snap.liked_by.add(request.user)
         return Response(self.get_serializer(snap).data)
+
+    @action(detail=True, methods=['post'])
+    def unlike(self, request, pk=None):
+        snap = self.get_object()
+        snap.liked_by.remove(request.user)
+        return Response(self.get_serializer(snap).data)

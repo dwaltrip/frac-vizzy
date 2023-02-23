@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 
 import './SnapshotDetail.css';
 
-import { selectToken } from 'features/users/usersSlice';
+import { selectToken, selectCurrentUser } from 'features/users/usersSlice';
 import {
   loadSnapDetails,
   selectSnapshotWithDetails,
   likeSnapshot,
+  unlikeSnapshot,
 } from 'features/snapshots/snapshotsSlice';
 
 import { DateTime } from 'ui/DateTime';
@@ -20,6 +21,8 @@ function SnapshotDetail() {
   const dispatch = useDispatch();
   const { snapId } = useParams();
 
+  const [isLikePending, setIsLikePending] = useState(false);
+
   useEffect(() => {
     dispatch(loadSnapDetails(snapId));
   }, [snapId, dispatch]);
@@ -30,8 +33,19 @@ function SnapshotDetail() {
   async function onClickLikeButton() {
     // TODO: I shouldn't have to pass the token here..
     // It should happen automatically for all API calls
+    setIsLikePending(true);
     await dispatch(likeSnapshot({ snap, token }));
+    setIsLikePending(false);
   }
+
+  async function onClickUnlikeButton() {
+    setIsLikePending(true);
+    await dispatch(unlikeSnapshot({ snap, token }));
+    setIsLikePending(false);
+  }
+
+  const currentUser = useSelector(selectCurrentUser);
+  const isLiked = snap && snapIsLikedBy(snap, currentUser);
 
   return (
     <div className='snapshot-detail-page'>
@@ -51,11 +65,22 @@ function SnapshotDetail() {
                 ' none'
               }
             </div>
-            <button
-              onClick={onClickLikeButton}
-            >
-              Like
-            </button>
+            {isLiked ? (
+                <button
+                  disabled={isLikePending}
+                  onClick={onClickUnlikeButton}
+                >
+                  {isLikePending ? 'Saving...' : 'Unlike'}
+                </button>
+              ) : (
+                <button
+                  disabled={isLikePending}
+                  onClick={onClickLikeButton}
+                >
+                  {isLikePending ? 'Saving...' : 'Like'}
+                </button>
+              )
+            }
           </div>
         }
 
@@ -71,6 +96,14 @@ function SnapshotDetail() {
 
     </div>
   );
+}
+
+// TODO: where to put this?
+function snapIsLikedBy(snap, user) {
+  if (!user) {
+    return false;
+  }
+  return snap.liked_by.includes(user);
 }
 
 export { SnapshotDetail };
