@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import 'styles/common/AppHeader.css';
 
 import { selectCurrentUser } from 'features/users/usersSlice';
+
+import { ProfileLink } from 'features/users/common/ProfileLink';
 import { LogoutButton } from 'features/home/pages/home/LogoutButton';
 
 function AppHeader() {
@@ -24,10 +26,7 @@ function AppHeader() {
           {currentUser ? (
               <>
                 <span className='profile-link'>
-                  Current User: 
-                  <Link to={`/profile/${currentUser.id}`}>
-                    {currentUser.username}
-                  </Link>
+                  Current User: <ProfileLink user={currentUser}/>
                 </span> 
                 <LogoutButton />
               </>

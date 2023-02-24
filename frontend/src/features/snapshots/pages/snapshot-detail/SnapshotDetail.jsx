@@ -15,6 +15,7 @@ import {
 import { DateTime } from 'ui/DateTime';
 import { AppHeader } from 'common/AppHeader';
 
+import { ProfileLink } from 'features/users/common/ProfileLink';
 import { thumbnailUrlOriginal } from 'features/snapshots/common/thumbnailUrl';
 
 function SnapshotDetail() {
@@ -55,7 +56,9 @@ function SnapshotDetail() {
         {snap &&
           <div style={{ marginBottom: '10px' }}>
             <div>{snap.description}</div>
-            <div>{snap.author.username}</div>
+            <div>
+              <ProfileLink user={snap.author}/>
+            </div>
             <div>Likes: {snap.like_count}</div>
             <DateTime string={snap.created_at}/>
             <div>
