@@ -96,6 +96,31 @@ function parsePos(pos) {
   return { r: parseFloat(pos.r), c: parseFloat(imaginaryStr) };
 }
 
+
+const areFloatsNearlyEqual = (f1, f2) => {
+  const s1 = ('' + f1).slice(0, -1);
+  const s2 = ('' + f2).slice(0, -1);
+  return s1 == s2;
+}
+
+function arePositionsDifferent(params1, params2) {
+  const { centerPos: _pos1, zoomLevel: zoom1 } = params1;
+  const { centerPos: _pos2, zoomLevel: zoom2 } = params2;
+  // FIX-IMAGINARY-PART-NAMING
+  const pos1 = { ..._pos1 };
+  const pos2 = { ..._pos2 };
+  pos1.i = ('i' in pos1) ? pos1.i : pos1.c;
+  pos2.i = ('i' in pos2) ? pos2.i : pos2.c;
+  delete pos1.c;
+  delete pos2.c;
+
+  return !(
+    zoom1 == zoom2 &&
+    areFloatsNearlyEqual(pos1.r, pos2.r) &&
+    areFloatsNearlyEqual(pos1.i, pos2.i)
+  );
+}
+
 // TODO: more validation / error handling here.
 function parseGradient(gradient) {
   const parts = gradient.replace(/[()]+/g, '').split(',');
@@ -143,4 +168,11 @@ function normalizeParams(params, viewport) {
   };
 }
 
-export { getInitialParams, areParamsReady, serializeParams, normalizeParams };
+export {
+  getInitialParams,
+  areParamsReady,
+  serializeParams,
+  deserializeParams,
+  normalizeParams,
+  arePositionsDifferent,
+};

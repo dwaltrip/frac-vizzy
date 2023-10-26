@@ -1,15 +1,15 @@
-import posthog from 'posthog-js'
+import posthog from 'posthog-js';
+
+
+const POSTHOG_TOKEN = process.env.REACT_APP_POSTHOG_TOKEN;
 
 function initPosthog() {
     const isProd = (
         !window.location.host.includes('127.0.0.1') &&
         !window.location.host.includes('localhost')
     );
-
     if (isProd) {
-        posthog.init('phc_qtlIAex0PWqDBgQKFzw4G0OJw7aWThngdOZLv98jbzH', { api_host: 'https://app.posthog.com' })
-
-        console.log('posthog initialized');
+        posthog.init(POSTHOG_TOKEN, { api_host: 'https://app.posthog.com' })
     }
 }
 

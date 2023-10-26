@@ -1,15 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import posthog from 'posthog-js';
 import qs from 'qs';
+import debounce from 'lodash.debounce';
 
 import './styles/App.css';
 
-import { getInitialParams, serializeParams, normalizeParams } from './plotParams';
+import {
+  getInitialParams,
+  serializeParams,
+  normalizeParams,
+  deserializeParams,
+  arePositionsDifferent,
+} from './plotParams';
 import { getInitialSystemParams, saveSystemParams } from './systemParams';
 import { getViewportInfo } from './viewport';
 import { getInitialZoomLevel } from './mandelbrot/calcs';
 
 import { SettingsPanel } from './SettingsPanel';
 import { MandelbrotPlot } from './MandelbrotPlot';
+
+
+const trackPositionChange = debounce(url => {
+  const eventName = 'position-change';
+  posthog.capture(eventName, { url });
+}, 500);
+
 
 let userHasChangedParams = false;
 
@@ -59,6 +74,16 @@ function App() {
       window.location.pathname + '?' +
       qs.stringify(serializeParams(plotParams), { encode: false })
     );
+
+    // Capture "position change" event
+    // This will let us see where in the fractal users are exploring
+    const url = new URL(window.location.href);
+    const prevParams = deserializeParams(qs.parse(url.searchParams.toString()));
+    const currParams = plotParams;
+    if (arePositionsDifferent(prevParams, currParams)) {
+      trackPositionChange(url.origin + relPathWithQuery);
+    }
+
     window.history.replaceState(null, '', relPathWithQuery);
   }, [plotParams]);
 
