@@ -1,0 +1,6 @@
+[[redirects]]
+  from = "/ingest/*"
+  to = "https://app.posthog.com/:splat"
+  host = "app.posthog.com"
+  status = 200
+  force = true

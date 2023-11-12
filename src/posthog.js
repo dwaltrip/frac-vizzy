@@ -9,7 +9,9 @@ function initPosthog() {
         !window.location.host.includes('localhost')
     );
     if (isProd) {
-        posthog.init(POSTHOG_TOKEN, { api_host: 'https://app.posthog.com' })
+        posthog.init(POSTHOG_TOKEN, {
+            api_host: 'https://www.fracvizzy.com/ingest',
+        });
     }
 }
 
