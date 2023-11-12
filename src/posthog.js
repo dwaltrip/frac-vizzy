@@ -10,7 +10,7 @@ function initPosthog() {
     );
     if (isProd) {
         posthog.init(POSTHOG_TOKEN, {
-            api_host: 'https://www.fracvizzy.com/ingest',
+            api_host: 'https://fracvizzy.com/ingest',
         });
     }
 }
