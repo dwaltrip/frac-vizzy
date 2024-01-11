@@ -4,7 +4,7 @@
 # Do `fnm use` or whatever.
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FRONTEND_DIR="$(dirname "$DIR")/frontend"
+FRONTEND_DIR="$(dirname "$DIR")/frontend-v2"
 
 cd "$FRONTEND_DIR"
-npm run start
+npm run dev
