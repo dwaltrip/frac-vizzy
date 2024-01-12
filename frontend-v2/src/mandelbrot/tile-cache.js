@@ -14,6 +14,7 @@ const PIXELS_PER_TILE = Math.pow(TILE_SIDE_LENGTH_IN_PIXELS, 2);
 // than 500 MB, but I think I might have expected it to be not that high.
 const MAX_MEMORY_USAGE = 500 * (1024 * 1000); // 500 MB
 const MAX_TILE_CACHE_SIZE = MAX_MEMORY_USAGE / (20 * PIXELS_PER_TILE);
+console.log('MAX_TILE_CACHE_SIZE:', MAX_TILE_CACHE_SIZE);
 
 const tileCache = new LRUCache({
   getKey: (item) => {

@@ -12,26 +12,24 @@ const generateWorkerId = createIdGenerator();
 // TODO: Transferables?
 function workerify(funcToWorkerify, dependencyFuncs, constants) {
   const workerCodeStr = [
-    ...(Object.keys(constants || {}).map(constName => {
+    ...Object.keys(constants || {}).map((constName) => {
       return `const ${constName} = ${constants[constName]};`;
-    })),
-    ...(dependencyFuncs || []).map(fn => fn.toString()),
+    }),
+    ...(dependencyFuncs || []).map((fn) => fn.toString()),
     'const $$ = ' + funcToWorkerify.toString() + ';',
-    (
-`addEventListener('message', event => {
+    `addEventListener('message', event => {
   const { type } = event.data;
   if (type === '${RUN_WORKER_EVENT}') {
     $$();
   }
-})`
-  ),
+})`,
   ].join('\n\n');
   // console.log('--- workerCodeStr -----------------------------\n');
   // console.log(workerCodeStr);
   // console.log('\n-----------------------------------------------');
 
   const workerUrl = window.URL.createObjectURL(
-    new Blob([workerCodeStr], {type:'text/javascript'})
+    new Blob([workerCodeStr], { type: 'text/javascript' }),
   );
   const worker = new Worker(workerUrl);
 
@@ -46,10 +44,10 @@ function workerify(funcToWorkerify, dependencyFuncs, constants) {
 
   const WorkerifyWorker = {
     id: generateWorkerId(),
-  
+
     run() {
-      worker.onmessage = event => {
-        state.messageListeners.forEach(fn => fn(event.data));
+      worker.onmessage = (event) => {
+        state.messageListeners.forEach((fn) => fn(event.data));
       };
       worker.postMessage({ type: RUN_WORKER_EVENT });
     },

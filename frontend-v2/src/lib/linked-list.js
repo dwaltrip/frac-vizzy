@@ -1,4 +1,3 @@
-
 class DoublyLinkedList {
   head = null;
   tail = null;
@@ -9,8 +8,7 @@ class DoublyLinkedList {
     const newNode = new Node(data, { next: oldHead });
     if (oldHead) {
       oldHead.prev = newNode;
-    }
-    else {
+    } else {
       this.tail = newNode;
     }
     this.head = newNode;
@@ -21,10 +19,9 @@ class DoublyLinkedList {
   removeTail() {
     const oldTail = this.tail;
     if (oldTail) {
-      this.tail = oldTail.prev 
+      this.tail = oldTail.prev;
       this.tail.next = null;
-    }
-    else {
+    } else {
       this.tail = null;
     }
 
@@ -67,12 +64,12 @@ class DoublyLinkedList {
   }
 
   toArray() {
-    return this.toArrayOfNodes().map(node => node.data);
+    return this.toArrayOfNodes().map((node) => node.data);
   }
 
   toArrayOfNodes() {
     const array = [];
-    let curr = this.head;  
+    let curr = this.head;
     while (curr) {
       array.push(curr);
       curr = curr.next;
@@ -89,4 +86,4 @@ class Node {
   }
 }
 
-export { DoublyLinkedList};
+export { DoublyLinkedList };
