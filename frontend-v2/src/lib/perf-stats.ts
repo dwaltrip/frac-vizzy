@@ -64,8 +64,7 @@ class PerfStats {
     const fmtNum = (num: number) => num.toFixed(2).padStart(8);
 
     if (times && times.length > 0) {
-      const { avg, median, min, max, p1, p99, cumulative } =
-        this.calculateStatistics(times);
+      const { avg, p1, p99, cumulative } = this.calculateStatistics(times);
       console.log(
         `${prefixStr}[${key.padEnd(keyPadding)}]`,
         `avg: ${avg.toFixed(2)} ms ||`,

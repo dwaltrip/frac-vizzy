@@ -1,4 +1,4 @@
-import { logNow } from '@/lib/misc';
+// import { logNow } from '@/lib/misc';
 import { perfStats } from '@/lib/perf-stats';
 
 import {
