@@ -26,7 +26,7 @@ function computeTile(coords: TileCoord): SetStatus[][] {
     { re: coords.x * tileSize, im: coords.y * tileSize },
     { re: TILE_SIZE_IN_PX, im: TILE_SIZE_IN_PX },
     pxToMath,
-    500,
+    100,
   );
   return timer.endWithResult(result);
 }

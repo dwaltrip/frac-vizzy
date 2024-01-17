@@ -21,7 +21,7 @@ import {
   setTileInCache,
   getTileFromCache,
   isInCache,
-} from '@/mandelbrot/tile-cache';
+} from '@/mandelbrot/tile-cache-basic';
 import { pointsToBitmap } from '@/mandelbrot/utils/points-to-bitmap';
 
 const TILE_ERR_COLOR = '#f0b0b0';
