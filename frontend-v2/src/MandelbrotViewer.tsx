@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { CanvasManager } from '@/mandelbrot/canvas-manager';
+import { Mandelbrot } from '@/mandelbrot/mandelbrot';
 
 function MandelbrotViewer(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -10,13 +10,10 @@ function MandelbrotViewer(): JSX.Element {
       return;
     }
 
-    const canvasManager = new CanvasManager(
-      containerRef.current,
-      canvasRef.current,
-    );
+    const mandelbrot = new Mandelbrot(containerRef.current, canvasRef.current);
 
-    canvasManager.setup();
-    return () => canvasManager.cleanup();
+    mandelbrot.setup();
+    return () => mandelbrot.cleanup();
   }, []);
 
   return (

@@ -9,7 +9,11 @@ class ParamsManager {
   private _current: FrozenRenderParams;
   private _target: RenderParams;
 
-  constructor(initial: RenderParams) {
+  constructor(initial?: RenderParams) {
+    if (!initial) {
+      // TODO: default param values should be managed elsewhere
+      initial = ParamsManager.getDefaultParams();
+    }
     this._current = initial.asFrozen();
     this._target = initial;
   }
@@ -25,16 +29,9 @@ class ParamsManager {
   get target(): RenderParams {
     return this._target;
   }
-}
 
-// TODO: rename to ViewState or something like that?
-class RenderParams {
-  center: ComplexNum;
-  zoom: number;
-
-  constructor(center: ComplexNum, zoom: number) {
-    this.center = center;
-    this.zoom = zoom;
+  get hasNewParams(): boolean {
+    return !areParamsEqual(this._current, this._target);
   }
 
   static getDefaultParams(): RenderParams {
@@ -44,27 +41,45 @@ class RenderParams {
       deepClone(DEFAULT_PARAMS);
     return new RenderParams(center, zoom);
   }
+}
+
+// TODO: rename to ViewState or something like that?
+class RenderParams {
+  private _center: Readonly<ComplexNum>;
+  private _zoom: number;
+
+  constructor(center: ComplexNum, zoom: number) {
+    this._center = center;
+    this._zoom = zoom;
+  }
+
+  get center(): Readonly<ComplexNum> {
+    return this._center;
+  }
+  get zoom(): number {
+    return this._zoom;
+  }
+
+  set center(center: ComplexNum) {
+    this._center = center;
+  }
+  set zoom(zoom: number) {
+    this._zoom = zoom;
+  }
 
   moveCenter(dx: number, dy: number): void {
     const pxToMath = calcPixelToComplexUnitScale(this.zoom);
     const movement = { re: dx * pxToMath, im: dy * pxToMath };
-    this.center.re += movement.re;
-    this.center.im -= movement.im;
-  }
-
-  setCenter(center: ComplexNum): void {
-    this.center = center;
+    this.center = {
+      re: this.center.re + movement.re,
+      im: this.center.im - movement.im,
+    };
   }
 
   updateZoom(amountToAdd: number): void {
-    this.zoom = clamp(this.zoom + amountToAdd, 0, 40);
+    this._zoom = clamp(this.zoom + amountToAdd, 0, 40);
   }
 
-  setZoom(zoom: number): void {
-    this.zoom = zoom;
-  }
-
-  // TODO: instead of a frozen type, just hide the state behind getters?
   asFrozen(): FrozenRenderParams {
     const params: FrozenRenderParams = { center: this.center, zoom: this.zoom };
     return params;
@@ -73,6 +88,16 @@ class RenderParams {
   static fromFrozen(params: FrozenRenderParams): RenderParams {
     return new RenderParams(params.center, params.zoom);
   }
+}
+
+type ParamsLike = RenderParams | FrozenRenderParams;
+
+function areParamsEqual(a: ParamsLike, b: ParamsLike) {
+  return (
+    a.center.re === b.center.re &&
+    a.center.im === b.center.im &&
+    a.zoom === b.zoom
+  );
 }
 
 export { ParamsManager, RenderParams };

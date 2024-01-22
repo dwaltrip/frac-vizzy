@@ -13,12 +13,10 @@ class CanvasManager {
   canvas: HTMLCanvasElement;
   private interactionManager: InteractionManager;
   private paramsManager: ParamsManager;
-  private _isWaitingToRender: boolean = false;
 
   constructor(container: HTMLElement, canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    // TODO: default param values should be managed elsewhere
-    this.paramsManager = new ParamsManager(RenderParams.getDefaultParams());
+    this.paramsManager = new ParamsManager();
 
     container.style.width = `${CONTAINER_SIZE.width}px`;
     container.style.height = `${CONTAINER_SIZE.height}px`;
@@ -34,22 +32,30 @@ class CanvasManager {
 
   setup(): void {
     this.interactionManager.attachEventListeners();
-    this.queueRender();
+    // this.queueRender();
+    window.requestAnimationFrame(this.renderLoop);
   }
 
   cleanup(): void {
     this.interactionManager.detachEventListeners();
   }
 
-  queueRender() {
-    if (this._isWaitingToRender) {
-      return;
+  private renderLoop = async () => {
+    // if (this.hasNewTilesToRender()) {
+    if (this.paramsManager.hasNewParams) {
+      this.render();
     }
-    window.requestAnimationFrame(() => this._render());
-    this._isWaitingToRender = true;
+    window.requestAnimationFrame(this.renderLoop);
+  };
+
+  private async render() {
+    const params = this.paramsManager.current;
+    const tileSizePx = TILE_SIZE_IN_PX;
+    await renderMandelbrot(this.canvas, params, tileSizePx);
+    this.paramsManager.commitTarget();
   }
 
-  async _render() {
+  private async render_OLD() {
     const params = this.paramsManager.current;
     const tileSizePx = TILE_SIZE_IN_PX;
 
@@ -61,7 +67,6 @@ class CanvasManager {
     perfStats.logStats('pointsToBitmap', '\t');
 
     this.paramsManager.commitTarget();
-    this._isWaitingToRender = false;
   }
 }
 
