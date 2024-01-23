@@ -4,18 +4,34 @@ import { WorkerManager } from './worker-manager';
 
 // interface Calcluation
 
-class Backburner {
+interface ResultCache<T> {
+  get(key: string): T;
+  set(key: string, value: T): void;
+  has(key: string): boolean;
+}
+
+class Backburner<JobParam, JobResult> {
+  private cache: ResultCache<JobResult>;
   // TODO: use an actual queue with priorities?
-  private workQueue: any[];
+  private jobQueue: any[];
   private workerManager: WorkerManager;
 
-  constructor(numWorkers: number) {
-    this.workQueue = [];
-    this.workerManager = WorkerManager.initAndSetup(numWorkers);
+  constructor(cache: ResultCache<JobResult>, numWorkers: number) {
+    this.cache = cache;
+    this.jobQueue = [];
+    this.workerManager = new WorkerManager(
+      'worker.js', // TODO: pass in worker script
+      numWorkers,
+      () => this.getNextJob(),
+    );
   }
 
-  queueWork(params: CalcParam[]): void {
-    this.workQueue.push(...params);
+  getNextJob(): any {
+    return this.jobQueue.shift();
+  }
+
+  queueJob(params: any[]): void {
+    this.jobQueue.push(...params);
   }
 
   setNumberOfWorkers(numWorkers: number): void {

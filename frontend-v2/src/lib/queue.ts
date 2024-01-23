@@ -9,6 +9,10 @@ class Queue<T> {
     this.queue.push(params);
   }
 
+  enqueueAll(paramsList: Iterable<T>) {
+    this.queue.push(...paramsList);
+  }
+
   dequeue(): T | undefined {
     if (this.length === 0) {
       throw new Error('Queue is empty');

@@ -15,11 +15,25 @@ type SetStatus = {
   iters: number;
 };
 
+type TileData = SetStatus[][];
+
 type TileCoord = {
   x: number;
   y: number;
   z: number; // enforced to be an integer???
 };
+
+type TileID = string;
+
+interface TileParams {
+  coord: TileCoord;
+  iters: number;
+}
+
+interface TileResult {
+  parms: TileParams;
+  data: TileData;
+}
 
 type ZoomInfo = {
   value: number;
@@ -55,6 +69,10 @@ export {
   type BBox,
   type SetStatus,
   type TileCoord,
+  type TileID,
+  type TileData,
+  type TileParams,
+  type TileResult,
   type ZoomInfo,
   type FrozenRenderParams,
   type ComplexRegion,

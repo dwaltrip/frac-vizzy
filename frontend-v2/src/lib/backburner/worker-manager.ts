@@ -7,17 +7,17 @@ type BackburnerWorker = Worker & {
 class WorkerManager {
   private workerScript: string;
   private workers: Remote<BackburnerWorker>[];
+  private getNextJob: () => any;
 
-  constructor(workerScript: string, numberOfWorkers: number) {
+  constructor(
+    workerScript: string,
+    numberOfWorkers: number,
+    getNextJob: () => any,
+  ) {
     this.workerScript = workerScript;
     this.workers = [];
+    this.getNextJob = getNextJob;
     this.setNumberOfWorkers(numberOfWorkers);
-  }
-
-  static initAndSetup(workerScript: string, numWorkers: number): WorkerManager {
-    const manager = new WorkerManager(workerScript, numWorkers);
-    // manager.foo();
-    return manager;
   }
 
   setNumberOfWorkers(num: number): void {

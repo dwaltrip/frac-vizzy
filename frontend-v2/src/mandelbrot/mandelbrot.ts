@@ -5,11 +5,13 @@ import { Queue } from '@/lib/queue';
 
 import {
   FrozenRenderParams,
-  SetStatus,
   TileCoord,
+  TileParams,
+  TileResult,
   Viewport,
 } from '@/mandelbrot/types';
 
+import { getTileId } from '@/mandelbrot/tile-id';
 import { ParamsManager } from '@/mandelbrot/params-manager';
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
@@ -34,19 +36,11 @@ import { getTilesForParams } from '@/mandelbrot/get-tiles-for-params';
 
 const WORKER_SCRIPT = '@/mandlebrot/worker.ts';
 
+// TODO: this will be set by the user
+const ITER_LIMIT = 100;
+
 // TODO: this should be dynamically determined and updated on window resize
 const CONTAINER_SIZE = { width: 1000, height: 700 };
-
-// type TileId = string;
-
-interface TileParams {
-  coord: TileCoord;
-}
-
-interface TileResult {
-  parms: TileParams;
-  data: SetStatus[][];
-}
 
 class Mandelbrot {
   canvas: HTMLCanvasElement;
@@ -58,9 +52,9 @@ class Mandelbrot {
   private renderQueue: Queue<TileResult>;
   private cache = new BasicCache<TileResult>();
 
-  // private backburner: Backburner;
   private workerManager: WorkerManager;
   private interactionManager: InteractionManager;
+  // private backburner: Backburner;
   // private backburner: Backburner<TileParams, TileResult>;
 
   constructor(
@@ -100,11 +94,37 @@ class Mandelbrot {
   }
 
   onParamsUpdate = (targetParams: FrozenRenderParams) => {
-    const targetTiles = getTilesForParams(
+    // const iters = targetParams.iters;
+    const iters = ITER_LIMIT;
+
+    const coordToTileParam = (coord: TileCoord): TileParams => ({
+      coord,
+      iters,
+    });
+
+    // get target tiles
+    const targetTiles: TileParams[] = getTilesForParams(
       targetParams,
       this.view,
       TILE_SIZE_IN_PX,
+    ).map(coordToTileParam);
+
+    // check cache
+    const cachedTileResults = targetTiles
+      .map((tp) => {
+        const id = getTileId(tp);
+        return this.cache.has(id) ? this.cache.get(id) : null;
+      })
+      .filter((res) => res !== null) as TileResult[];
+
+    const uncachedTileParams = targetTiles.filter(
+      (tp) => !this.cache.has(getTileId(tp)),
     );
+
+    this.renderQueue.enqueueAll(cachedTileResults);
+    this.workQueue.enqueueAll(uncachedTileParams);
+
+    // assign work to workers
   };
 
   private renderLoop = async () => {
