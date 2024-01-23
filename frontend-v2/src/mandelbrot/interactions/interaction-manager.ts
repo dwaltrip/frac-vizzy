@@ -1,4 +1,9 @@
-import { ComplexNum, MousePos, Viewport } from '@/mandelbrot/types';
+import {
+  ComplexNum,
+  FrozenRenderParams,
+  MousePos,
+  Viewport,
+} from '@/mandelbrot/types';
 
 import { getMousePos } from '@/mandelbrot/utils/get-mouse-pos';
 import { ParamsManager } from '@/mandelbrot/params-manager';
@@ -9,21 +14,18 @@ import {
 } from '@/mandelbrot/zoom';
 
 class InteractionManager {
-  private canvas: HTMLCanvasElement;
-  private paramsManager: ParamsManager;
-  private queueRender: () => void;
-
   private isDragging: boolean = false;
   private mousePos: MousePos | null = null;
 
   constructor(
-    canvas: HTMLCanvasElement,
-    paramsManager: ParamsManager,
-    queueRender: () => void,
+    private canvas: HTMLCanvasElement,
+    private paramsManager: ParamsManager,
+    private onParamsUpdate: (params: FrozenRenderParams) => void,
   ) {
     this.canvas = canvas;
     this.paramsManager = paramsManager;
-    this.queueRender = queueRender;
+    this.onParamsUpdate = onParamsUpdate;
+
     this.attachEventListeners();
   }
 
@@ -60,7 +62,7 @@ class InteractionManager {
       };
       this.mousePos = newPos;
       this.targetParams.moveCenter(moveAmount.x, moveAmount.y);
-      this.queueRender();
+      this.onParamsUpdate(this.targetParams.asFrozen());
     }
   };
 
@@ -116,7 +118,7 @@ class InteractionManager {
       ),
     );
 
-    this.queueRender();
+    this.onParamsUpdate(this.targetParams.asFrozen());
   }
 
   attachEventListeners() {

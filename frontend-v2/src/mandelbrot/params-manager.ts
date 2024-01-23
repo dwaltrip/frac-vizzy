@@ -60,20 +60,20 @@ class RenderParams {
     return this._zoom;
   }
 
-  set center(center: ComplexNum) {
+  setCenter(center: ComplexNum) {
     this._center = center;
   }
-  set zoom(zoom: number) {
+  setZoom(zoom: number) {
     this._zoom = zoom;
   }
 
   moveCenter(dx: number, dy: number): void {
     const pxToMath = calcPixelToComplexUnitScale(this.zoom);
     const movement = { re: dx * pxToMath, im: dy * pxToMath };
-    this.center = {
+    this.setCenter({
       re: this.center.re + movement.re,
       im: this.center.im - movement.im,
-    };
+    });
   }
 
   updateZoom(amountToAdd: number): void {

@@ -42,9 +42,9 @@ function terminateWorker(worker: Remote<Worker>): void {
   worker[releaseProxy]();
 }
 
-function sendTask(worker: Remote<BackburnerWorker>, inputData: any): void {
-  worker.performWork(inputData).then((result) => {
-    // Handle the result here
+function sendTask(worker: Remote<BackburnerWorker>, taskParams: any): void {
+  worker.performWork(taskParams).then((result: any) => {
+    console.log('performWork - result:', result);
   });
 }
 

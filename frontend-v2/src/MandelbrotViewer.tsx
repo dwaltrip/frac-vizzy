@@ -10,9 +10,14 @@ function MandelbrotViewer(): JSX.Element {
       return;
     }
 
-    const mandelbrot = new Mandelbrot(containerRef.current, canvasRef.current);
-
+    const numWorkers = 4;
+    const mandelbrot = new Mandelbrot(
+      containerRef.current,
+      canvasRef.current,
+      numWorkers,
+    );
     mandelbrot.setup();
+
     return () => mandelbrot.cleanup();
   }, []);
 
