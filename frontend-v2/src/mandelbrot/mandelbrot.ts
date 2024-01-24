@@ -16,6 +16,7 @@ import { ParamsManager } from '@/mandelbrot/params-manager';
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
 import { getTilesForParams } from '@/mandelbrot/get-tiles-for-params';
+import { renderTiles } from './render-tiles';
 
 /*
   ## setup 

@@ -31,7 +31,7 @@ interface TileParams {
 }
 
 interface TileResult {
-  parms: TileParams;
+  params: TileParams;
   data: TileData;
 }
 
