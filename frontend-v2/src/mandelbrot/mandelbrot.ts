@@ -72,16 +72,18 @@ class Mandelbrot {
     this.paramsManager = new ParamsManager();
     // this.backburner = new Backburner(new BasicCache<TileResult>(), numWorkers);
     // this.backburner = new Backburner(numWorkers);
-    this.workerManager = new WorkerManager(WORKER_SCRIPT, numWorkers);
+    this.workerManager = new WorkerManager(
+      WORKER_SCRIPT,
+      numWorkers,
+      this.onTileResultComputed,
+      this.getNextTileToCompute,
+    );
 
     this.interactionManager = new InteractionManager(
       canvas,
       this.paramsManager,
       this.onParamsUpdate,
     );
-
-    // this.taskDistributor = new TaskDistributor();
-    // this.taskQueue = new TaskQueue();
   }
 
   setup() {
@@ -125,12 +127,21 @@ class Mandelbrot {
     this.workQueue.enqueueAll(uncachedTileParams);
 
     // assign work to workers
+    this.workerManager.startWorking();
+  };
+
+  onTileResultComputed = (result: TileResult) => {
+    this.renderQueue.enqueue(result);
+  };
+
+  getNextTileToCompute = (): TileParams | null => {
+    return this.workQueue.dequeue() || null;
   };
 
   private renderLoop = async () => {
     // if (this.hasNewTilesToRender()) {
     if (this.hasDataToRender) {
-      this.render();
+      await this.render();
     }
     window.requestAnimationFrame(this.renderLoop);
   };
@@ -138,12 +149,13 @@ class Mandelbrot {
   private async render() {
     const params = this.paramsManager.current;
     const tileSizePx = TILE_SIZE_IN_PX;
+    await renderTiles(this.renderQueue, this.canvas, params, tileSizePx);
     // await renderMandelbrot(this.canvas, params, tileSizePx);
     this.paramsManager.commitTarget();
   }
 
   get hasDataToRender() {
-    return this.workQueue.length > 0;
+    return this.renderQueue.length > 0;
   }
 
   // TODO: will this work after a resize?
