@@ -7,7 +7,11 @@ function getTilesForParams(
   view: Viewport,
   defaultTileSizePx: number,
 ) {
-  const zoom = params.zoom;
+  const zoomInfo = createZoomInfo(params.zoom, defaultTileSizePx);
+  return calculateVisibleTilesUsingUpscaling(zoomInfo, params.center, view);
+}
+
+function createZoomInfo(zoom: number, defaultTileSizePx: number): ZoomInfo {
   const scaleAmount = Math.pow(2, zoom - Math.floor(zoom));
   const rawRenderedTileSizePx = defaultTileSizePx * scaleAmount;
 
@@ -19,12 +23,17 @@ function getTilesForParams(
   // Refactor to make this more obvious / skip converting back and forth
   //   between zoom levels and tile sizes extra times?
   const renderedTileSizePx = Math.round(rawRenderedTileSizePx);
-  const zoomInfo = createZoomInfo(zoom, renderedTileSizePx);
+  const pxToMath = calcPixelToComplexUnitScale(zoom);
 
-  return calculateVisibleTilesUsingUpscaling(zoomInfo, params.center, view);
+  return {
+    value: zoom,
+    tileSizePx: renderedTileSizePx,
+    tileSize: renderedTileSizePx * pxToMath,
+    pxToMath,
+  };
 }
 
-function createZoomInfo(zoom: number, rawTileSizePx: number): ZoomInfo {
+function createZoomInfo_OLD(zoom: number, rawTileSizePx: number): ZoomInfo {
   const tileSizePx = rawTileSizePx;
   const pxToMath = calcPixelToComplexUnitScale(zoom);
   return {

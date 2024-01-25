@@ -11,12 +11,14 @@ import {
   Viewport,
 } from '@/mandelbrot/types';
 
+import { getTileGridRect } from '@/mandelbrot/tile';
 import { getTileId } from '@/mandelbrot/tile-id';
+
 import { ParamsManager } from '@/mandelbrot/params-manager';
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
 import { getTilesForParams } from '@/mandelbrot/get-tiles-for-params';
-import { renderTiles } from './render-tiles';
+import { renderTile } from '@/mandelbrot/render-tile';
 
 /*
   ## setup 
@@ -150,9 +152,30 @@ class Mandelbrot {
   private async render() {
     const params = this.paramsManager.current;
     const tileSizePx = TILE_SIZE_IN_PX;
-    await renderTiles(this.renderQueue, this.canvas, params, tileSizePx);
-    // await renderMandelbrot(this.canvas, params, tileSizePx);
+
+    con;
+    const tileGridRect = getTileGridRect(this.view, params.center, tileSizePx);
+    const topLeftTileCoord = getTopLeftTile(this.view, params);
+
+    while (this.renderQueue.length > 0) {
+      const tile = this.renderQueue.dequeue()!;
+      await renderTile(tile, topLeftTileCoord, this.canvas, params, tileSizePx);
+    }
+    // await renderTiles(, this.canvas, params, tileSizePx);
+
     this.paramsManager.commitTarget();
+  }
+
+  getTopLeftTile(params: FrozenRenderParams): TileCoord {
+    const view = this.view;
+    const region = {
+      topLeft: params.center,
+      bottomRight: params.center,
+    };
+    return {
+      x: Math.floor(region.topLeft.re / TILE_SIZE_IN_PX),
+      y: Math.floor(region.topLeft.im / TILE_SIZE_IN_PX),
+    };
   }
 
   get hasDataToRender() {

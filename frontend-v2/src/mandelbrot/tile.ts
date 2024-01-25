@@ -60,11 +60,19 @@ function calculateVisibleTiles(
   return tiles;
 }
 
-function calculateVisibleTilesUsingUpscaling(
+type TileGridRect = {
+  topLeft: TileCoord;
+  botRight: TileCoord;
+};
+
+// --------------------
+// WITH UPSCALING!!!!!!
+// --------------------
+function getTileGridRect(
   zoomInfo: ZoomInfo,
   center: ComplexNum,
   view: { width: number; height: number },
-) {
+): TileGridRect {
   const truncZoom = Math.floor(zoomInfo.value);
   const region = {
     width: view.width * zoomInfo.pxToMath,
@@ -76,12 +84,26 @@ function calculateVisibleTilesUsingUpscaling(
   const startTileX = Math.floor((c.re - region.width / 2) / tileSize);
   const endTileX = Math.ceil((c.re + region.width / 2) / tileSize);
 
-  const startTile = Math.ceil((c.im + region.height / 2) / tileSize);
-  const endTile = Math.floor((c.im - region.height / 2) / tileSize);
+  const startTileY = Math.ceil((c.im + region.height / 2) / tileSize);
+  const endTileY = Math.floor((c.im - region.height / 2) / tileSize);
+
+  return {
+    topLeft: makeTileCoord(startTileX, startTileY, truncZoom),
+    botRight: makeTileCoord(endTileX, endTileY, truncZoom),
+  };
+}
+
+function calculateVisibleTilesUsingUpscaling(
+  zoomInfo: ZoomInfo,
+  center: ComplexNum,
+  view: { width: number; height: number },
+) {
+  const truncZoom = Math.floor(zoomInfo.value);
+  const grid = getTileGridRect(zoomInfo, center, view);
 
   const tiles = [];
-  for (let x = startTileX; x <= endTileX; x++) {
-    for (let y = startTile; y >= endTile; y--) {
+  for (let x = grid.topLeft.x; x <= grid.botRight.x; x++) {
+    for (let y = grid.topLeft.y; y >= grid.botRight.y; y--) {
       tiles.push(makeTileCoord(x, y, truncZoom));
     }
   }
@@ -91,5 +113,6 @@ function calculateVisibleTilesUsingUpscaling(
 export {
   computeTile,
   calculateVisibleTiles,
+  getTileGridRect,
   calculateVisibleTilesUsingUpscaling,
 };
