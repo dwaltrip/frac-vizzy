@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Mandelbrot } from '@/mandelbrot/mandelbrot';
 
+// TOOD: Make this configurable / user setting
+// Default to most of the available cores.
+// const NUM_WORKERS = 4;
+const NUM_WORKERS = 2;
+
 function MandelbrotViewer(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -10,11 +15,10 @@ function MandelbrotViewer(): JSX.Element {
       return;
     }
 
-    const numWorkers = 4;
     const mandelbrot = new Mandelbrot(
       containerRef.current,
       canvasRef.current,
-      numWorkers,
+      NUM_WORKERS,
     );
     mandelbrot.setup();
 

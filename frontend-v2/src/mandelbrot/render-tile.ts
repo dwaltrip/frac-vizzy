@@ -5,11 +5,10 @@ import {
   ComplexRegion,
   FrozenRenderParams,
   Viewport,
-  ZoomInfo,
   TileResult,
   TileCoord,
 } from '@/mandelbrot/types';
-import { calcPixelToComplexUnitScale } from '@/mandelbrot/zoom';
+import { calcPixelToComplexUnitScale, createZoomInfo } from '@/mandelbrot/zoom';
 import { pointsToBitmap } from '@/mandelbrot/utils/points-to-bitmap';
 
 const TILE_ERR_COLOR = '#f0b0b0';
@@ -40,7 +39,7 @@ async function renderTile(
   // Refactor to make this more obvious / skip converting back and forth
   //   between zoom levels and tile sizes extra times?
   const renderedTileSizePx = Math.round(rawRenderedTileSizePx);
-  const zoomInfo = (zoom, renderedTileSizePx);
+  const zoomInfo = createZoomInfo(params);
 
   const topLeftTileTopLeft = {
     re: topLeftTileCoord.x * zoomInfo.tileSize,

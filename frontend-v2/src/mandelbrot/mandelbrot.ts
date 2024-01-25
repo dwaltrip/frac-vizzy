@@ -17,7 +17,7 @@ import { getTileId } from '@/mandelbrot/tile-id';
 import { ParamsManager } from '@/mandelbrot/params-manager';
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
-import { getTilesForParams } from '@/mandelbrot/get-tiles-for-params';
+import { calculateVisibleTilesUsingUpscaling } from '@/mandelbrot/tile';
 import { renderTile } from '@/mandelbrot/render-tile';
 
 /*
@@ -37,7 +37,8 @@ import { renderTile } from '@/mandelbrot/render-tile';
     6. wor
 */
 
-const WORKER_SCRIPT = '@/mandlebrot/worker.ts';
+// TODO: is it possible to use an absolute path?
+const WORKER_URL = new URL('./worker.ts', import.meta.url);
 
 // TODO: this will be set by the user
 const ITER_LIMIT = 100;
@@ -76,7 +77,7 @@ class Mandelbrot {
     // this.backburner = new Backburner(new BasicCache<TileResult>(), numWorkers);
     // this.backburner = new Backburner(numWorkers);
     this.workerManager = new WorkerManager(
-      WORKER_SCRIPT,
+      WORKER_URL,
       numWorkers,
       this.onTileResultComputed,
       this.getNextTileToCompute,
@@ -108,10 +109,9 @@ class Mandelbrot {
     });
 
     // get target tiles
-    const targetTiles: TileParams[] = getTilesForParams(
+    const targetTiles = calculateVisibleTilesUsingUpscaling(
       targetParams,
       this.view,
-      TILE_SIZE_IN_PX,
     ).map(coordToTileParam);
 
     // check cache
@@ -153,9 +153,9 @@ class Mandelbrot {
     const params = this.paramsManager.current;
     const tileSizePx = TILE_SIZE_IN_PX;
 
-    con;
-    const tileGridRect = getTileGridRect(this.view, params.center, tileSizePx);
-    const topLeftTileCoord = getTopLeftTile(this.view, params);
+    const tileGridRect = getTileGridRect(params, this.view);
+    const topLeftTileCoord = tileGridRect.topLeft;
+    // const topLeftTileCoord = getTopLeftTile(this.view, params);
 
     while (this.renderQueue.length > 0) {
       const tile = this.renderQueue.dequeue()!;
@@ -164,18 +164,6 @@ class Mandelbrot {
     // await renderTiles(, this.canvas, params, tileSizePx);
 
     this.paramsManager.commitTarget();
-  }
-
-  getTopLeftTile(params: FrozenRenderParams): TileCoord {
-    const view = this.view;
-    const region = {
-      topLeft: params.center,
-      bottomRight: params.center,
-    };
-    return {
-      x: Math.floor(region.topLeft.re / TILE_SIZE_IN_PX),
-      y: Math.floor(region.topLeft.im / TILE_SIZE_IN_PX),
-    };
   }
 
   get hasDataToRender() {

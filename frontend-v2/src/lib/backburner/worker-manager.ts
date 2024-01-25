@@ -11,18 +11,18 @@ enum WorkerStatus {
 // -- WorkerManager --
 
 class WorkerManager {
-  private workerScript: string;
+  private workerURL: URL;
   private workers: BackburnerWorker[];
   private onJobComplete: (result: any) => void;
   private getNextJob: () => any;
 
   constructor(
-    workerScript: string,
+    workerURL: URL,
     numberOfWorkers: number,
     onJobComplete: (result: any) => void,
     getNextJob: () => any,
   ) {
-    this.workerScript = workerScript;
+    this.workerURL = workerURL;
     this.workers = [];
     this.getNextJob = getNextJob;
     this.onJobComplete = onJobComplete;
@@ -31,7 +31,7 @@ class WorkerManager {
 
   setNumberOfWorkers(num: number): void {
     while (this.workers.length < num) {
-      this.workers.push(new BackburnerWorker(this.workerScript));
+      this.workers.push(new BackburnerWorker(this.workerURL));
     }
     while (this.workers.length > num) {
       const worker = this.workers.pop();
@@ -90,10 +90,10 @@ class BackburnerWorker {
     return this.status === WorkerStatus.BUSY;
   }
 
-  constructor(script: string) {
+  constructor(workerURL: URL) {
     this.id = BackburnerWorker._generateId();
     this.status = WorkerStatus.IDLE;
-    this.worker = wrap(new Worker(script, { type: 'module' }));
+    this.worker = wrap(new Worker(workerURL, { type: 'module' }));
   }
 
   startJob(job: any): Promise<any> {

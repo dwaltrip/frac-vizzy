@@ -1,11 +1,18 @@
 import { perfStats } from '@/lib/perf-stats';
+
+import {
+  ComplexNum,
+  FrozenRenderParams,
+  SetStatus,
+  TileCoord,
+} from '@/mandelbrot/types';
 import {
   TILE_SIZE_IN_PX,
+  createZoomInfo,
   calcPixelToComplexUnitScale,
   tileSizeInComplexUnits,
 } from '@/mandelbrot/zoom';
 import { computeRegion } from '@/mandelbrot/core';
-import { ComplexNum, SetStatus, TileCoord, ZoomInfo } from '@/mandelbrot/types';
 
 function makeTileCoord(x: number, y: number, z: number): TileCoord {
   if (!Number.isInteger(x) || !Number.isInteger(y) || !Number.isInteger(z)) {
@@ -69,10 +76,10 @@ type TileGridRect = {
 // WITH UPSCALING!!!!!!
 // --------------------
 function getTileGridRect(
-  zoomInfo: ZoomInfo,
-  center: ComplexNum,
+  params: FrozenRenderParams,
   view: { width: number; height: number },
 ): TileGridRect {
+  const zoomInfo = createZoomInfo(params);
   const truncZoom = Math.floor(zoomInfo.value);
   const region = {
     width: view.width * zoomInfo.pxToMath,
@@ -80,7 +87,7 @@ function getTileGridRect(
   };
 
   const tileSize = zoomInfo.tileSize;
-  const c = center;
+  const c = params.center;
   const startTileX = Math.floor((c.re - region.width / 2) / tileSize);
   const endTileX = Math.ceil((c.re + region.width / 2) / tileSize);
 
@@ -94,12 +101,13 @@ function getTileGridRect(
 }
 
 function calculateVisibleTilesUsingUpscaling(
-  zoomInfo: ZoomInfo,
-  center: ComplexNum,
+  params: FrozenRenderParams,
   view: { width: number; height: number },
 ) {
-  const truncZoom = Math.floor(zoomInfo.value);
-  const grid = getTileGridRect(zoomInfo, center, view);
+  const grid = getTileGridRect(params, view);
+  // const zoomInfo = createZoomInfo(params);
+  const truncZoom = Math.floor(params.zoom);
+  // const truncZoom = Math.floor(params.zoom);
 
   const tiles = [];
   for (let x = grid.topLeft.x; x <= grid.botRight.x; x++) {

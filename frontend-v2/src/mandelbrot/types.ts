@@ -35,16 +35,10 @@ interface TileResult {
   data: TileData;
 }
 
-type ZoomInfo = {
-  value: number;
-  tileSizePx: number;
-  tileSize: number;
-  pxToMath: number;
-};
-
 type FrozenRenderParams = DeepReadonly<{
   center: ComplexNum;
   zoom: number;
+  defaultTileSizePx: number;
 }>;
 
 type ComplexRegion = {
@@ -73,7 +67,6 @@ export {
   type TileData,
   type TileParams,
   type TileResult,
-  type ZoomInfo,
   type FrozenRenderParams,
   type ComplexRegion,
   type Viewport,

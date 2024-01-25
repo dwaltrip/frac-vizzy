@@ -3,7 +3,10 @@ import { clamp } from '@/utils/clamp';
 
 import { DEFAULT_PARAMS } from '@/mandelbrot/constants';
 import { ComplexNum, FrozenRenderParams } from '@/mandelbrot/types';
-import { calcPixelToComplexUnitScale } from '@/mandelbrot/zoom';
+import {
+  calcPixelToComplexUnitScale,
+  TILE_SIZE_IN_PX,
+} from '@/mandelbrot/zoom';
 
 class ParamsManager {
   private _current: FrozenRenderParams;
@@ -47,6 +50,7 @@ class ParamsManager {
 class RenderParams {
   private _center: Readonly<ComplexNum>;
   private _zoom: number;
+  defaultTileSizePx: number = TILE_SIZE_IN_PX;
 
   constructor(center: ComplexNum, zoom: number) {
     this._center = center;
@@ -81,8 +85,11 @@ class RenderParams {
   }
 
   asFrozen(): FrozenRenderParams {
-    const params: FrozenRenderParams = { center: this.center, zoom: this.zoom };
-    return params;
+    return {
+      center: this.center,
+      zoom: this.zoom,
+      defaultTileSizePx: this.defaultTileSizePx,
+    };
   }
 
   static fromFrozen(params: FrozenRenderParams): RenderParams {
@@ -90,9 +97,10 @@ class RenderParams {
   }
 }
 
-type ParamsLike = RenderParams | FrozenRenderParams;
+// TODO: This name feels wierd... there's probably a better way of doin this.
+type RenderParamsLike = RenderParams | FrozenRenderParams;
 
-function areParamsEqual(a: ParamsLike, b: ParamsLike) {
+function areParamsEqual(a: RenderParamsLike, b: RenderParamsLike) {
   return (
     a.center.re === b.center.re &&
     a.center.im === b.center.im &&
@@ -100,4 +108,4 @@ function areParamsEqual(a: ParamsLike, b: ParamsLike) {
   );
 }
 
-export { ParamsManager, RenderParams };
+export { ParamsManager, RenderParams, type RenderParamsLike };
