@@ -1,3 +1,4 @@
+// TODO: Make this a priority queue
 class Queue<T> {
   private queue: T[] = [];
 
@@ -5,18 +6,20 @@ class Queue<T> {
     return this.length === 0;
   }
 
-  enqueue(params: T) {
-    this.queue.push(params);
+  // TODO: Make it impossible for an item to be added to the queue twice.
+  // One idea: print a warning and ignore the item if it's already in the queue.
+  enqueue(item: T) {
+    this.queue.push(item);
   }
 
-  enqueueAll(paramsList: Iterable<T>) {
-    this.queue.push(...paramsList);
+  enqueueAll(itemList: Iterable<T>) {
+    this.queue.push(...itemList);
   }
 
   dequeue(): T | undefined {
-    if (this.length === 0) {
-      throw new Error('Queue is empty');
-    }
+    // if (this.length === 0) {
+    //   throw new Error('Queue is empty');
+    // }
     return this.queue.shift();
   }
 

@@ -2,26 +2,35 @@
 // The worker script can also use ESM import statements instead of importScripts().
 
 import { expose } from 'comlink';
-import { SetStatus, TileCoord } from '@/mandelbrot/types';
+import { TileParams, TileResult } from '@/mandelbrot/types';
 import { computeTile } from '@/mandelbrot/tile';
 
-type TileData = SetStatus[][];
-
-interface CalculationResult {
-  input: { coord: TileCoord };
-  output: TileData;
-}
-
 const workerAPI = {
-  async computeTiles(workerId: string, coords: TileCoord[]) {
-    function sendResult(result: CalculationResult) {
-      postMessage({ workerId, result });
+  async performWork(paramsList: TileParams[]): Promise<TileResult> {
+    if (!paramsList || paramsList.length !== 1) {
+      const paramsListInfo: string = [
+        'typeof paramsList:',
+        typeof paramsList,
+        'paramsList.length:',
+        paramsList?.length,
+        'keys:',
+        Object.keys(paramsList || {}),
+      ].join('\n');
+      console.error('-- Invalid paramsList -- debug info --', paramsListInfo);
+      throw new Error('Invalid paramsList');
     }
 
-    coords.forEach((coord) => {
-      const output = computeTile(coord);
-      sendResult({ input: { coord }, output });
-    });
+    const params = paramsList[0]!;
+    return { params, data: computeTile(params) };
+
+    // function sendResult(result: CalculationResult) {
+    //   postMessage({ workerId, result });
+    // }
+
+    // paramsList.forEach((params) => {
+    //   const output = computeTile(params);
+    //   sendResult({ input: { params }, output });
+    // });
   },
 };
 

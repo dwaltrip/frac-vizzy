@@ -1,6 +1,7 @@
 import { wrap, Remote, releaseProxy } from 'comlink';
 
 import { IdGenerator } from './id-generator';
+import { TileResult } from '@/mandelbrot/types';
 
 enum WorkerStatus {
   IDLE = 'IDLE',
@@ -10,9 +11,9 @@ enum WorkerStatus {
 // ----------------------------------------------------------------------------
 // -- WorkerManager --
 
-class WorkerManager {
+class WorkerManager<JobResult> {
   private workerURL: URL;
-  private workers: BackburnerWorker[];
+  private workers: BackburnerWorker<JobResult>[];
   private onJobComplete: (result: any) => void;
   private getNextJob: () => any;
 
@@ -31,7 +32,7 @@ class WorkerManager {
 
   setNumberOfWorkers(num: number): void {
     while (this.workers.length < num) {
-      this.workers.push(new BackburnerWorker(this.workerURL));
+      this.workers.push(new BackburnerWorker<JobResult>(this.workerURL));
     }
     while (this.workers.length > num) {
       const worker = this.workers.pop();
@@ -49,7 +50,7 @@ class WorkerManager {
     return this.getNextJob();
   }
 
-  get nextAvailableWorker(): BackburnerWorker | undefined {
+  get nextAvailableWorker(): BackburnerWorker<JobResult> | undefined {
     return this.workers.find((worker) => worker.isAvailable);
   }
 
@@ -60,8 +61,10 @@ class WorkerManager {
 
     while (job && worker) {
       if (worker) {
+        // TODO: handle errors
         worker.startJob(job).then((result) => {
           this.onJobComplete(result);
+          this.startWorking();
         });
       }
       job = this.nextJob;
@@ -74,14 +77,15 @@ class WorkerManager {
 // -- BackburnerWorker --
 
 type _WrappedWorker = Worker & {
-  performWork(inputData: any): Promise<any>;
+  // performWork(workerId: string, inputs: any): Promise<any>;
+  performWork(inputs: any): Promise<any>;
 };
 
-class BackburnerWorker {
+class BackburnerWorker<Result> {
   id: string;
   status: WorkerStatus;
   private worker: Remote<_WrappedWorker>;
-  private pendingResult: Promise<any> | null = null;
+  private pendingResult: Promise<Result> | null = null;
 
   get isAvailable(): boolean {
     return this.status === WorkerStatus.IDLE;
@@ -96,18 +100,38 @@ class BackburnerWorker {
     this.worker = wrap(new Worker(workerURL, { type: 'module' }));
   }
 
-  startJob(job: any): Promise<any> {
+  // TODO: Get rid of these any types
+  startJob(job: any): Promise<Result> {
     if (this.pendingResult) {
+      console.log(
+        'DEBUG -- worker:',
+        this.id,
+        '\nstatus:',
+        this.status,
+        '\npendingResult:',
+        this.pendingResult,
+        '\npendingResult.then:',
+        this.pendingResult?.then,
+      );
       throw new Error('Worker already has a pending job!');
     }
 
+    this.status = WorkerStatus.BUSY;
     // TODO: Error handling!!
     //  Catch and report errors!!
-    this.pendingResult = this.worker.performWork(job).then((result: any) => {
-      this.status = WorkerStatus.IDLE;
-      this.pendingResult = null;
-      return result;
-    });
+    this.pendingResult = this.worker
+      .performWork(job)
+      .then((result: Result) => {
+        this.status = WorkerStatus.IDLE;
+        this.pendingResult = null;
+        return result;
+      })
+      .catch((error: any) => {
+        // TODO: what else should we do here?
+        console.error('-- performWork error --');
+        console.error(error);
+        throw error;
+      });
     // TODO: Why does TS think this is a Promise<any> | null?
     return this.pendingResult!;
   }

@@ -15,7 +15,8 @@ type SetStatus = {
   iters: number;
 };
 
-type TileData = SetStatus[][];
+type RegionData = SetStatus[][];
+type TileData = RegionData;
 
 type TileCoord = {
   x: number;
@@ -64,6 +65,7 @@ export {
   type SetStatus,
   type TileCoord,
   type TileID,
+  type RegionData,
   type TileData,
   type TileParams,
   type TileResult,

@@ -1,17 +1,18 @@
-import { SetStatus } from '@/mandelbrot/core.ts';
+import { RegionData } from '@/mandelbrot/types';
 
-function drawPoints(imageData: ImageData, points: SetStatus[][]): void {
+function drawPoints(imageData: ImageData, points: RegionData): void {
   const height = points.length;
   const width = points[0].length;
 
   if (imageData.height !== height || imageData.width !== width) {
-    throw new Error('Image data must match tile size');
+    throw new Error('Image dims must match region dims');
   }
 
   for (let y = 0; y < height; y++) {
     const row = points[y];
     for (let x = 0; x < width; x++) {
       const pointStatus = row[x];
+      // TODO: the color should be determined elsewhere
       const color = pointStatus.isInSet
         ? { r: 0, g: 0, b: 0 }
         : { r: 255, g: 240, b: 240 };

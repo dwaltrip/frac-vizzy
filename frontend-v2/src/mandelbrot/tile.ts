@@ -3,8 +3,9 @@ import { perfStats } from '@/lib/perf-stats';
 import {
   ComplexNum,
   FrozenRenderParams,
-  SetStatus,
+  TileData,
   TileCoord,
+  TileParams,
 } from '@/mandelbrot/types';
 import {
   TILE_SIZE_IN_PX,
@@ -21,19 +22,19 @@ function makeTileCoord(x: number, y: number, z: number): TileCoord {
   return { x, y, z };
 }
 
-function computeTile(coords: TileCoord): SetStatus[][] {
+function computeTile({ coord, iters }: TileParams): TileData {
   const timer = perfStats.startTimer('computeTile');
-  const zoom = coords.z;
+  const zoom = coord.z;
   const tileSize = tileSizeInComplexUnits(zoom);
   const pxToMath = calcPixelToComplexUnitScale(zoom);
 
   // return computeRegion(
   const result = computeRegion(
     // TODO: tile should know its own top left? or make this a function?
-    { re: coords.x * tileSize, im: coords.y * tileSize },
+    { re: coord.x * tileSize, im: coord.y * tileSize },
     { re: TILE_SIZE_IN_PX, im: TILE_SIZE_IN_PX },
     pxToMath,
-    100,
+    iters,
   );
   return timer.endWithResult(result);
 }

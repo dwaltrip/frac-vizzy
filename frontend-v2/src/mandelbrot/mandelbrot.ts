@@ -5,6 +5,7 @@ import { Queue } from '@/lib/queue';
 
 import {
   FrozenRenderParams,
+  RegionData,
   TileCoord,
   TileParams,
   TileResult,
@@ -52,11 +53,13 @@ class Mandelbrot {
 
   private paramsManager: ParamsManager;
 
+  // TODO: I think ideally these queues would be priority queues
+  // There's a bunch of stuff we could do with determining priority of a tile
   private workQueue: Queue<TileParams>;
   private renderQueue: Queue<TileResult>;
   private cache = new BasicCache<TileResult>();
 
-  private workerManager: WorkerManager;
+  private workerManager: WorkerManager<TileResult>;
   private interactionManager: InteractionManager;
   // private backburner: Backburner;
   // private backburner: Backburner<TileParams, TileResult>;
@@ -80,7 +83,7 @@ class Mandelbrot {
       WORKER_URL,
       numWorkers,
       this.onTileResultComputed,
-      this.getNextTileToCompute,
+      this.getNextJobForWorkers,
     );
 
     this.interactionManager = new InteractionManager(
@@ -93,14 +96,19 @@ class Mandelbrot {
   setup() {
     this.interactionManager.attachEventListeners();
     window.requestAnimationFrame(this.renderLoop);
+    this.queueTilesForParams(this.paramsManager.current);
   }
 
   cleanup() {
     this.interactionManager.detachEventListeners();
   }
 
-  onParamsUpdate = (targetParams: FrozenRenderParams) => {
-    // const iters = targetParams.iters;
+  private onParamsUpdate = (targetParams: FrozenRenderParams) => {
+    this.queueTilesForParams(targetParams);
+  };
+
+  private queueTilesForParams = (params: FrozenRenderParams) => {
+    // const iters = params.iters;
     const iters = ITER_LIMIT;
 
     const coordToTileParam = (coord: TileCoord): TileParams => ({
@@ -110,7 +118,7 @@ class Mandelbrot {
 
     // get target tiles
     const targetTiles = calculateVisibleTilesUsingUpscaling(
-      targetParams,
+      params,
       this.view,
     ).map(coordToTileParam);
 
@@ -137,9 +145,14 @@ class Mandelbrot {
     this.renderQueue.enqueue(result);
   };
 
-  getNextTileToCompute = (): TileParams | null => {
-    return this.workQueue.dequeue() || null;
+  getNextJobForWorkers = (): TileParams[] | null => {
+    const tile = this.workQueue.dequeue();
+    return tile ? [tile] : null;
   };
+
+  // getNextTileToCompute = (): TileParams | null => {
+  //   return this.workQueue.dequeue() || null;
+  // };
 
   private renderLoop = async () => {
     // if (this.hasNewTilesToRender()) {
