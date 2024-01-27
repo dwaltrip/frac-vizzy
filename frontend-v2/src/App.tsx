@@ -6,7 +6,6 @@ function App() {
   console.log('=== App component ===');
   return (
     <div className='app'>
-      <div className='app-header'>Mandelbrot with TypeScript</div>
       <MandelbrotViewer />
       {/* <PerfectZoomManually /> */}
     </div>

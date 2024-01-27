@@ -1,11 +1,10 @@
 // import { Backburner } from '@/lib/backburner';
-import { WorkerManager } from '@/lib/backburner/worker-manager';
+import { WorkerManager, JobRelay } from '@/lib/backburner/worker-manager';
 import { BasicCache } from '@/lib/basic-cache';
 import { Queue } from '@/lib/queue';
 
 import {
   FrozenRenderParams,
-  RegionData,
   TileCoord,
   TileParams,
   TileResult,
@@ -83,7 +82,13 @@ class Mandelbrot {
       WORKER_URL,
       numWorkers,
       this.onTileResultComputed,
-      this.getNextJobForWorkers,
+      new JobRelay(
+        () => !this.workQueue.isEmpty,
+        () => {
+          const tile = this.workQueue.dequeue();
+          return tile ? [tile] : null;
+        },
+      ),
     );
 
     this.interactionManager = new InteractionManager(
@@ -136,6 +141,7 @@ class Mandelbrot {
 
     this.renderQueue.enqueueAll(cachedTileResults);
     this.workQueue.enqueueAll(uncachedTileParams);
+    this.clearCanvas();
 
     // assign work to workers
     this.workerManager.startWorking();
@@ -143,11 +149,6 @@ class Mandelbrot {
 
   onTileResultComputed = (result: TileResult) => {
     this.renderQueue.enqueue(result);
-  };
-
-  getNextJobForWorkers = (): TileParams[] | null => {
-    const tile = this.workQueue.dequeue();
-    return tile ? [tile] : null;
   };
 
   // getNextTileToCompute = (): TileParams | null => {
@@ -161,6 +162,12 @@ class Mandelbrot {
     }
     window.requestAnimationFrame(this.renderLoop);
   };
+
+  private clearCanvas() {
+    const ctx = this.canvas.getContext('2d');
+    if (!ctx) throw new Error('2D context not available');
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
 
   private async render() {
     const params = this.paramsManager.current;

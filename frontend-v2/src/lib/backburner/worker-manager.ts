@@ -1,7 +1,6 @@
 import { wrap, Remote, releaseProxy } from 'comlink';
 
 import { IdGenerator } from './id-generator';
-import { TileResult } from '@/mandelbrot/types';
 
 enum WorkerStatus {
   IDLE = 'IDLE',
@@ -15,17 +14,17 @@ class WorkerManager<JobResult> {
   private workerURL: URL;
   private workers: BackburnerWorker<JobResult>[];
   private onJobComplete: (result: any) => void;
-  private getNextJob: () => any;
+  private jobRelay: JobRelay;
 
   constructor(
     workerURL: URL,
     numberOfWorkers: number,
     onJobComplete: (result: any) => void,
-    getNextJob: () => any,
+    jobRelay: JobRelay,
   ) {
     this.workerURL = workerURL;
     this.workers = [];
-    this.getNextJob = getNextJob;
+    this.jobRelay = jobRelay;
     this.onJobComplete = onJobComplete;
     this.setNumberOfWorkers(numberOfWorkers);
   }
@@ -46,30 +45,42 @@ class WorkerManager<JobResult> {
     return this.workers.some((worker) => worker.isAvailable);
   }
 
-  get nextJob() {
-    return this.getNextJob();
+  get nextJob(): any | null {
+    return this.jobRelay.next();
+  }
+  get hasJob(): boolean {
+    return this.jobRelay.hasJobs;
   }
 
   get nextAvailableWorker(): BackburnerWorker<JobResult> | undefined {
     return this.workers.find((worker) => worker.isAvailable);
   }
 
-  // This is purposefully idempotent.
+  // This is purposefully idempotent
   startWorking() {
-    let job = this.nextJob;
     let worker = this.nextAvailableWorker;
-
-    while (job && worker) {
-      if (worker) {
-        // TODO: handle errors
-        worker.startJob(job).then((result) => {
-          this.onJobComplete(result);
-          this.startWorking();
-        });
-      }
-      job = this.nextJob;
+    while (this.hasJob && worker) {
+      // TODO: handle errors
+      worker.startJob(this.nextJob).then((result) => {
+        this.onJobComplete(result);
+        this.startWorking();
+      });
       worker = this.nextAvailableWorker;
     }
+  }
+}
+
+class JobRelay {
+  private _hasJobs: () => boolean;
+  next: () => any | null;
+
+  constructor(hasJobs: () => boolean, getNext: () => any | null) {
+    this.next = getNext;
+    this._hasJobs = hasJobs;
+  }
+
+  get hasJobs(): boolean {
+    return this._hasJobs();
   }
 }
 
@@ -143,4 +154,4 @@ class BackburnerWorker<Result> {
   static _generateId = IdGenerator.asFunc(3);
 }
 
-export { WorkerManager };
+export { WorkerManager, JobRelay };

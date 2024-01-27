@@ -54,8 +54,6 @@ async function renderTile(
     y: Math.round(topLeftTileOffset.im / zoomInfo.pxToMath),
   };
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   const tileCoord = tile.params.coord;
   const pxOffset = {
     x:
