@@ -52,7 +52,7 @@ class CanvasManager {
     const params = this.paramsManager.current;
     const tileSizePx = TILE_SIZE_IN_PX;
     await renderMandelbrot(this.canvas, params, tileSizePx);
-    this.paramsManager.commitTarget();
+    // this.paramsManager.commitTarget();
   }
 
   private async render_OLD() {

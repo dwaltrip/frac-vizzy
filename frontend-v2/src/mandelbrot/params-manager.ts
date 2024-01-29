@@ -9,7 +9,7 @@ import {
 } from '@/mandelbrot/zoom';
 
 class ParamsManager {
-  private _current: FrozenRenderParams;
+  private _current: FrozenRenderParams | null;
   private _target: RenderParams;
 
   constructor(initial?: RenderParams) {
@@ -17,7 +17,7 @@ class ParamsManager {
       // TODO: default param values should be managed elsewhere
       initial = ParamsManager.getDefaultParams();
     }
-    this._current = initial.asFrozen();
+    this._current = null;
     this._target = initial;
   }
 
@@ -26,6 +26,7 @@ class ParamsManager {
   }
 
   get current(): FrozenRenderParams {
+    if (!this._current) throw new Error('current params not set');
     return this._current;
   }
 
@@ -34,6 +35,11 @@ class ParamsManager {
   }
 
   get hasNewParams(): boolean {
+    if (!this._current) {
+      // console.log('hasNewParams - !this._current');
+      return true;
+    }
+    // console.log('hasNewParams - areParamsEqual', areParamsEqual(this._current, this._target));
     return !areParamsEqual(this._current, this._target);
   }
 

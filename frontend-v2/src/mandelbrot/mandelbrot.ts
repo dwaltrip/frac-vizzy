@@ -51,11 +51,12 @@ class Mandelbrot {
   container: HTMLElement;
 
   private paramsManager: ParamsManager;
+  private targetTiles: TileParams[] | null = null;
 
   // TODO: I think ideally these queues would be priority queues
   // There's a bunch of stuff we could do with determining priority of a tile
   private workQueue: Queue<TileParams>;
-  private renderQueue: Queue<TileResult>;
+  // private renderQueue: Queue<TileResult>;
   private cache = new BasicCache<TileResult>();
 
   private workerManager: WorkerManager<TileResult>;
@@ -73,9 +74,10 @@ class Mandelbrot {
     this.sizeCanvas();
 
     this.workQueue = new Queue<TileParams>();
-    this.renderQueue = new Queue<TileResult>();
+    // this.renderQueue = new Queue<TileResult>();
 
     this.paramsManager = new ParamsManager();
+    console.log('-- init -- hasNewParams', this.paramsManager.hasNewParams);
     // this.backburner = new Backburner(new BasicCache<TileResult>(), numWorkers);
     // this.backburner = new Backburner(numWorkers);
     this.workerManager = new WorkerManager(
@@ -98,10 +100,16 @@ class Mandelbrot {
     );
   }
 
+  // TODO: iters param will be set by the user later.
+  get iters(): number {
+    return ITER_LIMIT;
+  }
+
   setup() {
     this.interactionManager.attachEventListeners();
     window.requestAnimationFrame(this.renderLoop);
-    this.queueTilesForParams(this.paramsManager.current);
+    this.queueTilesForParams(this.paramsManager.target);
+    this.render();
   }
 
   cleanup() {
@@ -113,42 +121,39 @@ class Mandelbrot {
   };
 
   private queueTilesForParams = (params: FrozenRenderParams) => {
-    // const iters = params.iters;
-    const iters = ITER_LIMIT;
-
-    const coordToTileParam = (coord: TileCoord): TileParams => ({
-      coord,
-      iters,
-    });
-
     // get target tiles
-    const targetTiles = calculateVisibleTilesUsingUpscaling(
+    this.targetTiles = calculateVisibleTilesUsingUpscaling(
       params,
       this.view,
-    ).map(coordToTileParam);
+    ).map(this.coordToTileParam);
 
     // check cache
-    const cachedTileResults = targetTiles
+    const cachedTileResults = this.targetTiles
       .map((tp) => {
         const id = getTileId(tp);
         return this.cache.has(id) ? this.cache.get(id) : null;
       })
       .filter((res) => res !== null) as TileResult[];
 
-    const uncachedTileParams = targetTiles.filter(
+    const uncachedTileParams = this.targetTiles.filter(
       (tp) => !this.cache.has(getTileId(tp)),
     );
 
-    this.renderQueue.enqueueAll(cachedTileResults);
-    this.workQueue.enqueueAll(uncachedTileParams);
-    this.clearCanvas();
+    // this.renderQueue.enqueueAll(cachedTileResults);
+    // this.workQueue.enqueueAll(uncachedTileParams);
+    this.workQueue.replaceWith(uncachedTileParams);
+    // this.clearCanvas();
 
     // assign work to workers
     this.workerManager.startWorking();
   };
 
   onTileResultComputed = (result: TileResult) => {
-    this.renderQueue.enqueue(result);
+    const c = result.params.coord;
+    const cStr = `(${c.x},${c.y},${c.z})`;
+    // console.log('Tile result computed -- ', cStr);
+    this.cache.set(getTileId(result.params), result);
+    // this.renderQueue.enqueue(result);
   };
 
   // getNextTileToCompute = (): TileParams | null => {
@@ -158,6 +163,7 @@ class Mandelbrot {
   private renderLoop = async () => {
     // if (this.hasNewTilesToRender()) {
     if (this.hasDataToRender) {
+      console.log('rendering..');
       await this.render();
     }
     window.requestAnimationFrame(this.renderLoop);
@@ -170,24 +176,56 @@ class Mandelbrot {
   }
 
   private async render() {
-    const params = this.paramsManager.current;
+    // const params = this.paramsManager.current;
+    const params = this.paramsManager.target;
     const tileSizePx = TILE_SIZE_IN_PX;
 
     const tileGridRect = getTileGridRect(params, this.view);
     const topLeftTileCoord = tileGridRect.topLeft;
     // const topLeftTileCoord = getTopLeftTile(this.view, params);
 
-    while (this.renderQueue.length > 0) {
-      const tile = this.renderQueue.dequeue()!;
-      await renderTile(tile, topLeftTileCoord, this.canvas, params, tileSizePx);
+    // while (this.renderQueue.length > 0) {
+    //   const tile = this.renderQueue.dequeue()!;
+    //   await renderTile(tile, topLeftTileCoord, this.canvas, params, tileSizePx);
+    // }
+
+    if (!this.isDoneComputing) {
+      return;
     }
+
+    this.clearCanvas();
+    this.targetTiles?.forEach(async (tp) => {
+      const key = getTileId(tp);
+      if (this.cache.has(key)) {
+        const tile = this.cache.get(getTileId(tp))!;
+        await renderTile(
+          tile,
+          topLeftTileCoord,
+          this.canvas,
+          params,
+          tileSizePx,
+        );
+      }
+      // if (!tile) throw new Error('render - Tile not found in cache');
+    });
     // await renderTiles(, this.canvas, params, tileSizePx);
 
-    this.paramsManager.commitTarget();
+    if (this.isDoneComputing) {
+      this.paramsManager.commitTarget();
+    }
   }
 
-  get hasDataToRender() {
-    return this.renderQueue.length > 0;
+  get hasDataToRender(): boolean {
+    return this.paramsManager.hasNewParams;
+  }
+
+  get isDoneComputing(): boolean {
+    return (
+      !!this.targetTiles &&
+      this.targetTiles.every((tp) => {
+        return this.cache.has(getTileId(tp));
+      })
+    );
   }
 
   // TODO: will this work after a resize?
@@ -197,6 +235,11 @@ class Mandelbrot {
       height: this.canvas.height,
     };
   }
+
+  coordToTileParam = (coord: TileCoord): TileParams => ({
+    coord,
+    iters: this.iters,
+  });
 
   private sizeCanvas() {
     this.container.style.width = `${CONTAINER_SIZE.width}px`;

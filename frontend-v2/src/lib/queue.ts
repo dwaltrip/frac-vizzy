@@ -23,7 +23,7 @@ class Queue<T> {
     return this.queue.shift();
   }
 
-  replace(items: Iterable<T>) {
+  replaceWith(items: Iterable<T>) {
     this.queue = [...items].reverse();
   }
 
