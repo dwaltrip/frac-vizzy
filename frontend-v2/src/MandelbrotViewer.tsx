@@ -3,8 +3,8 @@ import { Mandelbrot } from '@/mandelbrot/mandelbrot';
 
 // TOOD: Make this configurable / user setting
 // Default to most of the available cores.
-// const NUM_WORKERS = 4;
-const NUM_WORKERS = 2;
+const NUM_WORKERS = 8;
+// const NUM_WORKERS = 2;
 
 function MandelbrotViewer(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);

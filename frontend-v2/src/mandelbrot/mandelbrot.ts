@@ -6,6 +6,7 @@ import { Queue } from '@/lib/queue';
 import {
   FrozenRenderParams,
   TileCoord,
+  TileID,
   TileParams,
   TileResult,
   Viewport,
@@ -41,10 +42,24 @@ import { renderTile } from '@/mandelbrot/render-tile';
 const WORKER_URL = new URL('./worker.ts', import.meta.url);
 
 // TODO: this will be set by the user
-const ITER_LIMIT = 100;
+const ITER_LIMIT = 50;
 
 // TODO: this should be dynamically determined and updated on window resize
-const CONTAINER_SIZE = { width: 1000, height: 700 };
+const CONTAINER_SIZE = { width: 800, height: 700 };
+
+const BROKEN_ZOOM_EXAMPLE: {
+  mousePos: { x: number; y: number };
+  params: FrozenRenderParams;
+  zoomChanges: number[];
+} = {
+  mousePos: { x: 387, y: 480 },
+  params: {
+    zoom: 4.7682,
+    center: { re: -0.5551, im: -0.5507 },
+    defaultTileSizePx: TILE_SIZE_IN_PX,
+  },
+  zoomChanges: [-0.02, -0.02],
+};
 
 class Mandelbrot {
   canvas: HTMLCanvasElement;
@@ -52,6 +67,7 @@ class Mandelbrot {
 
   private paramsManager: ParamsManager;
   private targetTiles: TileParams[] | null = null;
+  private renderedTileIds: Set<TileID> = new Set();
 
   // TODO: I think ideally these queues would be priority queues
   // There's a bunch of stuff we could do with determining priority of a tile
@@ -76,8 +92,8 @@ class Mandelbrot {
     this.workQueue = new Queue<TileParams>();
     // this.renderQueue = new Queue<TileResult>();
 
-    this.paramsManager = new ParamsManager();
-    console.log('-- init -- hasNewParams', this.paramsManager.hasNewParams);
+    this.paramsManager = new ParamsManager(BROKEN_ZOOM_EXAMPLE.params);
+    // console.log('-- init -- hasNewParams', this.paramsManager.hasNewParams);
     // this.backburner = new Backburner(new BasicCache<TileResult>(), numWorkers);
     // this.backburner = new Backburner(numWorkers);
     this.workerManager = new WorkerManager(
@@ -96,7 +112,11 @@ class Mandelbrot {
     this.interactionManager = new InteractionManager(
       canvas,
       this.paramsManager,
-      this.onParamsUpdate,
+      // TODO: rename / rethink, this is more like "interaction manager says to render".
+      // It's currently receiving params as an arg, but they are always the targetParams.
+      // Which is kludgy. This parent class already has access to the targetParams.
+      // this.onParamsUpdate,
+      () => this.queueRender(),
     );
   }
 
@@ -105,11 +125,60 @@ class Mandelbrot {
     return ITER_LIMIT;
   }
 
+  queueRender() {}
+
   setup() {
     this.interactionManager.attachEventListeners();
     window.requestAnimationFrame(this.renderLoop);
     this.queueTilesForParams(this.paramsManager.target);
     this.render();
+
+    // this.manualZoomTest();
+    this.brokenZoomExample();
+  }
+
+  brokenZoomExample() {
+    let i = 0;
+    let forwards = BROKEN_ZOOM_EXAMPLE.zoomChanges;
+    let backwards = BROKEN_ZOOM_EXAMPLE.zoomChanges.slice().reverse();
+    let curr = forwards;
+
+    const intervalId = window.setInterval(() => {
+      let change = BROKEN_ZOOM_EXAMPLE.zoomChanges[i];
+      if (curr === backwards) {
+        change *= -1;
+      }
+      if (i === curr.length - 1) {
+        curr = curr === forwards ? backwards : forwards;
+        i = 0;
+      } else {
+        i += 1;
+      }
+      console.log('======== i:', i, '-- change:', change, '===========');
+
+      this.interactionManager.performZoom(change, BROKEN_ZOOM_EXAMPLE.mousePos);
+    }, 200);
+  }
+
+  // TODO: why isn't this smooth???
+  manualZoomTest() {
+    const mousePos = { x: 360, y: 420 };
+
+    const drawDot = () => {
+      const ctx = this.canvas.getContext('2d');
+      if (!ctx) throw new Error('2D context not available');
+      ctx.fillStyle = 'red';
+      ctx.fillRect(mousePos.x - 2, mousePos.y - 2, 4, 4);
+    };
+
+    let count = 0;
+    const intervalId = window.setInterval(() => {
+      count += 1;
+      if (count > 100) return;
+      this.interactionManager.performZoom(0.05, mousePos);
+      drawDot();
+    }, 50);
+    window.setTimeout(() => window.clearInterval(intervalId), 3000);
   }
 
   cleanup() {
@@ -126,6 +195,7 @@ class Mandelbrot {
       params,
       this.view,
     ).map(this.coordToTileParam);
+    this.renderedTileIds = new Set();
 
     // check cache
     const cachedTileResults = this.targetTiles
@@ -146,6 +216,7 @@ class Mandelbrot {
 
     // assign work to workers
     this.workerManager.startWorking();
+    console.log('-- queueTilesForParams -- start working...');
   };
 
   onTileResultComputed = (result: TileResult) => {
@@ -163,7 +234,6 @@ class Mandelbrot {
   private renderLoop = async () => {
     // if (this.hasNewTilesToRender()) {
     if (this.hasDataToRender) {
-      console.log('rendering..');
       await this.render();
     }
     window.requestAnimationFrame(this.renderLoop);
@@ -192,26 +262,43 @@ class Mandelbrot {
     if (!this.isDoneComputing) {
       return;
     }
+    if (this.targetTiles && this.targetTiles.length > 0) {
+      const c = params.center;
+      // console.log('render',
+      //   ' -- z:', params.zoom.toFixed(5),
+      //   ' -- c:', `(re: ${c.re.toFixed(5)}, im: ${c.im.toFixed(5)})`,
+      // )
+    }
 
+    console.log('render');
     this.clearCanvas();
     this.targetTiles?.forEach(async (tp) => {
       const key = getTileId(tp);
-      if (this.cache.has(key)) {
-        const tile = this.cache.get(getTileId(tp))!;
-        await renderTile(
-          tile,
-          topLeftTileCoord,
-          this.canvas,
-          params,
-          tileSizePx,
-        );
-      }
+      // if (this.cache.has(key)) {
+      const tile = this.cache.get(key);
+      await renderTile(tile, topLeftTileCoord, this.canvas, params, tileSizePx);
+      this.renderedTileIds.add(key);
+      // }
       // if (!tile) throw new Error('render - Tile not found in cache');
     });
     // await renderTiles(, this.canvas, params, tileSizePx);
 
     if (this.isDoneComputing) {
-      this.paramsManager.commitTarget();
+      if (this.renderedTileIds.size == this.targetTiles?.length) {
+        const areAllTilesRendered =
+          this.targetTiles &&
+          this.targetTiles.every((tp) => {
+            return this.renderedTileIds.has(getTileId(tp));
+          });
+        if (areAllTilesRendered) {
+          console.log(
+            '-- target zoom:',
+            this.paramsManager.target.zoom.toFixed(4),
+          );
+          this.paramsManager.commitTarget();
+          this.renderedTileIds = new Set();
+        }
+      }
     }
   }
 
@@ -219,6 +306,7 @@ class Mandelbrot {
     return this.paramsManager.hasNewParams;
   }
 
+  // TODO: This is inefficient... It's probably not a bottleneck though.
   get isDoneComputing(): boolean {
     return (
       !!this.targetTiles &&

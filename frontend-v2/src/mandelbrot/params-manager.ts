@@ -7,22 +7,24 @@ import {
   calcPixelToComplexUnitScale,
   TILE_SIZE_IN_PX,
 } from '@/mandelbrot/zoom';
+import { i } from 'vitest/dist/reporters-1evA5lom.js';
 
 class ParamsManager {
   private _current: FrozenRenderParams | null;
   private _target: RenderParams;
 
-  constructor(initial?: RenderParams) {
-    if (!initial) {
-      // TODO: default param values should be managed elsewhere
-      initial = ParamsManager.getDefaultParams();
-    }
+  constructor(initial?: FrozenRenderParams) {
+    // TODO: default param values should be managed elsewhere
+    initial = initial ? initial : ParamsManager.getDefaultParams();
+
     this._current = null;
-    this._target = initial;
+    this._target = new RenderParams(initial.center, initial.zoom);
   }
 
   commitTarget() {
     this._current = this._target.asFrozen();
+    console.log('-- commitTarget -- current params zoom:', this._current.zoom);
+    // console.log('cmtTrgt -- z:', this._current.zoom.toFixed(5));
   }
 
   get current(): FrozenRenderParams {
@@ -43,12 +45,12 @@ class ParamsManager {
     return !areParamsEqual(this._current, this._target);
   }
 
-  static getDefaultParams(): RenderParams {
+  static getDefaultParams(): FrozenRenderParams {
     // NOTE: Typescript doesn't catch passing readonly into mutable...
     // So we gotta use deepClone.
     const { center, zoom }: { center: ComplexNum; zoom: number } =
       deepClone(DEFAULT_PARAMS);
-    return new RenderParams(center, zoom);
+    return new RenderParams(center, zoom).asFrozen();
   }
 }
 
@@ -74,6 +76,7 @@ class RenderParams {
     this._center = center;
   }
   setZoom(zoom: number) {
+    // console.log('setZoom', zoom);
     this._zoom = zoom;
   }
 
@@ -87,6 +90,7 @@ class RenderParams {
   }
 
   updateZoom(amountToAdd: number): void {
+    // console.log('updateZoom', amountToAdd);
     this._zoom = clamp(this.zoom + amountToAdd, 0, 40);
   }
 

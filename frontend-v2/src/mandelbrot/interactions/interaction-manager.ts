@@ -76,7 +76,14 @@ class InteractionManager {
 
   // TODO: This is complicated. Can we simplify? Or add tests?
   performZoom(zoomChange: number, mousePos: MousePos) {
-    // logNow(`performZoom -- change: ${zoomChange} -- pos: (${mousePos.x}, ${mousePos.y})`);
+    const debug: any = {};
+    debug.params = { z: this.params.zoom, c: this.params.center };
+    debug.targetParams = {
+      z: this.targetParams.zoom,
+      c: this.targetParams.center,
+    };
+    debug.zoomChange = zoomChange;
+
     const canvas = this.canvas;
 
     const prevSizeInt = Math.floor(tileSizeFromZoom(this.params.zoom));
@@ -99,6 +106,7 @@ class InteractionManager {
     // Render tile size with integer dimensions
     let targetZooom =
       nextZoomLevel + calcFractionalZoomFromScaledTileSize(nextSizeInt);
+    console.log('-- targetZooom:', targetZooom);
 
     // This epislon check is needed to prevent floating point issues.
     // Otherwise, it can get stuck at zoom=3.999999999, as an example.
@@ -115,9 +123,12 @@ class InteractionManager {
         { old: this.params.zoom, new: this.targetParams.zoom },
         this.params.center,
         { width: canvas.width, height: canvas.height },
+        debug,
       ),
     );
+    console.log('-- targetParams.center:', this.targetParams.center);
 
+    // logDebug(debug)
     this.onParamsUpdate(this.targetParams.asFrozen());
   }
 
@@ -137,11 +148,13 @@ class InteractionManager {
     this.canvas.removeEventListener('wheel', this.handleWheel);
   }
 }
+
 function findCenterToKeepMousePosStationary(
   mousePos: MousePos,
   zoom: { old: number; new: number },
   oldCenter: ComplexNum,
   view: Viewport,
+  debug: any,
 ): ComplexNum {
   const centerPos = {
     x: view.width / 2,
@@ -156,20 +169,97 @@ function findCenterToKeepMousePosStationary(
     x: vec.x * scale,
     y: vec.y * scale,
   };
+  console.log(
+    '-- mouse:',
+    mousePos,
+    '-- zOld:',
+    zoom.old.toFixed(4),
+    '-- zNew:',
+    zoom.new.toFixed(4),
+    '-- scale:',
+    scale.toFixed(4),
+    `-- newVec: (${newVec.x.toFixed(4)}, ${newVec.y.toFixed(4)})`,
+  );
   const pxDelta = {
     x: newVec.x - vec.x,
     y: newVec.y - vec.y,
   };
+
+  const unitsPerPixelOld = calcPixelToComplexUnitScale(zoom.old);
+  debug.mousePosMathOld = {
+    re: oldCenter.re + vec.x * unitsPerPixelOld,
+    im: oldCenter.im - vec.y * unitsPerPixelOld,
+  };
+
+  debug.mousePos = mousePos;
+  // debug.scale = scale;
+  // debug.newVec = newVec;
+  // debug.vec = vec;
+  // debug.pxDelta = pxDelta;
+
   const newPxToMath = calcPixelToComplexUnitScale(zoom.new);
   const adjustment = {
     re: pxDelta.x * newPxToMath,
     im: pxDelta.y * newPxToMath,
   };
+  // debug.centerAdj = adjustment;
 
+  // mouse pos (math)
+  const mpm = {
+    re: oldCenter.re + newVec.x * newPxToMath,
+    im: oldCenter.im - newVec.y * newPxToMath,
+  };
+  // debug.MPM = mpm;
+  // console.log(
+  //   `z_old: ${zoom.old.toFixed(3)}, z_new: ${zoom.new.toFixed(3)}`,
+  //   `-- mouse (re: ${mpm.re.toFixed(3)}, im: ${mpm.im.toFixed(3)})`,
+  // );
   return {
     re: oldCenter.re + adjustment.re,
     im: oldCenter.im - adjustment.im,
   };
 }
 
-export { InteractionManager };
+function logDebug(debug: any) {
+  const abbrev = (name: string) => {
+    return name
+      .split('')
+      .filter((c, i) => c === c.toUpperCase() || i === 0)
+      .map((c) => c.toLowerCase())
+      .join('');
+  };
+
+  function fmtVal(val: any): any {
+    if (typeof val === 'number') {
+      return Number.isInteger(val) ? val : val.toFixed(4);
+    }
+    // boolean
+    else if (typeof val === 'boolean') {
+      return val ? 't' : 'f';
+    } else if (Array.isArray(val)) {
+      return '[' + val.map(fmtVal).join(', ') + ']';
+    } else if (typeof val === 'object') {
+      return (
+        '(' +
+        Object.entries(val)
+          .map(([k, v]): string => {
+            return `${k}: ${fmtVal(v)}`;
+          })
+          .join(', ') +
+        ')'
+      );
+    } else {
+      return val;
+    }
+  }
+
+  const logStr = Object.entries(debug)
+    .map(([key, val]) => {
+      return `${abbrev(key)}: ${fmtVal(val)}`;
+    })
+    .join(' | ');
+
+  console.log(logStr);
+}
+
+export { InteractionManager, findCenterToKeepMousePosStationary };

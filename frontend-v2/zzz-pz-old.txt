@@ -1,0 +1,35 @@
+render
+ ======== i: 1 -- change: -0.02 ===========
+ -- targetZooom: 4.754887502163468
+ -- mouse: {x: 387, y: 480} -- zOld: 4.7682 -- zNew: 4.7549 -- scale: 0.9908 -- newVec: (-12.8806, 128.8059)
+ -- targetParams.center: {re: -0.5550115511062901, im: -0.5498155110629002}
+ render
+ ======== i: 0 -- change: -0.02 ===========
+
+ ======== i: 1 -- change: 0.02 ===========
+ -- targetZooom: 4.754887502163468
+ -- mouse: {x: 387, y: 480} -- zOld: 4.7549 -- zNew: 4.7549 -- scale: 1.0000 -- newVec: (-13.0000, 130.0000)
+ -- targetParams.center: {re: -0.5550115511062901, im: -0.5498155110629002}
+ render
+ ======== i: 0 -- change: 0.02 ===========
+ -- targetZooom: 4.78135971352466
+ -- mouse: {x: 387, y: 480} -- zOld: 4.7549 -- zNew: 4.7814 -- scale: 1.0185 -- newVec: (-13.2407, 132.4074)
+ -- targetParams.center: {re: -0.5551866352813742, im: -0.551566352813742}
+ render
+ ======== i: 1 -- change: -0.02 ===========
+ -- targetZooom: 4.754887502163468
+ -- mouse: {x: 387, y: 480} -- zOld: 4.7814 -- zNew: 4.7549 -- scale: 0.9818 -- newVec: (-12.7636, 127.6364)
+ -- targetParams.center: {re: -0.5550115511062901, im: -0.5498155110629002}
+ render
+ ======== i: 0 -- change: -0.02 ===========
+
+ ======== i: 1 -- change: 0.02 ===========
+ -- targetZooom: 4.754887502163468
+ -- mouse: {x: 387, y: 480} -- zOld: 4.7549 -- zNew: 4.7549 -- scale: 1.0000 -- newVec: (-13.0000, 130.0000)
+ -- targetParams.center: {re: -0.5550115511062901, im: -0.5498155110629002}
+ render
+ ======== i: 0 -- change: 0.02 ===========
+ -- targetZooom: 4.78135971352466
+ -- mouse: {x: 387, y: 480} -- zOld: 4.7549 -- zNew: 4.7814 -- scale: 1.0185 -- newVec: (-13.2407, 132.4074)
+ -- targetParams.center: {re: -0.5551866352813742, im: -0.551566352813742}
+ render
