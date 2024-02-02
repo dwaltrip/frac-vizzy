@@ -2,7 +2,7 @@ import { WorkerManager, JobRelay } from '@/lib/backburner/worker-manager';
 import { BasicCache } from '@/lib/basic-cache';
 import { Queue } from '@/lib/queue';
 
-import { TileResult, Viewport } from '@/mandelbrot/types';
+import { TileID, TileParams, TileResult, Viewport } from '@/mandelbrot/types';
 
 import {
   FrozenRenderParams,
@@ -10,10 +10,8 @@ import {
 } from '@/mandelbrot/params/render-params';
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
-import { calculateVisibleTilesUsingUpscaling } from '@/mandelbrot/tile';
-import { renderTile } from '@/mandelbrot/render-tile';
 import { RenderJob } from '@/mandelbrot/params/render-job';
-import { R } from 'vitest/dist/reporters-1evA5lom.js';
+import { getTileId } from '@/mandelbrot/tile-id';
 
 // TODO: is it possible to use an absolute path?
 const WORKER_URL = new URL('./worker.ts', import.meta.url);
@@ -41,6 +39,8 @@ class Mandelbrot {
   lastRender: RenderJob | null = null;
   pendingRender: RenderJob | null = null;
 
+  private cache = new BasicCache<TileResult>();
+  private workQueue = new Queue<TileParams>();
   private workerManager: WorkerManager<TileResult>;
   private interactionManager: InteractionManager;
 
@@ -88,28 +88,51 @@ class Mandelbrot {
     if (this.pendingRender) {
       this.pendingRender.cancel();
     }
+
     this.pendingRender = job;
+    this.workQueue.replaceWith(job.targetTiles);
+    this.workerManager.startWorking();
   }
 
   setup() {
     this.resizeCanvas(CONTAINER_SIZE);
     this.interactionManager.attachEventListeners();
-    this.pendingRender = new RenderJob(getDefaultParams());
 
     window.requestAnimationFrame(this.renderLoop);
+    this.queueRender(new RenderJob(getDefaultParams(), this.canvas));
+  }
+
+  cleanup() {
+    this.interactionManager.detachEventListeners();
+    // this.workerManager.terminate();
   }
 
   private renderLoop = async () => {
     if (this.pendingRender) {
+      const getTile = (tileId: TileID) => {
+        return this.cache.has(tileId) ? this.cache.get(tileId) : null;
+      };
+
+      const t0 = performance.now();
       try {
-        await this.pendingRender.render();
+        await this.pendingRender.render(getTile);
       } catch (e) {
         console.error('--- Mandelbrot.renderLoop: error rendering ---');
         console.error(e);
       }
-      this.lastRender = this.pendingRender;
-      this.pendingRender = null;
+      console.log(
+        `-- renderLoop (job = ${this.pendingRender.id}) --`,
+        'render time:',
+        (performance.now() - t0).toFixed(2),
+        'ms',
+      );
+
+      if (this.pendingRender.isComplete) {
+        this.lastRender = this.pendingRender;
+        this.pendingRender = null;
+      }
     }
+
     window.requestAnimationFrame(this.renderLoop);
   };
 
@@ -119,6 +142,10 @@ class Mandelbrot {
     this.canvas.width = size.width;
     this.canvas.height = size.height;
   }
+
+  onTileResultComputed = (result: TileResult) => {
+    this.cache.set(getTileId(result.params), result);
+  };
 }
 
 export { Mandelbrot };

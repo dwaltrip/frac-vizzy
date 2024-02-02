@@ -49,7 +49,7 @@ class InteractionManager {
       this.panMousePos = pos;
 
       const target = performPan(this.getRenderedParams(), panVec);
-      this.requestRender(new RenderJob(target));
+      this.requestRender(new RenderJob(target, this.canvas));
     }
   };
 
@@ -60,7 +60,7 @@ class InteractionManager {
 
     const target = performZoom(this.getRenderedParams(), zoomAmt, mousePos);
     if (target) {
-      this.requestRender(new RenderJob(target));
+      this.requestRender(new RenderJob(target, this.canvas));
     }
   };
 
