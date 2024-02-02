@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Mandelbrot } from '@/mandelbrot/mandelbrot';
+import { Mandelbrot } from '@/mandelbrot/mandelbrot-v2';
 
 // TOOD: Make this configurable / user setting
 // Default to most of the available cores.

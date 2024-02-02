@@ -1,46 +1,33 @@
-import {
-  ComplexNum,
-  FrozenRenderParams,
-  MousePos,
-  Viewport,
-} from '@/mandelbrot/types';
+import { MousePos } from '@/mandelbrot/types';
 
 import { getMousePos } from '@/mandelbrot/utils/get-mouse-pos';
-import { ParamsManager } from '@/mandelbrot/params-manager';
 import {
-  calcPixelToComplexUnitScale,
-  tileSizeFromZoom,
-  calcFractionalZoomFromScaledTileSize,
-} from '@/mandelbrot/zoom';
+  FrozenRenderParams,
+  RenderParams,
+} from '@/mandelbrot/params/render-params';
+import { RenderJob } from '@/mandelbrot/params/render-job';
+
+import { performZoom } from './perform-zoom';
+import { performPan } from './perform-pan';
 
 class InteractionManager {
   private isDragging: boolean = false;
-  private mousePos: MousePos | null = null;
+  private panMousePos: MousePos | null = null;
 
   constructor(
     private canvas: HTMLCanvasElement,
-    private paramsManager: ParamsManager,
-    private onParamsUpdate: (params: FrozenRenderParams) => void,
+    private getRenderedParams: () => FrozenRenderParams,
+    private requestRender: (job: RenderJob) => void,
   ) {
     this.canvas = canvas;
-    this.paramsManager = paramsManager;
-    this.onParamsUpdate = onParamsUpdate;
-
+    this.getRenderedParams = getRenderedParams;
+    this.requestRender = requestRender;
     this.attachEventListeners();
-  }
-
-  get params() {
-    return this.paramsManager.current;
-  }
-  get targetParams() {
-    return this.paramsManager.target;
   }
 
   private handleMouseDown = (event: MouseEvent) => {
     const rect: DOMRect = this.canvas.getBoundingClientRect();
-    // TODO: rename mousePos to mouseDownPos (or something like that?)
-    // maybe `panMousePos`?
-    this.mousePos = getMousePos(rect, event);
+    this.panMousePos = getMousePos(rect, event);
     this.isDragging = true;
   };
 
@@ -53,84 +40,29 @@ class InteractionManager {
   };
 
   private handleMouseMove = (event: MouseEvent) => {
-    if (this.isDragging && this.mousePos) {
-      const rect: DOMRect = this.canvas.getBoundingClientRect();
-      const newPos = getMousePos(rect, event);
-      const moveAmount = {
-        x: this.mousePos.x - newPos.x,
-        y: this.mousePos.y - newPos.y,
+    if (this.isDragging && this.panMousePos) {
+      const pos = getMousePos(this.canvas.getBoundingClientRect(), event);
+      const panVec = {
+        x: this.panMousePos.x - pos.x,
+        y: this.panMousePos.y - pos.y,
       };
-      this.mousePos = newPos;
-      this.targetParams.moveCenter(moveAmount.x, moveAmount.y);
-      this.onParamsUpdate(this.targetParams.asFrozen());
+      this.panMousePos = pos;
+
+      const target = performPan(this.getRenderedParams(), panVec);
+      this.requestRender(new RenderJob(target));
     }
   };
 
   private handleWheel = (event: WheelEvent) => {
     event.preventDefault();
     const zoomAmt = event.deltaY * -0.01;
-    const pos = getMousePos(this.canvas.getBoundingClientRect(), event);
-    // logNow(`wheel -- zoomAmt: ${zoomAmt} -- mouse: (${pos.x}, ${pos.y})`);
-    this.performZoom(zoomAmt, pos);
-  };
+    const mousePos = getMousePos(this.canvas.getBoundingClientRect(), event);
 
-  // TODO: This is complicated. Can we simplify? Or add tests?
-  performZoom(zoomChange: number, mousePos: MousePos) {
-    const debug: any = {};
-    debug.params = { z: this.params.zoom, c: this.params.center };
-    debug.targetParams = {
-      z: this.targetParams.zoom,
-      c: this.targetParams.center,
-    };
-    debug.zoomChange = zoomChange;
-
-    const canvas = this.canvas;
-
-    const prevSizeInt = Math.floor(tileSizeFromZoom(this.params.zoom));
-    // TODO: Better name for this?
-    //  Or way to indicate / enforce integer value? With types?
-    const prevZoomLevel = Math.floor(this.params.zoom);
-
-    this.targetParams.updateZoom(zoomChange);
-
-    const nextSizeInt = Math.round(tileSizeFromZoom(this.targetParams.zoom));
-    const nextZoomLevel = Math.floor(this.targetParams.zoom);
-
-    const isAtSameZoomLevel = nextZoomLevel === prevZoomLevel;
-    const haveZoomedByLessThanOnePx = Math.abs(nextSizeInt - prevSizeInt) < 1;
-    // Only render once we've zoomed in at least 1 pixel
-    if (isAtSameZoomLevel && haveZoomedByLessThanOnePx) {
-      return;
+    const target = performZoom(this.getRenderedParams(), zoomAmt, mousePos);
+    if (target) {
+      this.requestRender(new RenderJob(target));
     }
-
-    // Render tile size with integer dimensions
-    let targetZooom =
-      nextZoomLevel + calcFractionalZoomFromScaledTileSize(nextSizeInt);
-    console.log('-- targetZooom:', targetZooom);
-
-    // This epislon check is needed to prevent floating point issues.
-    // Otherwise, it can get stuck at zoom=3.999999999, as an example.
-    const isEpsilonAwayFromNearestInt =
-      Math.abs(targetZooom - Math.round(targetZooom)) < Number.EPSILON;
-    this.targetParams.setZoom(
-      isEpsilonAwayFromNearestInt ? Math.round(targetZooom) : targetZooom,
-    );
-
-    // Keep mouse pos stationary relative to the the fractal
-    this.targetParams.setCenter(
-      findCenterToKeepMousePosStationary(
-        mousePos,
-        { old: this.params.zoom, new: this.targetParams.zoom },
-        this.params.center,
-        { width: canvas.width, height: canvas.height },
-        debug,
-      ),
-    );
-    console.log('-- targetParams.center:', this.targetParams.center);
-
-    // logDebug(debug)
-    this.onParamsUpdate(this.targetParams.asFrozen());
-  }
+  };
 
   attachEventListeners() {
     this.canvas.addEventListener('mousedown', this.handleMouseDown);
@@ -149,117 +81,4 @@ class InteractionManager {
   }
 }
 
-function findCenterToKeepMousePosStationary(
-  mousePos: MousePos,
-  zoom: { old: number; new: number },
-  oldCenter: ComplexNum,
-  view: Viewport,
-  debug: any,
-): ComplexNum {
-  const centerPos = {
-    x: view.width / 2,
-    y: view.height / 2,
-  };
-  const vec = {
-    x: mousePos.x - centerPos.x,
-    y: mousePos.y - centerPos.y,
-  };
-  const scale = Math.pow(2, zoom.new - zoom.old);
-  const newVec = {
-    x: vec.x * scale,
-    y: vec.y * scale,
-  };
-  console.log(
-    '-- mouse:',
-    mousePos,
-    '-- zOld:',
-    zoom.old.toFixed(4),
-    '-- zNew:',
-    zoom.new.toFixed(4),
-    '-- scale:',
-    scale.toFixed(4),
-    `-- newVec: (${newVec.x.toFixed(4)}, ${newVec.y.toFixed(4)})`,
-  );
-  const pxDelta = {
-    x: newVec.x - vec.x,
-    y: newVec.y - vec.y,
-  };
-
-  const unitsPerPixelOld = calcPixelToComplexUnitScale(zoom.old);
-  debug.mousePosMathOld = {
-    re: oldCenter.re + vec.x * unitsPerPixelOld,
-    im: oldCenter.im - vec.y * unitsPerPixelOld,
-  };
-
-  debug.mousePos = mousePos;
-  // debug.scale = scale;
-  // debug.newVec = newVec;
-  // debug.vec = vec;
-  // debug.pxDelta = pxDelta;
-
-  const newPxToMath = calcPixelToComplexUnitScale(zoom.new);
-  const adjustment = {
-    re: pxDelta.x * newPxToMath,
-    im: pxDelta.y * newPxToMath,
-  };
-  // debug.centerAdj = adjustment;
-
-  // mouse pos (math)
-  const mpm = {
-    re: oldCenter.re + newVec.x * newPxToMath,
-    im: oldCenter.im - newVec.y * newPxToMath,
-  };
-  // debug.MPM = mpm;
-  // console.log(
-  //   `z_old: ${zoom.old.toFixed(3)}, z_new: ${zoom.new.toFixed(3)}`,
-  //   `-- mouse (re: ${mpm.re.toFixed(3)}, im: ${mpm.im.toFixed(3)})`,
-  // );
-  return {
-    re: oldCenter.re + adjustment.re,
-    im: oldCenter.im - adjustment.im,
-  };
-}
-
-function logDebug(debug: any) {
-  const abbrev = (name: string) => {
-    return name
-      .split('')
-      .filter((c, i) => c === c.toUpperCase() || i === 0)
-      .map((c) => c.toLowerCase())
-      .join('');
-  };
-
-  function fmtVal(val: any): any {
-    if (typeof val === 'number') {
-      return Number.isInteger(val) ? val : val.toFixed(4);
-    }
-    // boolean
-    else if (typeof val === 'boolean') {
-      return val ? 't' : 'f';
-    } else if (Array.isArray(val)) {
-      return '[' + val.map(fmtVal).join(', ') + ']';
-    } else if (typeof val === 'object') {
-      return (
-        '(' +
-        Object.entries(val)
-          .map(([k, v]): string => {
-            return `${k}: ${fmtVal(v)}`;
-          })
-          .join(', ') +
-        ')'
-      );
-    } else {
-      return val;
-    }
-  }
-
-  const logStr = Object.entries(debug)
-    .map(([key, val]) => {
-      return `${abbrev(key)}: ${fmtVal(val)}`;
-    })
-    .join(' | ');
-
-  console.log(logStr);
-}
-
-export { InteractionManager, findCenterToKeepMousePosStationary };
+export { InteractionManager };

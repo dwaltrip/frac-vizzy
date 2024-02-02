@@ -86,6 +86,7 @@ function tileSizeInComplexUnits(zoomLevel: number): ComplexLen {
 export {
   createZoomInfo,
   calcPixelToComplexUnitScale,
+  calcPixelToComplexUnitScale as calcUnitsPerPixel,
   tileSizeInComplexUnits,
   TILE_SIZE_IN_PX,
   tileSizeFromZoom,

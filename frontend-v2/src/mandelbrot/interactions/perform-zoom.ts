@@ -1,67 +1,77 @@
-import { ParamsManager } from '@/mandelbrot/params-manager';
 import { ComplexNum, MousePos, Viewport } from '@/mandelbrot/types';
 import {
   calcFractionalZoomFromScaledTileSize,
   calcPixelToComplexUnitScale,
+  calcUnitsPerPixel,
   tileSizeFromZoom,
 } from '@/mandelbrot/zoom';
+import {
+  RenderParams,
+  FrozenRenderParams,
+} from '@/mandelbrot/params/render-params';
+import { clamp } from '@/utils/clamp';
 
 // This only modifies the params, doesn't render anything
 function performZoom(
-  paramsManager: ParamsManager,
+  renderedParams: FrozenRenderParams,
   zoomChange: number,
   mousePos: MousePos,
-  view: Viewport,
-) {
-  const params = paramsManager.current;
-  const targetParams = paramsManager.target;
+): RenderParams | null {
+  const target = new RenderParams(renderedParams);
+  const view = renderedParams.view;
 
-  const prevSizeInt = Math.floor(tileSizeFromZoom(params.zoom));
+  const prevSizeInt = Math.floor(tileSizeFromZoom(renderedParams.zoom));
   // TODO: Better name for this?
   //  Or way to indicate / enforce integer value? With types?
-  const prevZoomLevel = Math.floor(params.zoom);
+  const prevZoomLevel = Math.floor(renderedParams.zoom);
 
-  targetParams.updateZoom(zoomChange);
+  target.zoom = zoomAdd(target, zoomChange);
 
-  const nextSizeInt = Math.round(tileSizeFromZoom(targetParams.zoom));
-  const nextZoomLevel = Math.floor(targetParams.zoom);
+  const nextSizeInt = Math.round(tileSizeFromZoom(target.zoom));
+  const nextZoomLevel = Math.floor(target.zoom);
 
   const isAtSameZoomLevel = nextZoomLevel === prevZoomLevel;
   const haveZoomedByLessThanOnePx = Math.abs(nextSizeInt - prevSizeInt) < 1;
   // Only render once we've zoomed in at least 1 pixel
   if (isAtSameZoomLevel && haveZoomedByLessThanOnePx) {
-    return;
+    return null;
   }
 
   // Render tile size with integer dimensions
-  let targetZooom =
+  let rawTargetZooom =
     nextZoomLevel + calcFractionalZoomFromScaledTileSize(nextSizeInt);
   // This epislon check is needed to prevent floating point issues.
   // Otherwise, it can get stuck at zoom=3.999999999, as an example.
-  const isEpsilonAwayFromNearestInt =
-    Math.abs(targetZooom - Math.round(targetZooom)) < Number.EPSILON;
-  targetParams.setZoom(
-    isEpsilonAwayFromNearestInt ? Math.round(targetZooom) : targetZooom,
-  );
+  target.zoom = roundIfIsEpsilonDistFromInt(rawTargetZooom);
 
   // Keep mouse pos stationary relative to the the fractal
-  targetParams.setCenter(
-    findCenterToKeepMousePosStationary(
-      mousePos,
-      { old: params.zoom, new: targetParams.zoom },
-      params.center,
-      view,
-    ),
+  target.center = findCenterToKeepMousePosStationary(
+    renderedParams.center,
+    { old: renderedParams.zoom, new: target.zoom },
+    view,
+    mousePos,
   );
 
-  // this.onParamsUpdate(this.targetParams.asFrozen());
+  return target;
+}
+
+function zoomAdd(params: RenderParams, amount: number): number {
+  return clamp(params.zoom + amount, 0, 40);
+}
+
+function roundIfIsEpsilonDistFromInt(num: number): number {
+  // --------------------------------------------------------------------
+  // TODO: Is it even possible for this to happen?? Did I ever test this?
+  // --------------------------------------------------------------------
+  const isEpsilonAwayFromInt = Math.abs(num - Math.round(num)) < Number.EPSILON;
+  return isEpsilonAwayFromInt ? Math.round(num) : num;
 }
 
 function findCenterToKeepMousePosStationary(
-  mousePos: MousePos,
-  zoom: { old: number; new: number },
   oldCenter: ComplexNum,
+  zoom: { old: number; new: number },
   view: Viewport,
+  mousePos: MousePos,
 ): ComplexNum {
   const centerPos = {
     x: view.width / 2,
@@ -81,10 +91,10 @@ function findCenterToKeepMousePosStationary(
     y: newVec.y - vec.y,
   };
 
-  const newPxToMath = calcPixelToComplexUnitScale(zoom.new);
+  const unitsPerPixelNew = calcUnitsPerPixel(zoom.new);
   const adjustment = {
-    re: pxDelta.x * newPxToMath,
-    im: pxDelta.y * newPxToMath,
+    re: pxDelta.x * unitsPerPixelNew,
+    im: pxDelta.y * unitsPerPixelNew,
   };
 
   return {
