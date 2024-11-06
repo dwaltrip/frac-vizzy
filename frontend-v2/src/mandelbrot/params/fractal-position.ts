@@ -4,7 +4,7 @@ import { ComplexNum } from '@/mandelbrot/types';
 import { calcUnitsPerPixel } from '@/mandelbrot/zoom';
 
 // ------------------------------------------------------------------
-// I AM NOT CURRENTLY USING THIS...............
+// TODO: I AM NOT CURRENTLY USING THIS...............
 // keeping it just in case, for now. clean up later.
 // ------------------------------------------------------------------
 

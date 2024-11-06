@@ -1,3 +1,5 @@
+import { perfStats } from '@/lib/perf-stats';
+
 import { WorkerManager, JobRelay } from '@/lib/backburner/worker-manager';
 import { BasicCache } from '@/lib/basic-cache';
 import { Queue } from '@/lib/queue';
@@ -114,6 +116,9 @@ class Mandelbrot {
       };
 
       const t0 = performance.now();
+      perfStats.resetStats('render-tile');
+      perfStats.resetStats('points-to-bitmap');
+      perfStats.resetStats('ctx.drawImage');
       try {
         await this.pendingRender.render(getTile);
       } catch (e) {
@@ -121,11 +126,15 @@ class Mandelbrot {
         console.error(e);
       }
       console.log(
-        `-- renderLoop (job = ${this.pendingRender.id}) --`,
+        // `-- renderLoop (job = ${this.pendingRender.id}) --`,
+        `-- renderLoop --`,
         'render time:',
         (performance.now() - t0).toFixed(2),
         'ms',
       );
+      perfStats.logStats('render-tile', '\t');
+      perfStats.logStats('points-to-bitmap', '\t');
+      perfStats.logStats('ctx.drawImage', '\t');
 
       if (this.pendingRender.isComplete) {
         this.lastRender = this.pendingRender;

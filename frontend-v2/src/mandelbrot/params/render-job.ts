@@ -1,3 +1,4 @@
+import { perfStats } from '@/lib/perf-stats';
 import { TileCoord, TileID, TileParams, TileResult } from '@/mandelbrot/types';
 
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
@@ -78,6 +79,7 @@ class RenderJob {
       const tile = getTile(tileId);
       if (!tile) return;
 
+      const timer = perfStats.startTimer('render-tile');
       await renderTile(
         tile,
         topLeftTileCoord,
@@ -85,6 +87,7 @@ class RenderJob {
         paramsOldFmt,
         tileSizePx,
       );
+      timer.end();
       this._renderedTiles.add(tileId);
     }
 

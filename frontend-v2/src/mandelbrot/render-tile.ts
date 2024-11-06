@@ -95,15 +95,17 @@ async function renderTile(
 
   try {
     const points = tile.data;
+    const timer1 = perfStats.startTimer('points-to-bitmap');
     const imgBitmap = await pointsToBitmap(points);
+    timer1.end();
 
-    const timer = perfStats.startTimer('ctx.drawImage');
+    const timer2 = perfStats.startTimer('ctx.drawImage');
     ctx.drawImage(
       imgBitmap,
       ...[source.x, source.y, source.width, source.height],
       ...[dest.x, dest.y, dest.width, dest.height],
     );
-    timer.end();
+    timer2.end();
   } catch (error) {
     console.error('Tile render error:', error);
     ctx.fillStyle = TILE_ERR_COLOR;
