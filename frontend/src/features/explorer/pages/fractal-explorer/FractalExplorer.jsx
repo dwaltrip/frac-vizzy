@@ -25,14 +25,13 @@ import { SettingsPanel } from 'features/explorer/pages/fractal-explorer/Settings
 import { MandelbrotPlot } from 'features/explorer/pages/fractal-explorer/MandelbrotPlot';
 
 // TODO: Hook up to our redux store....
-function createSnapshot(description, imageData, user) {
+function createSnapshot(description, imageData) {
   const link = window.location.href;
 
   // TODO: send the image as binary data? for better perf?
   return request.post('snapshots', {
     description,
     link,
-    author: user.id,
     image_data: imageData,
     region_info: {},
   });
@@ -48,7 +47,7 @@ function FractalExplorer() {
   const [plotParams, setParamsRaw] = useState(getInitialParams());
   const [systemParams, setSystemParamsRaw] = useState(getInitialSystemParams());
 
-  const currentUser = useSelector(selectCurrentUser);
+  // const currentUser = useSelector(selectCurrentUser);
 
   function setPlotParams({ ...newParams }) {
     // We are relying on the fact that `setPlotParams` currently only gets
@@ -106,7 +105,7 @@ function FractalExplorer() {
         createSnapshot={desc => {
           const canvas = canvasRef.current;
           const imageData = canvas.toDataURL();
-          return createSnapshot(desc, imageData, currentUser);
+          return createSnapshot(desc, imageData);
         }}
       />
 

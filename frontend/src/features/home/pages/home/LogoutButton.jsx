@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
-import { useSelector, useDispatch } from 'react-redux';
-import { logout, selectToken } from 'features/users/usersSlice';
+import { useDispatch } from 'react-redux';
+import { logout } from 'features/users/usersSlice';
 
 function LogoutButton() {
   const dispatch = useDispatch();
-  const token = useSelector(selectToken);
 
   const onClick = async event => {
     event.preventDefault();
-    await dispatch(logout(token));
+    await dispatch(logout());
   };
 
   return (

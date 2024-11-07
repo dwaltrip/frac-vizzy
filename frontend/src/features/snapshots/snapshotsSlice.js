@@ -55,22 +55,20 @@ export const loadSnapDetails = createAsyncThunk(
 
 export const likeSnapshot = createAsyncThunk(
   'snapshots/likeSnapshot',
-  async ({ snap, token }) => {
-    // TODO: I shouldn't have to pass the token here..
-    // It should happen automatically for all API calls
+  async ({ snap }) => {
     const {
       data: updatedSnap,
-    } = await request.post(`snapshots/${snap.id}/like`, null, { token });
+    } = await request.post(`snapshots/${snap.id}/like`);
     return updatedSnap;
   },
 );
 
 export const unlikeSnapshot = createAsyncThunk(
   'snapshots/unlikeSnapshot',
-  async ({ snap, token }) => {
+  async ({ snap }) => {
     const {
-      data: updatedSnap
-    } = await request.post(`snapshots/${snap.id}/unlike`, null, { token });
+      data: updatedSnap,
+    } = await request.post(`snapshots/${snap.id}/unlike`);
     return updatedSnap;
   },
 );

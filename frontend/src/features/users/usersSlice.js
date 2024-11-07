@@ -10,7 +10,6 @@ import { sessionTokenStore } from 'features/users/sessionTokenStore';
 
 const initialState = {
   currentUserId: null,
-  token: null,
 
   entities: {},
 
@@ -25,29 +24,24 @@ export const login = createAsyncThunk(
       { username, password },
     );
     const { key: token } = response;
-    const user = await request.get('dj-rest-auth/user', { token });
+    const user = await request._getUsingToken('dj-rest-auth/user', { token });
     // TODO: We are persisting in local storage.
     // I think a cookie set by the server would be better.
     sessionTokenStore.set(token);
-    return { token, user };
+    return { user };
   },
 );
 
-export const logout = createAsyncThunk('users/logout', async (token) => {
-  const resp = await request.post('dj-rest-auth/logout', null, { token });
+export const logout = createAsyncThunk('users/logout', async () => {
+  const resp = await request.post('dj-rest-auth/logout', null);
   sessionTokenStore.clear();
   return resp;
 });
 
 export const fetchCurrentUser = createAsyncThunk('users/fetchCurrentUser', async () => {
-  const token = sessionTokenStore.get();
-  if (!token) {
-    return Promise.resolve(null);
-  }
   // TODO: handle error case where the token is expired!!
-  const user = await request.get('dj-rest-auth/user', { token });
-  // TODO: is Promise.resolve necessary here?
-  return Promise.resolve({ token, user });
+  const user = await request.get('dj-rest-auth/user');
+  return { user };
 });
 
 export const loadUserDetails = createAsyncThunk(
@@ -81,7 +75,6 @@ const usersSlice = createSlice({
       })
       .addCase(logout.fulfilled, (state, action) => {
         state.currentUserId = null;
-        state.token = null;
       })
       // TODO: This is very similar to the `login.fulfilled` case. Can we simplify?
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
@@ -100,7 +93,7 @@ const usersSlice = createSlice({
 // ----------------------------------------------------------------------------
 
 function setCurrentUser(state, payload) {
-  const { user, token } = { user: null, token: null, ...(payload || {}) };
+  const user = payload.user || null;
 
   if (!user) {
     state.currentUserId = null;
@@ -109,7 +102,6 @@ function setCurrentUser(state, payload) {
     state.currentUserId = user.id;
     state.entities[user.id] = user;
   }
-  state.token = token;
 }
 
 // TODO: RTK has built-in stuff for this, switch to using that.
@@ -124,8 +116,6 @@ function _updateUsers(state, users) {
 export const { updateUsers } = usersSlice.actions;
 
 // ----------------------------------------------------------------------------
-
-export const selectToken = state => state.users.token;
 
 export const selectUserEntities = state => state.users.entities;
 

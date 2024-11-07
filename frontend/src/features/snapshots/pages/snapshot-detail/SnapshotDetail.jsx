@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 
 import './SnapshotDetail.css';
 
-import { selectToken, selectCurrentUser } from 'features/users/usersSlice';
+import { selectCurrentUser } from 'features/users/usersSlice';
 import {
   loadSnapDetails,
   selectSnapshotWithDetails,
@@ -29,19 +29,16 @@ function SnapshotDetail() {
   }, [snapId, dispatch]);
 
   const snap = useSelector(state => selectSnapshotWithDetails(state, snapId));
-  const token = useSelector(selectToken);
 
   async function onClickLikeButton() {
-    // TODO: I shouldn't have to pass the token here..
-    // It should happen automatically for all API calls
     setIsLikePending(true);
-    await dispatch(likeSnapshot({ snap, token }));
+    await dispatch(likeSnapshot({ snap }));
     setIsLikePending(false);
   }
 
   async function onClickUnlikeButton() {
     setIsLikePending(true);
-    await dispatch(unlikeSnapshot({ snap, token }));
+    await dispatch(unlikeSnapshot({ snap }));
     setIsLikePending(false);
   }
 

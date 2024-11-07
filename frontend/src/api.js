@@ -1,5 +1,7 @@
 import { API_URL } from 'settings';
 
+import { sessionTokenStore } from 'features/users/sessionTokenStore';
+
 class HTTPError extends Error {
   constructor(response) {
     super(`HTTP Error: ${response.status} ${response.statusText}`);
@@ -59,14 +61,22 @@ async function doFetch(path, {
   }
 }
 
+function getToken() {
+  return sessionTokenStore.get();
+}
+
 const request = {
-  // TODO: better way to pass in the token??
-  async get(path, { query, token }={}) {
+
+  async _getUsingToken(path, { query, token }={}) {
     return doFetch(path, { query, token });
   },
 
-  async post(path, data, { token }={}) {
-    return doFetch(path, { method: 'POST', data, token });
+  async get(path, { query }={}) {
+    return this._getUsingToken(path, { query, token: getToken() });
+  },
+
+  async post(path, data) {
+    return doFetch(path, { method: 'POST', data, token: getToken() });
   },
 }
 

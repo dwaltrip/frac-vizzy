@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -65,10 +67,13 @@ class SnapshotViewSet(viewsets.ModelViewSet):
             }
         })
 
-    # TODO: wrap requests in a transaction so this entire operation
-    # is atomic.
+    # TODO: learn more about transaction patterns with DRF
+    # https://claude.ai/chat/172934d3-616d-47d0-b1dd-bdd659d71537
+    # https://claude.ai/chat/58b19453-4ff2-458c-ba28-8ca6d3d287cd
+    # (unfortunately, those are non-shareable links)
+    @transaction.atomic
     def perform_create(self, serializer):
-        snapshot = serializer.save()
+        snapshot = serializer.save(author=self.request.user)
         create_images_for_snapshot(
             snapshot,
             self.request.data.get('image_data')
