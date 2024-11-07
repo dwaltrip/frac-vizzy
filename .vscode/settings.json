@@ -1,0 +1,5 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python",
+    "python.analysis.extraPaths": ["${workspaceFolder}/backend/venv/lib/site-packages"],
+    "python.analysis.autoSearchPaths": true
+}
