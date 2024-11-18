@@ -69,7 +69,7 @@ class Mandelbrot {
 
     this.interactionManager = new InteractionManager(
       canvas,
-      () => this.getRenderedParams(),
+      () => this.getCurrentParams(),
       (job: RenderJob) => this.queueRender(job),
     );
   }
@@ -79,11 +79,13 @@ class Mandelbrot {
     return ITER_LIMIT;
   }
 
-  getRenderedParams(): FrozenRenderParams {
+  getCurrentParams(): FrozenRenderParams {
     if (!this.lastRender) {
       return getDefaultParams();
     }
-    return this.lastRender.params;
+    return this.pendingRender
+      ? this.pendingRender.params
+      : this.lastRender.params;
   }
 
   queueRender(job: RenderJob) {

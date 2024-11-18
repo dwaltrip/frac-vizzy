@@ -16,11 +16,11 @@ class InteractionManager {
 
   constructor(
     private canvas: HTMLCanvasElement,
-    private getRenderedParams: () => FrozenRenderParams,
+    private getCurrentParams: () => FrozenRenderParams,
     private requestRender: (job: RenderJob) => void,
   ) {
     this.canvas = canvas;
-    this.getRenderedParams = getRenderedParams;
+    this.getCurrentParams = getCurrentParams;
     this.requestRender = requestRender;
     this.attachEventListeners();
   }
@@ -48,7 +48,7 @@ class InteractionManager {
       };
       this.panMousePos = pos;
 
-      const target = performPan(this.getRenderedParams(), panVec);
+      const target = performPan(this.getCurrentParams(), panVec);
       this.requestRender(new RenderJob(target, this.canvas));
     }
   };
@@ -58,7 +58,7 @@ class InteractionManager {
     const zoomAmt = event.deltaY * -0.01;
     const mousePos = getMousePos(this.canvas.getBoundingClientRect(), event);
 
-    const target = performZoom(this.getRenderedParams(), zoomAmt, mousePos);
+    const target = performZoom(this.getCurrentParams(), zoomAmt, mousePos);
     if (target) {
       this.requestRender(new RenderJob(target, this.canvas));
     }
