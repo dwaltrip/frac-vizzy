@@ -3,6 +3,7 @@ import { assert } from '@/utils/assert';
 import { RenderParamsLike } from '@/mandelbrot/params-manager';
 
 const FIT_MOST_SCREENS_AT_ZOOM_LEVEL_0 = 50;
+// TODO: Move this to more central location / settings file?
 const TILE_SIZE_IN_PX = 64;
 
 type PixelLen = number;

@@ -36,6 +36,14 @@ interface TileResult {
   data: TileData;
 }
 
+type TileCorner = 'topLeft' | 'topRight' | 'botLeft' | 'botRight';
+
+type ParentInfo = {
+  parent: TileCoord;
+  child: TileCoord;
+  corner: TileCorner;
+};
+
 type FrozenRenderParams = DeepReadonly<{
   center: ComplexNum;
   zoom: number;
@@ -69,6 +77,8 @@ export {
   type TileData,
   type TileParams,
   type TileResult,
+  type ParentInfo,
+  type TileCorner,
   type FrozenRenderParams,
   type ComplexRegion,
   type Viewport,
