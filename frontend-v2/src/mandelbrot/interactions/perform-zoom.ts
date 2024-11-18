@@ -1,15 +1,15 @@
+import { clamp } from '@/utils/clamp';
 import { ComplexNum, MousePos, Viewport } from '@/mandelbrot/types';
-import {
-  calcFractionalZoomFromScaledTileSize,
-  calcPixelToComplexUnitScale,
-  calcUnitsPerPixel,
-  tileSizeFromZoom,
-} from '@/mandelbrot/zoom';
 import {
   RenderParams,
   FrozenRenderParams,
 } from '@/mandelbrot/params/render-params';
-import { clamp } from '@/utils/clamp';
+import {
+  calcFractionalZoomFromScaledTileSize,
+  calcUnitsPerPixel,
+  PixelLen,
+  TILE_SIZE_IN_PX,
+} from '@/mandelbrot/zoom';
 
 // This only modifies the params, doesn't render anything
 function performZoom(
@@ -20,7 +20,12 @@ function performZoom(
   const target = new RenderParams(renderedParams);
   const view = renderedParams.view;
 
+  // -----------------------------------------------------------------------------------------------------
+  // TODO: why are we flooring here instead of rounding, like I do in `tileSizeScaledForFractionalZoom`???
+  // Why do I have this separate approach, `tileSizeFromZoom`??
+  // -----------------------------------------------------------------------------------------------------
   const prevSizeInt = Math.floor(tileSizeFromZoom(renderedParams.zoom));
+
   // TODO: Better name for this?
   //  Or way to indicate / enforce integer value? With types?
   const prevZoomLevel = Math.floor(renderedParams.zoom);
@@ -53,6 +58,11 @@ function performZoom(
   );
 
   return target;
+}
+
+function tileSizeFromZoom(zoom: number): PixelLen {
+  const scale = Math.pow(2, zoom - Math.floor(zoom));
+  return TILE_SIZE_IN_PX * scale;
 }
 
 function zoomAdd(params: RenderParams, amount: number): number {

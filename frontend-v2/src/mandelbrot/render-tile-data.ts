@@ -1,56 +1,62 @@
-import { perfStats } from '@/lib/perf-stats';
-
+// import { getTileGridRect } from "@/mandelbrot/tile";
 import {
   ComplexNum,
   ComplexRegion,
   FrozenRenderParams,
-  Viewport,
-  TileResult,
+  RegionData,
   TileCoord,
+  TileResult,
+  Viewport,
 } from '@/mandelbrot/types';
-import { calcPixelToComplexUnitScale, createZoomInfo } from '@/mandelbrot/zoom';
 import { pointsToBitmap } from '@/mandelbrot/utils/points-to-bitmap';
+import {
+  calcUnitsPerPixel,
+  TILE_SIZE_IN_PX,
+  tileSizeInComplexUnits,
+  tileSizeScaledForFractionalZoom,
+} from '@/mandelbrot/zoom';
+import { getTileGridRect } from '@/mandelbrot/tile';
 
-const TILE_ERR_COLOR = '#f0b0b0';
+interface ImageSpec {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
-// TODO: DRY up between this and getTilesForParams?
-// TODO: REFACTOR THIS!!
 async function renderTile(
   tile: TileResult,
-  // TODO: use `getTileGridRect`, don't pass this in
-  topLeftTileCoord: TileCoord,
   canvas: HTMLCanvasElement,
   params: FrozenRenderParams,
-  defaultTileSizePx: number,
-): Promise<void> {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('2D context not available');
-
+) {
   const view = { width: canvas.width, height: canvas.height };
   const region = regionForView(params.center, view, params.zoom);
-  const zoomInfo = createZoomInfo(params);
+  const topLeftTileCoord = getTileGridRect(params, view).topLeft;
+
+  const tileSize = tileSizeInComplexUnits(params.zoom);
+  const tileSizePx = tileSizeScaledForFractionalZoom(
+    params.zoom,
+    TILE_SIZE_IN_PX,
+  );
+  const unitsPerPixel = calcUnitsPerPixel(params.zoom);
 
   const topLeftTileTopLeft = {
-    re: topLeftTileCoord.x * zoomInfo.tileSize,
-    im: topLeftTileCoord.y * zoomInfo.tileSize,
+    re: topLeftTileCoord.x * tileSize,
+    im: topLeftTileCoord.y * tileSize,
   };
   const topLeftTileOffset = {
     re: topLeftTileTopLeft.re - region.topLeft.re,
     im: region.topLeft.im - topLeftTileTopLeft.im,
   };
-  const topLeftTilePxOffset = {
-    x: Math.round(topLeftTileOffset.re / zoomInfo.unitsPerPixel),
-    y: Math.round(topLeftTileOffset.im / zoomInfo.unitsPerPixel),
+  const topLeftTileCanvasCoords = {
+    x: Math.round(topLeftTileOffset.re / unitsPerPixel),
+    y: Math.round(topLeftTileOffset.im / unitsPerPixel),
   };
 
   const coord = tile.params.coord;
-  const pxOffset = {
-    x:
-      topLeftTilePxOffset.x +
-      (coord.x - topLeftTileCoord.x) * zoomInfo.tileSizePx,
-    y:
-      topLeftTilePxOffset.y +
-      (topLeftTileCoord.y - coord.y) * zoomInfo.tileSizePx,
+  const canvasCoords = {
+    x: topLeftTileCanvasCoords.x + (coord.x - topLeftTileCoord.x) * tileSizePx,
+    y: topLeftTileCanvasCoords.y + (topLeftTileCoord.y - coord.y) * tileSizePx,
   };
 
   const source = {
@@ -58,19 +64,11 @@ async function renderTile(
     y: 0,
     width: tile.data[0].length,
     height: tile.data.length,
-    // width: defaultTileSizePx,
-    // height: defaultTileSizePx,
   };
-  if (source.width !== defaultTileSizePx) {
-    console.warn('source.width !== defaultTileSizePx', source.width);
-  }
-  if (source.height !== defaultTileSizePx) {
-    console.warn('source.height !== defaultTileSizePx', source.height);
-  }
 
   const dest = {
-    x: pxOffset.x,
-    y: pxOffset.y,
+    x: canvasCoords.x,
+    y: canvasCoords.y,
     width: zoomInfo.renderedTileSizePx,
     height: zoomInfo.renderedTileSizePx,
   };
@@ -91,23 +89,45 @@ async function renderTile(
     dest.height += pxOffset.y;
   }
 
-  try {
-    const points = tile.data;
-    const timer1 = perfStats.startTimer('points-to-bitmap');
-    const imgBitmap = await pointsToBitmap(points);
-    timer1.end();
+  await renderRegionData(
+    canvas,
+    data,
+    source,
+    dest,
+    unscaledTileSizePx,
+    params,
+  );
+}
 
-    const timer2 = perfStats.startTimer('ctx.drawImage');
+async function renderRegionData(
+  canvas: HTMLCanvasElement,
+  data: RegionData,
+  source: ImageSpec,
+  dest: ImageSpec,
+  params: FrozenRenderParams,
+) {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('2D context not available');
+
+  // const canvasCoords = {
+  //   x:
+  //     topLeftTilePxOffset.x +
+  //     (coord.x - topLeftTileCoord.x) * tileSizePx,
+  //   y:
+  //     topLeftTilePxOffset.y +
+  //     (topLeftTileCoord.y - coord.y) * tileSizePx,
+  // };
+
+  try {
+    const imgBitmap = await pointsToBitmap(data);
+
     ctx.drawImage(
       imgBitmap,
       ...[source.x, source.y, source.width, source.height],
       ...[dest.x, dest.y, dest.width, dest.height],
     );
-    timer2.end();
   } catch (error) {
     console.error('Tile render error:', error);
-    ctx.fillStyle = TILE_ERR_COLOR;
-    ctx.fillRect(...[dest.x, dest.y, dest.width, dest.height]);
   }
 }
 
@@ -116,14 +136,12 @@ function regionForView(
   view: Viewport,
   zoom: number,
 ): ComplexRegion {
-  const pxToMath = calcPixelToComplexUnitScale(zoom);
-  const width = view.width * pxToMath;
-  const height = view.height * pxToMath;
+  const unitsPerPixel = calcUnitsPerPixel(zoom);
+  const width = view.width * unitsPerPixel;
+  const height = view.height * unitsPerPixel;
   const topLeft = {
     re: center.re - width / 2,
     im: center.im + height / 2,
   };
   return { width, height, topLeft };
 }
-
-export { renderTile };

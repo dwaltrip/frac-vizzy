@@ -9,12 +9,13 @@ import {
 } from '@/mandelbrot/types';
 import {
   TILE_SIZE_IN_PX,
-  createZoomInfo,
   calcPixelToComplexUnitScale,
   tileSizeInComplexUnits,
+  calcUnitsPerPixel,
 } from '@/mandelbrot/zoom';
 import { computeRegion } from '@/mandelbrot/core';
 
+// TODO: dedupe with `getTileId` in `tile-id.ts`
 function makeTileCoord(x: number, y: number, z: number): TileCoord {
   if (!Number.isInteger(x) || !Number.isInteger(y) || !Number.isInteger(z)) {
     throw new TypeError('Tile coordinates must be integers');
@@ -80,14 +81,15 @@ function getTileGridRect(
   params: FrozenRenderParams,
   view: { width: number; height: number },
 ): TileGridRect {
-  const zoomInfo = createZoomInfo(params);
-  const truncZoom = Math.floor(zoomInfo.value);
+  const zoom = params.zoom;
+  const truncZoom = Math.floor(zoom);
+  const unitsPerPixel = calcUnitsPerPixel(zoom);
   const region = {
-    width: view.width * zoomInfo.pxToMath,
-    height: view.height * zoomInfo.pxToMath,
+    width: view.width * unitsPerPixel,
+    height: view.height * unitsPerPixel,
   };
 
-  const tileSize = zoomInfo.tileSize;
+  const tileSize = tileSizeInComplexUnits(zoom);
   const c = params.center;
   const startTileX = Math.floor((c.re - region.width / 2) / tileSize);
   const endTileX = Math.ceil((c.re + region.width / 2) / tileSize);
@@ -106,10 +108,7 @@ function calculateVisibleTilesUsingUpscaling(
   view: { width: number; height: number },
 ) {
   const grid = getTileGridRect(params, view);
-  // const zoomInfo = createZoomInfo(params);
   const truncZoom = Math.floor(params.zoom);
-  // const truncZoom = Math.floor(params.zoom);
-
   const tiles = [];
   for (let x = grid.topLeft.x; x <= grid.botRight.x; x++) {
     for (let y = grid.topLeft.y; y >= grid.botRight.y; y--) {

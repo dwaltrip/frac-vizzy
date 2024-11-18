@@ -7,6 +7,11 @@ import {
   getTileGridRect,
 } from '@/mandelbrot/tile';
 import { getTileId } from '@/mandelbrot/tile-id';
+import {
+  getParentTileInfo,
+  getCornerSliceIndices,
+} from '@/mandelbrot/tile-grid/parent-info';
+
 import { renderTile } from '@/mandelbrot/render-tile';
 import { IdGenerator } from '@/lib/backburner/id-generator';
 
@@ -77,7 +82,28 @@ class RenderJob {
     for (const tp of this.targetTiles) {
       const tileId = getTileId(tp);
       const tile = getTile(tileId);
-      if (!tile) return;
+
+      if (!tile) {
+        const parentInfo = getParentTileInfo(tp.coord);
+        const parentId = getTileId({
+          coord: parentInfo.parent,
+          iters: tp.iters,
+        });
+        const parent = getTile(parentId);
+        if (parent) {
+          const { x: ix, y: iy } = getCornerSliceIndices(
+            parentInfo.corner,
+            tileSizePx,
+          );
+          const slice = parent.data
+            .slice(iy.start, iy.end)
+            .map((row) => row.slice(ix.start, ix.end));
+
+          return;
+        } else {
+          return;
+        }
+      }
 
       const timer = perfStats.startTimer('render-tile');
       await renderTile(
@@ -91,6 +117,8 @@ class RenderJob {
       this._renderedTiles.add(tileId);
     }
 
+    // TODO (2024-11-017): is there a better way to know we are done rendering?
+    // This feels hacky.
     if (this._renderedTiles.size === this._targetTiles.length) {
       this.status = RenderJobStatus.COMPLETE;
     }
