@@ -21,30 +21,30 @@ function getParentTileInfo(child: TileCoord): ParentInfo {
 }
 
 type Range = { start: number; end: number };
-// parentSize is the size of the parent tile in pixels
+
 function getCornerSliceIndices(
   corner: TileCorner,
-  parentSize: number,
+  parentSizePx: number,
 ): { x: Range; y: Range } {
   const range = (start: number, end: number) => ({ start, end });
 
-  const size = parentSize / 2;
+  const size = parentSizePx / 2;
   const slices = {
     topLeft: {
       x: range(0, size),
       y: range(0, size),
     },
     topRight: {
-      x: range(size, parentSize),
+      x: range(size, parentSizePx),
       y: range(0, size),
     },
     botLeft: {
       x: range(0, size),
-      y: range(size, parentSize),
+      y: range(size, parentSizePx),
     },
     botRight: {
-      x: range(size, parentSize),
-      y: range(size, parentSize),
+      x: range(size, parentSizePx),
+      y: range(size, parentSizePx),
     },
   };
   return slices[corner];

@@ -2,19 +2,16 @@
 import {
   ComplexNum,
   ComplexRegion,
-  FrozenRenderParams,
+  // FrozenRenderParams,
   RegionData,
-  TileCoord,
+  // TileCoord,
   TileResult,
   Viewport,
 } from '@/mandelbrot/types';
+
 import { pointsToBitmap } from '@/mandelbrot/utils/points-to-bitmap';
-import {
-  calcUnitsPerPixel,
-  TILE_SIZE_IN_PX,
-  tileSizeInComplexUnits,
-  tileSizeScaledForFractionalZoom,
-} from '@/mandelbrot/zoom';
+import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
+import { calcUnitsPerPixel, createZoomInfo } from '@/mandelbrot/zoom';
 import { getTileGridRect } from '@/mandelbrot/tile';
 
 interface ImageSpec {
@@ -25,38 +22,36 @@ interface ImageSpec {
 }
 
 async function renderTile(
-  tile: TileResult,
   canvas: HTMLCanvasElement,
+  tile: TileResult,
   params: FrozenRenderParams,
 ) {
   const view = { width: canvas.width, height: canvas.height };
   const region = regionForView(params.center, view, params.zoom);
   const topLeftTileCoord = getTileGridRect(params, view).topLeft;
-
-  const tileSize = tileSizeInComplexUnits(params.zoom);
-  const tileSizePx = tileSizeScaledForFractionalZoom(
-    params.zoom,
-    TILE_SIZE_IN_PX,
-  );
-  const unitsPerPixel = calcUnitsPerPixel(params.zoom);
+  const zoomInfo = createZoomInfo(params.zoom);
 
   const topLeftTileTopLeft = {
-    re: topLeftTileCoord.x * tileSize,
-    im: topLeftTileCoord.y * tileSize,
+    re: topLeftTileCoord.x * zoomInfo.tileSize,
+    im: topLeftTileCoord.y * zoomInfo.tileSize,
   };
   const topLeftTileOffset = {
     re: topLeftTileTopLeft.re - region.topLeft.re,
     im: region.topLeft.im - topLeftTileTopLeft.im,
   };
   const topLeftTileCanvasCoords = {
-    x: Math.round(topLeftTileOffset.re / unitsPerPixel),
-    y: Math.round(topLeftTileOffset.im / unitsPerPixel),
+    x: Math.round(topLeftTileOffset.re / zoomInfo.unitsPerPixel),
+    y: Math.round(topLeftTileOffset.im / zoomInfo.unitsPerPixel),
   };
 
   const coord = tile.params.coord;
   const canvasCoords = {
-    x: topLeftTileCanvasCoords.x + (coord.x - topLeftTileCoord.x) * tileSizePx,
-    y: topLeftTileCanvasCoords.y + (topLeftTileCoord.y - coord.y) * tileSizePx,
+    x:
+      topLeftTileCanvasCoords.x +
+      (coord.x - topLeftTileCoord.x) * zoomInfo.tileSizePxScaled,
+    y:
+      topLeftTileCanvasCoords.y +
+      (topLeftTileCoord.y - coord.y) * zoomInfo.tileSizePxScaled,
   };
 
   const source = {
@@ -69,34 +64,27 @@ async function renderTile(
   const dest = {
     x: canvasCoords.x,
     y: canvasCoords.y,
-    width: zoomInfo.renderedTileSizePx,
-    height: zoomInfo.renderedTileSizePx,
+    width: zoomInfo.tileSizePxScaled,
+    height: zoomInfo.tileSizePxScaled,
   };
 
   // TODO: I'm not sure if these `Math.round` calls are needed.
   // I did it for perf (to render only at integer pixels on the canvas).
   // But it'd be nice to verify that it actually matters.
-  if (pxOffset.x < 0) {
-    source.x = -1 * Math.round(pxOffset.x / zoomInfo.tileScaleFactor);
-    source.width += Math.round(pxOffset.x / zoomInfo.tileScaleFactor);
+  if (canvasCoords.x < 0) {
+    source.x = -1 * Math.round(canvasCoords.x / zoomInfo.scaleFactor);
+    source.width += Math.round(canvasCoords.x / zoomInfo.scaleFactor);
     dest.x = 0;
-    dest.width += pxOffset.x;
+    dest.width += canvasCoords.x;
   }
-  if (pxOffset.y < 0) {
-    source.y = -1 * Math.round(pxOffset.y / zoomInfo.tileScaleFactor);
-    source.height += Math.round(pxOffset.y / zoomInfo.tileScaleFactor);
+  if (canvasCoords.y < 0) {
+    source.y = -1 * Math.round(canvasCoords.y / zoomInfo.scaleFactor);
+    source.height += Math.round(canvasCoords.y / zoomInfo.scaleFactor);
     dest.y = 0;
-    dest.height += pxOffset.y;
+    dest.height += canvasCoords.y;
   }
 
-  await renderRegionData(
-    canvas,
-    data,
-    source,
-    dest,
-    unscaledTileSizePx,
-    params,
-  );
+  await renderRegionData(canvas, tile.data, source, dest);
 }
 
 async function renderRegionData(
@@ -104,19 +92,9 @@ async function renderRegionData(
   data: RegionData,
   source: ImageSpec,
   dest: ImageSpec,
-  params: FrozenRenderParams,
 ) {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('2D context not available');
-
-  // const canvasCoords = {
-  //   x:
-  //     topLeftTilePxOffset.x +
-  //     (coord.x - topLeftTileCoord.x) * tileSizePx,
-  //   y:
-  //     topLeftTilePxOffset.y +
-  //     (topLeftTileCoord.y - coord.y) * tileSizePx,
-  // };
 
   try {
     const imgBitmap = await pointsToBitmap(data);
@@ -145,3 +123,5 @@ function regionForView(
   };
   return { width, height, topLeft };
 }
+
+export { renderTile };

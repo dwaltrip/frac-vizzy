@@ -21,7 +21,7 @@ function performZoom(
   const view = renderedParams.view;
 
   // -----------------------------------------------------------------------------------------------------
-  // TODO: why are we flooring here instead of rounding, like I do in `tileSizeScaledForFractionalZoom`???
+  // TODO: why are we flooring here instead of rounding, like I do in `tileSizePxScaledForFractionalZoom`???
   // Why do I have this separate approach, `tileSizeFromZoom`??
   // -----------------------------------------------------------------------------------------------------
   const prevSizeInt = Math.floor(tileSizeFromZoom(renderedParams.zoom));

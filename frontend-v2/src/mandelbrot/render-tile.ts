@@ -28,7 +28,7 @@ async function renderTile(
 
   const view = { width: canvas.width, height: canvas.height };
   const region = regionForView(params.center, view, params.zoom);
-  const zoomInfo = createZoomInfo(params);
+  const zoomInfo = createZoomInfo(params.zoom, params.defaultTileSizePx);
 
   const topLeftTileTopLeft = {
     re: topLeftTileCoord.x * zoomInfo.tileSize,
@@ -47,10 +47,10 @@ async function renderTile(
   const pxOffset = {
     x:
       topLeftTilePxOffset.x +
-      (coord.x - topLeftTileCoord.x) * zoomInfo.tileSizePx,
+      (coord.x - topLeftTileCoord.x) * zoomInfo.tileSizePxScaled,
     y:
       topLeftTilePxOffset.y +
-      (topLeftTileCoord.y - coord.y) * zoomInfo.tileSizePx,
+      (topLeftTileCoord.y - coord.y) * zoomInfo.tileSizePxScaled,
   };
 
   const source = {
@@ -71,8 +71,8 @@ async function renderTile(
   const dest = {
     x: pxOffset.x,
     y: pxOffset.y,
-    width: zoomInfo.renderedTileSizePx,
-    height: zoomInfo.renderedTileSizePx,
+    width: tileSizeScaled,
+    height: tileSizeScaled,
   };
 
   // TODO: I'm not sure if these `Math.round` calls are needed.

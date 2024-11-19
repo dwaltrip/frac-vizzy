@@ -29,7 +29,7 @@ function getDefaultParams(): RenderParams {
     center: { re: 0, im: 0 },
     zoom: 1,
     iters: ITER_LIMIT,
-    tileSizePx: TILE_SIZE_IN_PX,
+    baseTileSizePx: TILE_SIZE_IN_PX,
     view: CONTAINER_SIZE,
   });
 }

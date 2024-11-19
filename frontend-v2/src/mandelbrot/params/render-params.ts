@@ -8,7 +8,12 @@ type RenderParamsData = {
   zoom: number;
   iters: number;
 
-  tileSizePx: pixels;
+  // The size of the tile in pixels when zoom is an integer.
+  // With smooth zoom, the rendered tiles are never this exact size.
+  // There is always some fractional part of the zoom that we need to account for,
+  //   which is done by scaling the tiles appropriately.
+  // See the rendering code in `render-tile-data.ts` for more details.
+  baseTileSizePx: pixels;
   view: Viewport;
 };
 
@@ -18,14 +23,14 @@ class RenderParams {
   center: ComplexNum;
   zoom: number;
   iters: number;
-  tileSizePx: pixels;
+  baseTileSizePx: pixels;
   view: Viewport;
 
   constructor(initial: RenderParamsData) {
     this.center = initial.center;
     this.zoom = initial.zoom;
     this.iters = initial.iters;
-    this.tileSizePx = initial.tileSizePx;
+    this.baseTileSizePx = initial.baseTileSizePx;
     this.view = initial.view;
   }
 
@@ -34,7 +39,7 @@ class RenderParams {
       center: this.center,
       zoom: this.zoom,
       iters: this.iters,
-      tileSizePx: this.tileSizePx,
+      baseTileSizePx: this.baseTileSizePx,
       view: this.view,
     };
   }

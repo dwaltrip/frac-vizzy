@@ -12,64 +12,44 @@ type PixelsPerUnit = number;
 
 class ZoomInfo {
   value: number;
-  tileSizePx: number;
-  tileSize: number;
-  tileScaleFactor: number;
-  private _pxToMath: number;
+  tileSize: ComplexLen;
+  TILE_SIZE_IN_PX: PixelLen;
+  tileSizePxScaled: PixelLen;
+  unitsPerPixel: number;
+  scaleFactor: number;
 
-  constructor(
-    value: number,
-    tileSizePx: number,
-    tileSize: number,
-    pxToMath: number,
-    tileScaleFactor: number,
-  ) {
-    this.value = value;
-    this.tileSizePx = tileSizePx;
-    this.tileSize = tileSize;
-    this._pxToMath = pxToMath;
-    this.tileScaleFactor = tileScaleFactor;
+  constructor(zoomValue: number) {
+    this.value = zoomValue;
+    this.TILE_SIZE_IN_PX = TILE_SIZE_IN_PX;
+
+    this.unitsPerPixel = calcUnitsPerPixel(zoomValue);
+    this.scaleFactor = zoomScaleFactor(zoomValue);
+
+    this.tileSizePxScaled = tileSizePxScaledForFractionalZoom(
+      zoomValue,
+      TILE_SIZE_IN_PX,
+    );
+    this.tileSize = this.tileSizePxScaled * this.unitsPerPixel;
   }
 
   // --- DEPRECATED! --- (Add "deprecation warning"?)
   get pxToMath(): number {
     console.warn('pxToMath is deprecated. Use unitsPerPixel instead.');
-    return this._pxToMath;
-  }
-
-  get renderedTileSizePx(): number {
-    return this.tileSizePx * this.tileScaleFactor * this.unitsPerPixel;
-  }
-
-  get unitsPerPixel(): number {
-    return this.pxToMath;
+    return this.unitsPerPixel;
   }
 }
 
-function createZoomInfo(params: RenderParamsLike): ZoomInfo {
-  const { zoom, defaultTileSizePx } = params;
-  const tileSizeScaled = tileSizeScaledForFractionalZoom(
-    zoom,
-    defaultTileSizePx,
-  );
-  const unitsPerPixel = calcUnitsPerPixel(zoom);
-
-  return new ZoomInfo(
-    zoom,
-    tileSizeScaled,
-    tileSizeScaled * unitsPerPixel,
-    unitsPerPixel,
-    zoomScaleFactor(zoom),
-  );
+function createZoomInfo(zoom: number): ZoomInfo {
+  return new ZoomInfo(zoom);
 }
 
 function zoomScaleFactor(zoom: number): number {
   return Math.pow(2, zoom - Math.floor(zoom));
 }
 
-function tileSizeScaledForFractionalZoom(
+function tileSizePxScaledForFractionalZoom(
   zoom: number,
-  defaultTileSizePx: number,
+  defaultTileSizePx: PixelLen,
 ): PixelLen {
   const scale = zoomScaleFactor(zoom);
   const rawRenderedTileSizePx = defaultTileSizePx * scale;
@@ -115,6 +95,6 @@ export {
   tileSizeInComplexUnits,
   TILE_SIZE_IN_PX,
   type PixelLen,
-  tileSizeScaledForFractionalZoom,
+  tileSizePxScaledForFractionalZoom,
   calcFractionalZoomFromScaledTileSize,
 };

@@ -2,17 +2,14 @@ import { perfStats } from '@/lib/perf-stats';
 import { TileCoord, TileID, TileParams, TileResult } from '@/mandelbrot/types';
 
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
-import {
-  calculateVisibleTilesUsingUpscaling,
-  getTileGridRect,
-} from '@/mandelbrot/tile';
+import { calculateVisibleTilesUsingUpscaling } from '@/mandelbrot/tile';
 import { getTileId } from '@/mandelbrot/tile-id';
 import {
   getParentTileInfo,
   getCornerSliceIndices,
 } from '@/mandelbrot/tile-grid/parent-info';
 
-import { renderTile } from '@/mandelbrot/render-tile';
+import { renderTile } from '@/mandelbrot/render-tile-data';
 import { IdGenerator } from '@/lib/backburner/id-generator';
 
 enum RenderJobStatus {
@@ -38,11 +35,8 @@ class RenderJob {
     this.params = params;
     this.canvas = canvas;
 
-    const { center, zoom, tileSizePx, view } = this.params;
-    this._targetTiles = calculateVisibleTilesUsingUpscaling(
-      { center, zoom, defaultTileSizePx: tileSizePx },
-      view,
-    );
+    const view = params.view;
+    this._targetTiles = calculateVisibleTilesUsingUpscaling(this.params, view);
   }
 
   get id(): string {
@@ -65,18 +59,6 @@ class RenderJob {
       throw new Error('RenderJob.render - Invalid render job status');
     }
 
-    const p = this.params;
-    const tileSizePx = p.tileSizePx;
-    // -- PARAMS_OLD_FORMAT --
-    // TODO: get rid of this old format
-    const paramsOldFmt = {
-      center: p.center,
-      zoom: p.zoom,
-      defaultTileSizePx: tileSizePx,
-    };
-    const tileGridRect = getTileGridRect(paramsOldFmt, p.view);
-    const topLeftTileCoord = tileGridRect.topLeft;
-
     this.clearCanvas();
 
     for (const tp of this.targetTiles) {
@@ -93,7 +75,7 @@ class RenderJob {
         if (parent) {
           const { x: ix, y: iy } = getCornerSliceIndices(
             parentInfo.corner,
-            tileSizePx,
+            this.params.baseTileSizePx,
           );
           const slice = parent.data
             .slice(iy.start, iy.end)
@@ -106,13 +88,7 @@ class RenderJob {
       }
 
       const timer = perfStats.startTimer('render-tile');
-      await renderTile(
-        tile,
-        topLeftTileCoord,
-        this.canvas,
-        paramsOldFmt,
-        tileSizePx,
-      );
+      await renderTile(this.canvas, tile, this.params);
       timer.end();
       this._renderedTiles.add(tileId);
     }

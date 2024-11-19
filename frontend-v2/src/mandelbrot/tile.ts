@@ -2,11 +2,11 @@ import { perfStats } from '@/lib/perf-stats';
 
 import {
   ComplexNum,
-  FrozenRenderParams,
   TileData,
   TileCoord,
   TileParams,
 } from '@/mandelbrot/types';
+import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
 import {
   TILE_SIZE_IN_PX,
   calcPixelToComplexUnitScale,
