@@ -12,6 +12,7 @@ import {
   calcPixelToComplexUnitScale,
   tileSizeInComplexUnits,
   calcUnitsPerPixel,
+  createZoomInfo,
 } from '@/mandelbrot/zoom';
 import { computeRegion } from '@/mandelbrot/core';
 
@@ -27,14 +28,14 @@ function computeTile({ coord, iters }: TileParams): TileData {
   const timer = perfStats.startTimer('computeTile');
   const zoom = coord.z;
   const tileSize = tileSizeInComplexUnits(zoom);
-  const pxToMath = calcPixelToComplexUnitScale(zoom);
+  const unitsPerPixel = calcUnitsPerPixel(zoom);
 
   // return computeRegion(
   const result = computeRegion(
     // TODO: tile should know its own top left? or make this a function?
     { re: coord.x * tileSize, im: coord.y * tileSize },
     { re: TILE_SIZE_IN_PX, im: TILE_SIZE_IN_PX },
-    pxToMath,
+    unitsPerPixel,
     iters,
   );
   return timer.endWithResult(result);
@@ -81,25 +82,25 @@ function getTileGridRect(
   params: FrozenRenderParams,
   view: { width: number; height: number },
 ): TileGridRect {
-  const zoom = params.zoom;
-  const truncZoom = Math.floor(zoom);
-  const unitsPerPixel = calcUnitsPerPixel(zoom);
+  const zoomInfo = createZoomInfo(params.zoom);
+  // const truncZoom = Math.floor(zoom);
+  // const unitsPerPixel = calcUnitsPerPixel(zoom);
+  // const tileSize = tileSizeInComplexUnits(zoom);
   const region = {
-    width: view.width * unitsPerPixel,
-    height: view.height * unitsPerPixel,
+    width: view.width * zoomInfo.unitsPerPixel,
+    height: view.height * zoomInfo.unitsPerPixel,
   };
 
-  const tileSize = tileSizeInComplexUnits(zoom);
   const c = params.center;
-  const startTileX = Math.floor((c.re - region.width / 2) / tileSize);
-  const endTileX = Math.ceil((c.re + region.width / 2) / tileSize);
+  const startTileX = Math.floor((c.re - region.width / 2) / zoomInfo.tileSize);
+  const endTileX = Math.ceil((c.re + region.width / 2) / zoomInfo.tileSize);
 
-  const startTileY = Math.ceil((c.im + region.height / 2) / tileSize);
-  const endTileY = Math.floor((c.im - region.height / 2) / tileSize);
+  const startTileY = Math.ceil((c.im + region.height / 2) / zoomInfo.tileSize);
+  const endTileY = Math.floor((c.im - region.height / 2) / zoomInfo.tileSize);
 
   return {
-    topLeft: makeTileCoord(startTileX, startTileY, truncZoom),
-    botRight: makeTileCoord(endTileX, endTileY, truncZoom),
+    topLeft: makeTileCoord(startTileX, startTileY, zoomInfo.integerPartOfZoom),
+    botRight: makeTileCoord(endTileX, endTileY, zoomInfo.integerPartOfZoom),
   };
 }
 
@@ -120,7 +121,7 @@ function calculateVisibleTilesUsingUpscaling(
 
 export {
   computeTile,
-  calculateVisibleTiles,
+  // calculateVisibleTiles,
   getTileGridRect,
   calculateVisibleTilesUsingUpscaling,
 };

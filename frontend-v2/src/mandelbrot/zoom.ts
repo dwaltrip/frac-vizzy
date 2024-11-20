@@ -4,7 +4,7 @@ import { RenderParamsLike } from '@/mandelbrot/params-manager';
 
 const FIT_MOST_SCREENS_AT_ZOOM_LEVEL_0 = 50;
 // TODO: Move this to more central location / settings file?
-const TILE_SIZE_IN_PX = 64;
+const TILE_SIZE_IN_PX = 128;
 
 type PixelLen = number;
 type ComplexLen = number;
@@ -30,6 +30,11 @@ class ZoomInfo {
       TILE_SIZE_IN_PX,
     );
     this.tileSize = this.tileSizePxScaled * this.unitsPerPixel;
+  }
+
+  get integerPartOfZoom(): number {
+    // TODO: any issue with values like 3.9999999 ?
+    return Math.floor(this.value);
   }
 
   // --- DEPRECATED! --- (Add "deprecation warning"?)

@@ -61,41 +61,56 @@ class RenderJob {
 
     this.clearCanvas();
 
+    let skipCount = 0;
     for (const tp of this.targetTiles) {
       const tileId = getTileId(tp);
       const tile = getTile(tileId);
 
-      if (!tile) {
-        const parentInfo = getParentTileInfo(tp.coord);
-        const parentId = getTileId({
-          coord: parentInfo.parent,
-          iters: tp.iters,
-        });
-        const parent = getTile(parentId);
-        if (parent) {
-          const { x: ix, y: iy } = getCornerSliceIndices(
-            parentInfo.corner,
-            this.params.baseTileSizePx,
-          );
-          const slice = parent.data
-            .slice(iy.start, iy.end)
-            .map((row) => row.slice(ix.start, ix.end));
-
-          return;
-        } else {
-          return;
-        }
+      if (tile) {
+        const timer = perfStats.startTimer('render-tile');
+        await renderTile(this.canvas, tile, this.params);
+        timer.end();
+        this._renderedTiles.add(tileId);
+      } else {
+        // ----------------------------------------------------------
+        // NOTE: before I returned early when the tile was missing???
+        // but that would exit the entire function and skip teh of the tiles
+        // ----------------------------------------------------------
+        skipCount += 1;
+        // --------------------------------------------------
+        // TODO: finish implementing this!!!
+        // --------------------------------------------------
+        // const parentInfo = getParentTileInfo(tp.coord);
+        // const parentId = getTileId({
+        //   coord: parentInfo.parent,
+        //   iters: tp.iters,
+        // });
+        // const parent = getTile(parentId);
+        // if (parent) {
+        //   const { x: ix, y: iy } = getCornerSliceIndices(
+        //     parentInfo.corner,
+        //     this.params.baseTileSizePx,
+        //   );
+        //   const slice = parent.data
+        //     .slice(iy.start, iy.end)
+        //     .map((row) => row.slice(ix.start, ix.end));
+        //   return;
+        // } else {
+        //   return;
+        // }
+        // --------------------------------------------------
       }
-
-      const timer = perfStats.startTimer('render-tile');
-      await renderTile(this.canvas, tile, this.params);
-      timer.end();
-      this._renderedTiles.add(tileId);
     }
+    // console.log('skipped tiles:', skipCount);
+
+    // if (this._renderedTiles.size > 50) {
+    //   console.log('--- RenderJob.render ---', 'current rendered tile count:', this._renderedTiles.size);
+    // }
 
     // TODO (2024-11-017): is there a better way to know we are done rendering?
     // This feels hacky.
     if (this._renderedTiles.size === this._targetTiles.length) {
+      // console.log('--- RenderJob ---', 'done! rendered tiles:', this._renderedTiles.size);
       this.status = RenderJobStatus.COMPLETE;
     }
   }

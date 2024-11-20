@@ -4,6 +4,7 @@ import {
   ComplexRegion,
   // FrozenRenderParams,
   RegionData,
+  TileCoord,
   // TileCoord,
   TileResult,
   Viewport,
@@ -21,6 +22,10 @@ interface ImageSpec {
   height: number;
 }
 
+function coord2str(coord: TileCoord) {
+  return `${coord.x}, ${coord.y}, ${coord.z}`;
+}
+
 async function renderTile(
   canvas: HTMLCanvasElement,
   tile: TileResult,
@@ -28,7 +33,11 @@ async function renderTile(
 ) {
   const view = { width: canvas.width, height: canvas.height };
   const region = regionForView(params.center, view, params.zoom);
-  const topLeftTileCoord = getTileGridRect(params, view).topLeft;
+  const grid = getTileGridRect(params, view);
+  // console.log('### grid ###',
+  //   'topLeft:', coord2str(grid.topLeft),
+  //   '--- botRight:', coord2str(grid.botRight));
+  const topLeftTileCoord = grid.topLeft;
   const zoomInfo = createZoomInfo(params.zoom);
 
   const topLeftTileTopLeft = {
@@ -68,6 +77,17 @@ async function renderTile(
     height: zoomInfo.tileSizePxScaled,
   };
 
+  const tf2 = (n: number) => n.toFixed(2);
+
+  const coordStr = `${coord.x}, ${coord.y}, ${coord.z}`;
+  // if (coordStr === '-6, -2, 4') {
+  //   console.log(
+  //     `tile: ${coordStr}`,
+  //     `source: (${source.x}, ${source.y}, ${tf2(source.width)}, ${tf2(source.height)})`,
+  //     `dest: (${dest.x}, ${dest.y}, ${tf2(dest.width)}, ${tf2(dest.height)})`,
+  //   );
+  // }
+
   // TODO: I'm not sure if these `Math.round` calls are needed.
   // I did it for perf (to render only at integer pixels on the canvas).
   // But it'd be nice to verify that it actually matters.
@@ -84,7 +104,7 @@ async function renderTile(
     dest.height += canvasCoords.y;
   }
 
-  await renderRegionData(canvas, tile.data, source, dest);
+  await renderRegionData(canvas, tile.data, source, dest, coordStr);
 }
 
 async function renderRegionData(
@@ -92,12 +112,16 @@ async function renderRegionData(
   data: RegionData,
   source: ImageSpec,
   dest: ImageSpec,
+  debugText?: string,
 ) {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('2D context not available');
 
   try {
-    const imgBitmap = await pointsToBitmap(data);
+    let imgBitmap = await pointsToBitmap(data);
+    if (debugText) {
+      imgBitmap = await addTextToBitmap(imgBitmap, debugText);
+    }
 
     ctx.drawImage(
       imgBitmap,
@@ -122,6 +146,23 @@ function regionForView(
     im: center.im + height / 2,
   };
   return { width, height, topLeft };
+}
+
+async function addTextToBitmap(imageBitmap: ImageBitmap, text: string) {
+  const canvas = document.createElement('canvas');
+  canvas.width = imageBitmap.width;
+  canvas.height = imageBitmap.height;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('2D context not available');
+  ctx.drawImage(imageBitmap, 0, 0);
+
+  ctx.font = '10px Arial';
+  ctx.fillStyle = 'red';
+  ctx.fillText(text, 5, 10);
+
+  // Return new ImageBitmap
+  return createImageBitmap(canvas);
 }
 
 export { renderTile };

@@ -13,9 +13,13 @@ function drawPoints(imageData: ImageData, points: RegionData): void {
     for (let x = 0; x < width; x++) {
       const pointStatus = row[x];
       // TODO: the color should be determined elsewhere
-      const color = pointStatus.isInSet
+      let color = pointStatus.isInSet
         ? { r: 0, g: 0, b: 0 }
         : { r: 255, g: 240, b: 240 };
+
+      if (y === 0 || y === height - 1 || x === 0 || x === width - 1) {
+        color = { r: 190, g: 190, b: 255 };
+      }
 
       const index = (x + y * imageData.width) * 4;
       imageData.data[index + 0] = color.r;
