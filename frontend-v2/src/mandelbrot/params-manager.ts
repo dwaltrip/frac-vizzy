@@ -21,6 +21,7 @@ class ParamsManager {
     this._target = new RenderParams(initial.center, initial.zoom);
   }
 
+  // TODO: This function is never called?? remove it?
   commitTarget() {
     this._current = this._target.asFrozen();
     console.log('-- commitTarget -- current params zoom:', this._current.zoom);

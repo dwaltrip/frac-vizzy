@@ -78,12 +78,6 @@ class Mandelbrot {
     this.canvas = canvas;
     this.container = container;
 
-    // @ts-ignore
-    window.zzz_getRenderedParams = () => {
-      // return this.getCurrentParams();
-      return this.lastRender?.params;
-    };
-
     this.workerManager = new WorkerManager(
       WORKER_URL,
       numWorkers,
@@ -102,15 +96,6 @@ class Mandelbrot {
       () => this.getCurrentParams(),
       (job: RenderJob) => this.queueRender(job),
     );
-
-    // // @ts-ignore
-    // window.zzz_jumpToDebugStateA = () => {
-    //   this.queueRender(new RenderJob(new RenderParams(BROKEN_PARAMS_EX_2_MISSING_TILES), this.canvas));
-    // };
-    // // @ts-ignore
-    // window.zzz_jumpToDebugStateB = () => {
-    //   this.queueRender(new RenderJob(new RenderParams(BROKEN_PARAMS_EX_2_MISSING_TILES_STATE_B), this.canvas));
-    // };
   }
 
   // TODO: iters param will be set by the user later.
@@ -173,8 +158,6 @@ class Mandelbrot {
       // perfStats.logStats('ctx.drawImage', '\t');
 
       if (this.pendingRender.isComplete) {
-        // console.log('-- render complete -- drawPoints count:', window.zzz_drawCounter.get());
-        // console.log('--- render complete ---', 'tile count:', this.pendingRender.targetTiles.length);
         this.lastRender = this.pendingRender;
         this.pendingRender = null;
       }
