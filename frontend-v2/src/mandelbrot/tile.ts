@@ -1,11 +1,6 @@
-import {
-  ComplexNum,
-  TileData,
-  TileCoord,
-  TileParams,
-} from '@/mandelbrot/types';
+import { TileData, TileCoord, TileParams } from '@/mandelbrot/types';
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
-import { calcPixelToComplexUnitScale, createZoomInfo } from '@/mandelbrot/zoom';
+import { createZoomInfo } from '@/mandelbrot/zoom';
 import { computeRegion } from '@/mandelbrot/core';
 
 // TODO: dedupe with `getTileId` in `tile-id.ts`
@@ -28,35 +23,6 @@ function computeTile({ coord, iters }: TileParams): TileData {
     zoomInfo.unitsPerPixel,
     iters,
   );
-}
-
-// TODO: we aren't getting tiles that partially overlap the view on top and left edges.
-function calculateVisibleTiles(
-  zoom: number,
-  center: ComplexNum,
-  tileSizePx: number,
-  view: { width: number; height: number },
-) {
-  const pxToMath = calcPixelToComplexUnitScale(zoom);
-  const region = {
-    width: view.width * pxToMath,
-    height: view.height * pxToMath,
-  };
-
-  const tileSize = tileSizePx * pxToMath;
-  const c = center;
-  const startTileX = Math.floor((c.re - region.width / 2) / tileSize);
-  const endTileX = Math.ceil((c.re + region.width / 2) / tileSize);
-  const startTileY = Math.floor((c.im - region.height / 2) / tileSize);
-  const endTileY = Math.ceil((c.im + region.height / 2) / tileSize);
-
-  const tiles = [];
-  for (let x = startTileX; x <= endTileX; x++) {
-    for (let y = endTileY; y >= startTileY; y--) {
-      tiles.push(makeTileCoord(x, y, zoom));
-    }
-  }
-  return tiles;
 }
 
 type TileGridRect = {
