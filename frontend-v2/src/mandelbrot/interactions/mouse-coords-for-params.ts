@@ -4,14 +4,14 @@ import {
   MousePos,
   Viewport,
 } from '@/mandelbrot/types';
-import { calcPixelToComplexUnitScale } from '@/mandelbrot/zoom';
+import { calcUnitsPerPixel } from '@/mandelbrot/zoom';
 
 function getMousePosAsComplexNumber(
   mousePos: MousePos,
   params: FrozenRenderParams,
   view: Viewport,
 ): ComplexNum {
-  const unitsPerPixel = calcPixelToComplexUnitScale(params.zoom);
+  const unitsPerPixel = calcUnitsPerPixel(params.zoom);
   const centerToMouseVec = {
     x: mousePos.x - view.width / 2,
     y: mousePos.y - view.height / 2,

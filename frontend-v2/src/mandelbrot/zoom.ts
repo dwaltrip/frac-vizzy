@@ -34,12 +34,6 @@ class ZoomInfo {
     // TODO: any issue with values like 3.9999999 ?
     return Math.floor(this.value);
   }
-
-  // --- DEPRECATED! --- (Add "deprecation warning"?)
-  get pxToMath(): number {
-    console.warn('pxToMath is deprecated. Use unitsPerPixel instead.');
-    return this.unitsPerPixel;
-  }
 }
 
 function createZoomInfo(zoom: number): ZoomInfo {
@@ -55,25 +49,25 @@ function tileSizePxScaledForFractionalZoom(
   defaultTileSizePx: PixelLen,
 ): PixelLen {
   const scale = zoomScaleFactor(zoom);
-  const rawRenderedTileSizePx = defaultTileSizePx * scale;
-  // We can (and MUST) use Math.round here as rawRenderedTileSizePx
+  const rawScaledTileSizePx = defaultTileSizePx * scale;
+  // We can (and MUST) use Math.round here as rawScaledTileSizePx
   // should be incredibly close to an integer already.
   // In CanvasManger, we only call renderMandelbrot when we hit the next
   //   increment of tile sizes of integer dimensions.
   // Due to floating point rounding issues, Math.floor won't work here.
   // Refactor to make this more obvious / skip converting back and forth
   //   between zoom levels and tile sizes extra times?
-  return Math.round(rawRenderedTileSizePx);
+  return Math.round(rawScaledTileSizePx);
 }
 
 function calcFractionalZoomFromScaledTileSize(
-  renderedTileSizePx: PixelLen,
+  tileSizePxScaled: PixelLen,
 ): number {
   assert(
-    Number.isInteger(renderedTileSizePx),
-    'renderedTileSizePx must be an integer',
+    Number.isInteger(tileSizePxScaled),
+    'tileSizePxScaled must be an integer',
   );
-  return Math.log2(renderedTileSizePx / TILE_SIZE_IN_PX);
+  return Math.log2(tileSizePxScaled / TILE_SIZE_IN_PX);
 }
 
 function calcUnitsPerPixel(zoomLevel: number): PixelsPerUnit {
@@ -82,19 +76,10 @@ function calcUnitsPerPixel(zoomLevel: number): PixelsPerUnit {
   return 1 / (Math.pow(2, zoomLevel) * FIT_MOST_SCREENS_AT_ZOOM_LEVEL_0);
 }
 
-function calcPixelToComplexUnitScale(zoomLevel: number): PixelsPerUnit {
-  console.warn(
-    'calcPixelToComplexUnitScale is deprecated. Use calcUnitsPerPixel instead.',
-  );
-  return calcUnitsPerPixel(zoomLevel);
-}
-
 export {
+  type PixelLen,
+  TILE_SIZE_IN_PX,
   createZoomInfo,
   calcUnitsPerPixel,
-  calcPixelToComplexUnitScale,
-  TILE_SIZE_IN_PX,
-  type PixelLen,
-  tileSizePxScaledForFractionalZoom,
   calcFractionalZoomFromScaledTileSize,
 };
