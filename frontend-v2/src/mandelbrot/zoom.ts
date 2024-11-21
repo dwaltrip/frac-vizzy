@@ -1,7 +1,5 @@
 import { assert } from '@/utils/assert';
 
-import { RenderParamsLike } from '@/mandelbrot/params-manager';
-
 const FIT_MOST_SCREENS_AT_ZOOM_LEVEL_0 = 50;
 // TODO: Move this to more central location / settings file?
 const TILE_SIZE_IN_PX = 64;
@@ -79,11 +77,9 @@ function calcFractionalZoomFromScaledTileSize(
 }
 
 function calcUnitsPerPixel(zoomLevel: number): PixelsPerUnit {
+  // FIT_MOST_SCREENS_AT_ZOOM_LEVEL_0 could be any nubmer, as long as it's constant.
+  // The current value seems to fit the initial zoomed-out Mandelbrot on most screens.
   return 1 / (Math.pow(2, zoomLevel) * FIT_MOST_SCREENS_AT_ZOOM_LEVEL_0);
-}
-
-function tileSizeInComplexUnits(zoomLevel: number): ComplexLen {
-  return TILE_SIZE_IN_PX * calcUnitsPerPixel(zoomLevel);
 }
 
 function calcPixelToComplexUnitScale(zoomLevel: number): PixelsPerUnit {
@@ -97,7 +93,6 @@ export {
   createZoomInfo,
   calcUnitsPerPixel,
   calcPixelToComplexUnitScale,
-  tileSizeInComplexUnits,
   TILE_SIZE_IN_PX,
   type PixelLen,
   tileSizePxScaledForFractionalZoom,

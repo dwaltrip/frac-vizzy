@@ -60,7 +60,7 @@ function computeRegion(
   topLeft: ComplexNum,
   steps: { re: number; im: number },
   // Question: Can I use Typescript to distinguish mathToPx from arbitrary numbers?
-  pxToMath: number,
+  unitsPerPixel: number,
   iterLimit: number,
 ): SetStatus[][] {
   if (!Number.isInteger(steps.re) || !Number.isInteger(steps.im)) {
@@ -71,8 +71,8 @@ function computeRegion(
   for (let i = 0; i < steps.im; i++) {
     const row = [];
     for (let r = 0; r < steps.re; r++) {
-      const re = topLeft.re + r * pxToMath;
-      const im = topLeft.im - i * pxToMath;
+      const re = topLeft.re + r * unitsPerPixel;
+      const im = topLeft.im - i * unitsPerPixel;
       row.push(computeSetStatus({ re, im }, iterLimit));
     }
     points.push(row);

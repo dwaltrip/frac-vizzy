@@ -1,5 +1,3 @@
-import { perfStats } from '@/lib/perf-stats';
-
 import {
   ComplexNum,
   TileData,
@@ -7,13 +5,7 @@ import {
   TileParams,
 } from '@/mandelbrot/types';
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
-import {
-  TILE_SIZE_IN_PX,
-  calcPixelToComplexUnitScale,
-  tileSizeInComplexUnits,
-  calcUnitsPerPixel,
-  createZoomInfo,
-} from '@/mandelbrot/zoom';
+import { calcPixelToComplexUnitScale, createZoomInfo } from '@/mandelbrot/zoom';
 import { computeRegion } from '@/mandelbrot/core';
 
 // TODO: dedupe with `getTileId` in `tile-id.ts`
@@ -25,20 +17,17 @@ function makeTileCoord(x: number, y: number, z: number): TileCoord {
 }
 
 function computeTile({ coord, iters }: TileParams): TileData {
-  const timer = perfStats.startTimer('computeTile');
-  const zoom = coord.z;
-  const tileSize = tileSizeInComplexUnits(zoom);
-  const unitsPerPixel = calcUnitsPerPixel(zoom);
-
-  // return computeRegion(
-  const result = computeRegion(
+  const zoomInfo = createZoomInfo(coord.z);
+  return computeRegion(
     // TODO: tile should know its own top left? or make this a function?
-    { re: coord.x * tileSize, im: coord.y * tileSize },
-    { re: TILE_SIZE_IN_PX, im: TILE_SIZE_IN_PX },
-    unitsPerPixel,
+    {
+      re: coord.x * zoomInfo.tileSize,
+      im: coord.y * zoomInfo.tileSize,
+    },
+    { re: zoomInfo.TILE_SIZE_IN_PX, im: zoomInfo.TILE_SIZE_IN_PX },
+    zoomInfo.unitsPerPixel,
     iters,
   );
-  return timer.endWithResult(result);
 }
 
 // TODO: we aren't getting tiles that partially overlap the view on top and left edges.
@@ -83,9 +72,6 @@ function getTileGridRect(
   view: { width: number; height: number },
 ): TileGridRect {
   const zoomInfo = createZoomInfo(params.zoom);
-  // const truncZoom = Math.floor(zoom);
-  // const unitsPerPixel = calcUnitsPerPixel(zoom);
-  // const tileSize = tileSizeInComplexUnits(zoom);
   const region = {
     width: view.width * zoomInfo.unitsPerPixel,
     height: view.height * zoomInfo.unitsPerPixel,
