@@ -1,5 +1,3 @@
-import { perfStats } from '@/lib/perf-stats';
-
 import { WorkerManager, JobRelay } from '@/lib/backburner/worker-manager';
 import { BasicCache } from '@/lib/basic-cache';
 import { Queue } from '@/lib/queue';
@@ -24,31 +22,7 @@ const ITER_LIMIT = 50;
 // TODO: this should be dynamically determined and updated on window resize
 const CONTAINER_SIZE = { width: 800, height: 700 };
 
-const BROKEN_PARAMS_EX_1_MISSING_TILES = {
-  center: { re: -0.7629357228155087, im: -0.18048391004101227 },
-  zoom: 4.857980995127572,
-  iters: 50,
-  baseTileSizePx: 64,
-  view: { width: 800, height: 700 },
-};
-const BROKEN_PARAMS_EX_2_MISSING_TILES = {
-  center: { re: -0.8425942857142862, im: -0.29383605911330063 },
-  zoom: 4.857980995127572,
-  iters: 50,
-  baseTileSizePx: 128,
-  view: { width: 800, height: 700 },
-};
-
-const BROKEN_PARAMS_EX_2_MISSING_TILES_STATE_B = {
-  center: { re: -0.9074218719211844, im: -0.30487054187192164 },
-  zoom: 4.857980995127572,
-  iters: 50,
-  baseTileSizePx: 128,
-  view: { width: 800, height: 700 },
-};
-
 function getDefaultParams(): RenderParams {
-  // return new RenderParams(BROKEN_PARAMS_EX_2_MISSING_TILES);
   return new RenderParams({
     center: { re: 0, im: 0 },
     zoom: 1,
@@ -141,21 +115,12 @@ class Mandelbrot {
         return this.cache.has(tileId) ? this.cache.get(tileId) : null;
       };
 
-      // const t0 = performance.now();
-      // perfStats.resetStats('render-tile');
-      // perfStats.resetStats('points-to-bitmap');
-      // perfStats.resetStats('ctx.drawImage');
       try {
         await this.pendingRender.render(getTile);
       } catch (e) {
         console.error('--- Mandelbrot.renderLoop: error rendering ---');
         console.error(e);
       }
-      // console.log(`-- renderLoop --`, 'render time:',
-      //   (performance.now() - t0).toFixed(2), 'ms');
-      // perfStats.logStats('render-tile', '\t');
-      // perfStats.logStats('points-to-bitmap', '\t');
-      // perfStats.logStats('ctx.drawImage', '\t');
 
       if (this.pendingRender.isComplete) {
         this.lastRender = this.pendingRender;
