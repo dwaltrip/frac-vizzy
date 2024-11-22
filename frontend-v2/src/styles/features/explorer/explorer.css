@@ -2,6 +2,7 @@
   padding: 10px;
   /* background-color: #4b5167; */
   background-color: #7b829d;
+  position: relative;
 }
 
 .mb-canvas-container {

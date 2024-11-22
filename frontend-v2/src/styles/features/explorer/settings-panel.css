@@ -1,3 +1,42 @@
 .settings-panel {
-  display: none;
+  background-color: #7b829d;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+
+.settings-panel.visible {
+  display: block;
+}
+
+/* ---------------------------------------- */
+
+.slide-out-panel-container {
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #7b829d;
+  z-index: 10;
+}
+
+.slide-out-panel-container.visible {
+  border-right: 1px solid #555;
+}
+
+.slide-out-panel-opener {
+  width: 15px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+/* .slide-out-panel-opener:hover {
+  background-color: aquamarine;
+} */
+
+.slide-out-panel-content {
+  height: 100%;
+  padding: 10px;
 }
