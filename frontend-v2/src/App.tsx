@@ -1,4 +1,4 @@
-import { MandelbrotViewer } from '@/MandelbrotViewer';
+import { Explorer } from '@/features/explorer/Explorer';
 import '@/styles/App.css';
 
 function App() {
@@ -6,8 +6,7 @@ function App() {
   console.log('=== App component ===');
   return (
     <div className='app'>
-      <MandelbrotViewer />
-      {/* <PerfectZoomManually /> */}
+      <Explorer />
     </div>
   );
 }

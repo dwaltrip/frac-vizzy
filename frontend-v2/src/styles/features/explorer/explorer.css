@@ -1,0 +1,18 @@
+.explorer-page {
+  padding: 10px;
+  /* background-color: #4b5167; */
+  background-color: #7b829d;
+}
+
+.mb-canvas-container {
+  display: flex;
+  position: relative;
+  flex-grow: 1;
+  flex-direction: column;
+  border: 1px solid #555;
+  background-color: white;
+}
+
+canvas.mb-canvas {
+  position: absolute;
+}

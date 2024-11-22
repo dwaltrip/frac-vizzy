@@ -1,14 +1,19 @@
 import { useEffect, useRef } from 'react';
 import { Mandelbrot } from '@/mandelbrot/mandelbrot-v2';
 
+import { SettingsPanel } from './SettingsPanel';
+import '@/styles/features/explorer/Explorer.css';
+
 // TOOD: Make this configurable / user setting
 // Default to most of the available cores.
 const NUM_WORKERS = 8;
 // const NUM_WORKERS = 2;
 
-function MandelbrotViewer(): JSX.Element {
+function Explorer(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  console.log('-------- Explorer component --------');
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) {
@@ -27,10 +32,13 @@ function MandelbrotViewer(): JSX.Element {
   }, []);
 
   return (
-    <div className='mb-view-container' ref={containerRef}>
-      <canvas className='mb-canvas' ref={canvasRef} />
+    <div className='page explorer-page'>
+      <SettingsPanel />
+      <div className='mb-canvas-container' ref={containerRef}>
+        <canvas className='mb-canvas' ref={canvasRef} />
+      </div>
     </div>
   );
 }
 
-export { MandelbrotViewer };
+export { Explorer };

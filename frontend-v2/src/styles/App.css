@@ -1,20 +1,11 @@
 .app {
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  height: 100%;
   display: flex;
   flex-direction: row;
-  background-color: #f7f7f7;
-  background-color: #e1ddd5;
-}
-
-.mb-view-container {
-  display: flex;
-  position: relative;
-  flex-direction: column;
-  border: 1px solid #999;
-  flex-grow: 1;
-  background-color: white;
-}
-
-canvas.mb-canvas {
-  position: absolute;
+  flex: 1;
 }
