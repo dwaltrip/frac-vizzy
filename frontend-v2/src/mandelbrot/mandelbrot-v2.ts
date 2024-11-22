@@ -1,8 +1,9 @@
 import { WorkerManager, JobRelay } from '@/lib/backburner/worker-manager';
 import { BasicCache } from '@/lib/basic-cache';
 import { Queue } from '@/lib/queue';
+// import { throttle } from '@/lib/throttle';
 
-import { TileID, TileParams, TileResult, Viewport } from '@/mandelbrot/types';
+import { TileID, TileParams, TileResult } from '@/mandelbrot/types';
 
 import {
   FrozenRenderParams,
@@ -97,11 +98,16 @@ class Mandelbrot {
   }
 
   setup() {
-    this.resizeCanvas(CONTAINER_SIZE);
     this.interactionManager.attachEventListeners();
 
     window.requestAnimationFrame(this.renderLoop);
     this.queueRender(new RenderJob(getDefaultParams(), this.canvas));
+
+    // --------------------------------------------------------
+    // TODO: where should this go
+    window.addEventListener('resize', this.handleWindowResize);
+    this.handleWindowResize();
+    // --------------------------------------------------------
   }
 
   cleanup() {
@@ -131,12 +137,28 @@ class Mandelbrot {
     window.requestAnimationFrame(this.renderLoop);
   };
 
-  private resizeCanvas(size: Viewport) {
-    this.container.style.width = `${size.width}px`;
-    this.container.style.height = `${size.height}px`;
-    this.canvas.width = size.width;
-    this.canvas.height = size.height;
-  }
+  // -----------------------------------------------------------
+  // TODO: this feels a little laggy / sluggish.
+  // Was the throttle contributing? Other ways to improve?
+  // As a reference point, look at how resizing feels without any mandelbrot viz.
+  // -----------------------------------------------------------
+  // TODO: possibly look into ResizeObserver
+  // -----------------------------------------------------------
+  private _handleWindowResize = () => {
+    // const rect = this.container.getBoundingClientRect();
+    // const newView = { width: rect.width, height: rect.height };
+    const newView = {
+      width: this.container.clientWidth,
+      height: this.container.clientHeight,
+    };
+    const target = { ...this.getCurrentParams(), view: newView };
+
+    this.queueRender(new RenderJob(target, this.canvas));
+    this.canvas.width = newView.width;
+    this.canvas.height = newView.height;
+  };
+  private handleWindowResize = this._handleWindowResize;
+  // private handleWindowResize = throttle(this._handleWindowResize, 30);
 
   onTileResultComputed = (result: TileResult) => {
     this.cache.set(getTileId(result.params), result);

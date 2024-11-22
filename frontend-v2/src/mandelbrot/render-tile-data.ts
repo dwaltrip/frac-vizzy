@@ -24,6 +24,9 @@ async function renderTile(
   tile: TileResult,
   params: FrozenRenderParams,
 ) {
+  // TODO: The view dimensions are stored on the render params now,
+  //   so we don't need to read from the canvas.
+  //   Can probably just pass `params` to `regionForView`.
   const view = { width: canvas.width, height: canvas.height };
   const region = regionForView(params.center, view, params.zoom);
   const grid = getTileGridRect(params, view);

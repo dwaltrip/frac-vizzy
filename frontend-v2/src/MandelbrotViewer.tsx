@@ -15,6 +15,7 @@ function MandelbrotViewer(): JSX.Element {
       return;
     }
 
+    // TODO: this is brittle to React ref changes, as this only runs on mount.
     const mandelbrot = new Mandelbrot(
       containerRef.current,
       canvasRef.current,
