@@ -7,4 +7,5 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FRONTEND_DIR="$(dirname "$DIR")/frontend-v2"
 
 cd "$FRONTEND_DIR"
+fnm use --log-level error
 npm run dev
