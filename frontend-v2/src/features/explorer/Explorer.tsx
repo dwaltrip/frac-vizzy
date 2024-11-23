@@ -12,6 +12,7 @@ const NUM_WORKERS = 8;
 function Explorer(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mandelbrotRef = useRef<Mandelbrot | null>(null);
 
   console.log('-------- Explorer component --------');
 
@@ -27,13 +28,22 @@ function Explorer(): JSX.Element {
       NUM_WORKERS,
     );
     mandelbrot.setup();
+    mandelbrotRef.current = mandelbrot;
 
     return () => mandelbrot.cleanup();
   }, []);
 
   return (
     <div className='page explorer-page'>
-      <SettingsPanel />
+      <SettingsPanel
+        onItersChange={(iters: number) => {
+          const mb = mandelbrotRef.current;
+          if (!mb) {
+            throw new Error('Mandelbrot instance not available');
+          }
+          mb.setIterations(iters);
+        }}
+      />
       <div className='mb-canvas-container' ref={containerRef}>
         <canvas className='mb-canvas' ref={canvasRef} />
       </div>

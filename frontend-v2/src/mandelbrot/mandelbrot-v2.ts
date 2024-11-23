@@ -78,6 +78,11 @@ class Mandelbrot {
     return ITER_LIMIT;
   }
 
+  setIterations(iters: number) {
+    const target = { ...this.getCurrentParams(), iters };
+    this.queueRender(new RenderJob(target, this.canvas));
+  }
+
   getCurrentParams(): FrozenRenderParams {
     if (!this.lastRender) {
       return getDefaultParams();
