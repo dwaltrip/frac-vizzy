@@ -1,3 +1,16 @@
+.settings-row .color-picker + .color-picker {
+  margin-left: 6px;
+}
+
+.settings-row > label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* ---------------------------------------- */
+/* Settings Panel Basic Layout */
+
 .settings-panel {
   background-color: #7b829d;
   position: absolute;
@@ -10,7 +23,39 @@
   display: block;
 }
 
+.settings-panel-content {
+  padding: 15px 10px;
+}
+
+.settings-panel-header {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.settings-rows-container {
+  display: grid;
+  grid-template-columns: repeat(2, auto); /* 2 auto-sized columns */
+  gap: 10px;
+  width: fit-content;
+}
+
+.settings-row {
+  display: contents;
+}
+
+.settings-row > label,
+.settings-row > .content {
+  min-width: 0;
+}
+
+.settings-row > .content {
+  display: flex;
+  flex-direction: row;
+  min-width: 0;
+}
+
 /* ---------------------------------------- */
+/* Slide Out Panel */
 
 .slide-out-panel-container {
   position: relative;
@@ -26,17 +71,13 @@
 }
 
 .slide-out-panel-opener {
-  width: 15px;
+  width: 30px;
   height: 100%;
   position: absolute;
   top: 0;
   left: 0;
 }
-/* .slide-out-panel-opener:hover {
-  background-color: aquamarine;
-} */
 
 .slide-out-panel-content {
   height: 100%;
-  padding: 10px;
 }
