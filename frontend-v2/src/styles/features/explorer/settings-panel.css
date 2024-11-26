@@ -12,15 +12,10 @@
 /* Settings Panel Basic Layout */
 
 .settings-panel {
+  height: 100%;
+  padding: 10px;
   background-color: #7b829d;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-}
-
-.settings-panel.visible {
-  display: block;
+  border-right: 1px solid #555;
 }
 
 .settings-panel-content {
@@ -58,16 +53,11 @@
 /* Slide Out Panel */
 
 .slide-out-panel-container {
-  position: relative;
+  position: absolute;
   top: 0;
   left: 0;
   height: 100%;
-  background-color: #7b829d;
   z-index: 10;
-}
-
-.slide-out-panel-container.visible {
-  border-right: 1px solid #555;
 }
 
 .slide-out-panel-opener {
@@ -78,6 +68,16 @@
   left: 0;
 }
 
-.slide-out-panel-content {
+.slide-out-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
   height: 100%;
+  transform: translateX(-100%);
+  transition: transform 200ms ease-out;
+}
+
+.slide-out-panel-container.visible .slide-out-panel {
+  transform: translateX(0);
 }
