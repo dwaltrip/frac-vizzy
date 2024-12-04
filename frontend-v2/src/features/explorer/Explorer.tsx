@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Mandelbrot } from '@/mandelbrot/mandelbrot-v2';
+import { Mandelbrot } from '@/mandelbrot';
 
 import { SettingsPanel } from './SettingsPanel';
 import '@/styles/features/explorer/Explorer.css';
