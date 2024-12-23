@@ -1,5 +1,5 @@
 // import { Color, ColorMapper, SetStatus, TileData } from '@/mandelbrot/types';
-import { Color, ColorMapper, SetStatus } from '@/mandelbrot/types';
+import { Color, ColorMapper, SetStatus, TileData } from '@/mandelbrot/types';
 
 type EscapeTimeColoParams = {
   maxIters: number;
@@ -37,4 +37,33 @@ function buildColorMapper(params: EscapeTimeColoParams): ColorMapper {
   };
 }
 
-export { buildColorMapper };
+function buildHistogramEqualized(
+  tiles: TileData[],
+  params: EscapeTimeColoParams,
+): ColorMapper {
+  // Build histogram of iteration counts
+  const histogram = new Array(params.maxIters + 1).fill(0);
+  tiles.forEach((tile) =>
+    tile.forEach((row) =>
+      row.forEach((status) => {
+        if (!status.isInSet) histogram[status.iters]++;
+      }),
+    ),
+  );
+
+  // Convert to cumulative histogram
+  let total = histogram.reduce((a, b) => a + b, 0);
+  let cumulative = 0;
+  const normalized = histogram.map((count) => {
+    cumulative += count;
+    return cumulative / total;
+  });
+
+  return (status: SetStatus) => {
+    if (status.isInSet) return params.colors.end;
+    const t = normalized[status.iters];
+    return lerpColor(params.colors.start, params.colors.end, t);
+  };
+}
+
+export { buildColorMapper, buildHistogramEqualized };
