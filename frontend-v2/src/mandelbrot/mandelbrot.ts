@@ -35,8 +35,17 @@ function getDefaultParams(): RenderParams {
     center: { re: 0, im: 0 },
     zoom: 1,
     iters: ITER_LIMIT,
-    baseTileSizePx: TILE_SIZE_IN_PX,
+
+    colors: {
+      algorithm: 'linear',
+      // color1: { r: 255, g: 255, b: 255 },
+      // color2: { r: 0, g: 0, b: 0 },
+      color1: { r: 255, g: 255, b: 255 },
+      color2: { r: 30, g: 0, b: 0 },
+    },
     view: CONTAINER_SIZE,
+
+    baseTileSizePx: TILE_SIZE_IN_PX,
   });
 }
 

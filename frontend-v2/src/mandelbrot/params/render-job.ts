@@ -60,7 +60,8 @@ class RenderJob {
     this.getColor = buildColorMapper({
       maxIters: params.iters,
       // colors: { start: rgb(0, 0, 0), end: rgb(255, 255, 255) },
-      colors: { start: rgb(255, 255, 255), end: rgb(0, 0, 0) },
+      // colors: { start: rgb(255, 255, 255), end: rgb(0, 0, 0) },
+      colors: { start: params.colors.color1, end: params.colors.color2 },
     });
   }
 
