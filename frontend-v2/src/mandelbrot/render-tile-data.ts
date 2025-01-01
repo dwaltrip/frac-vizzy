@@ -1,4 +1,5 @@
 import {
+  ColorMapper,
   ComplexNum,
   ComplexRegion,
   // FrozenRenderParams,
@@ -15,6 +16,7 @@ async function renderTile(
   canvas: HTMLCanvasElement,
   tile: TileResult,
   params: FrozenRenderParams,
+  getColor: ColorMapper,
 ) {
   // TODO: The view dimensions are stored on the render params now,
   //   so we don't need to read from the canvas.
@@ -82,7 +84,7 @@ async function renderTile(
   if (!ctx) throw new Error('2D context not available');
 
   try {
-    const imgBitmap = await pointsToBitmap(tile.data);
+    const imgBitmap = await pointsToBitmap(tile.data, getColor);
     // NOTE: Using `addTextToBitmap` is great for getting a live "debug" view of tile-level stuff
     // const debugInfo = `${coord.x}, ${coord.y}, ${coord.zoom} (${someDebugData})`;
     // let imgBitmap = await pointsToBitmap(tile.data, getColor);

@@ -1,3 +1,4 @@
+import { debounce } from '@/lib/debounce';
 import { WorkerManager, TaskRelay } from '@/lib/backburner/worker-manager';
 import { Queue } from '@/lib/queue';
 // import { throttle } from '@/lib/throttle';
@@ -104,6 +105,10 @@ class Mandelbrot {
       : this.lastRender.params;
   }
 
+  private afterRender = debounce(() => {
+    console.log('##~~ After render ~~##');
+  }, 100);
+
   statusFilter = (status: TileCalcStatus) => {
     return (params: TileParams) =>
       this.tileStore.getStatus(getTileId(params)) == status;
@@ -120,6 +125,8 @@ class Mandelbrot {
       numBusyWorkers = this.workerManager.busyWorkers.length;
       this.pendingRender.cancel();
     }
+
+    job.setOnCompletion(() => this.afterRender());
 
     this.pendingRender = job;
     const tilesToCompute = job.targetTiles.filter(

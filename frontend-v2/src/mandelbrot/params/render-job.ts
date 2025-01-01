@@ -1,4 +1,10 @@
-import { TileCoord, TileID, TileParams, TileResult } from '@/mandelbrot/types';
+import {
+  ColorMapper,
+  TileCoord,
+  TileID,
+  TileParams,
+  TileResult,
+} from '@/mandelbrot/types';
 
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
 import { calculateVisibleTilesUsingUpscaling } from '@/mandelbrot/tile';
@@ -8,8 +14,10 @@ import {
   getCornerSliceIndices,
 } from '@/mandelbrot/tile-grid/parent-info';
 
+import { buildColorMapper } from '@/mandelbrot/color-mapper';
 import { renderTile } from '@/mandelbrot/render-tile-data';
 import { IdGenerator } from '@/lib/backburner/id-generator';
+import { rgb } from '@/mandelbrot/utils/colors';
 
 enum RenderJobStatus {
   CREATED = 'CREATED',
@@ -26,9 +34,12 @@ class RenderJob {
   params: FrozenRenderParams;
   status: RenderJobStatus = RenderJobStatus.CREATED;
 
+  getColor: ColorMapper;
+
   private _id: string = generateId();
   private _targetTiles: TileCoord[];
   private _renderedTiles: Set<TileID> = new Set();
+  private _onCompletion: (() => void) | null = null;
 
   constructor(params: FrozenRenderParams, canvas: HTMLCanvasElement) {
     // params are the "target" params for this render
@@ -44,6 +55,13 @@ class RenderJob {
       `-- New render job (${this.id}) -- # of target tiles:`,
       this._targetTiles.length,
     );
+
+    // TODO: very rough simplistic proor of concept implementation of color mapper
+    this.getColor = buildColorMapper({
+      maxIters: params.iters,
+      // colors: { start: rgb(0, 0, 0), end: rgb(255, 255, 255) },
+      colors: { start: rgb(255, 255, 255), end: rgb(0, 0, 0) },
+    });
   }
 
   get id(): string {
@@ -61,6 +79,13 @@ class RenderJob {
     }));
   }
 
+  setOnCompletion(onCompletion: () => void) {
+    if (this._onCompletion) {
+      throw new Error('RenderJob.setOnCompletion - onCompletion already set');
+    }
+    this._onCompletion = onCompletion;
+  }
+
   async render(getTileResult: (tileId: TileID) => TileResult | null) {
     if (this.status !== RenderJobStatus.CREATED) {
       throw new Error('RenderJob.render - Invalid render job status');
@@ -74,7 +99,9 @@ class RenderJob {
       const tileResult = getTileResult(tileId);
 
       if (tileResult) {
-        await renderTile(this.canvas, tileResult, this.params);
+        // TODO: we are passing in the color mapper down through like 7 levels
+        // of function calls. Feels smelly, is there a better structure?
+        await renderTile(this.canvas, tileResult, this.params, this.getColor);
         this._renderedTiles.add(tileId);
       } else {
         // ----------------------------------------------------------
@@ -113,6 +140,10 @@ class RenderJob {
     // This feels hacky.
     if (this._renderedTiles.size === this._targetTiles.length) {
       this.status = RenderJobStatus.COMPLETE;
+
+      if (this._onCompletion) {
+        this._onCompletion();
+      }
     }
   }
 

@@ -75,6 +75,13 @@ type MousePos = {
   y: number;
 };
 
+namespace Color {
+  export type RGB = { r: number; g: number; b: number };
+  export type HSL = { h: number; s: number; l: number };
+}
+
+type ColorMapper = (status: SetStatus) => Color.RGB;
+
 // TODO: Break these up into domain-specific files
 export {
   type ComplexNum,
@@ -94,4 +101,6 @@ export {
   type ComplexRegion,
   type Viewport,
   type MousePos,
+  type Color,
+  type ColorMapper,
 };
