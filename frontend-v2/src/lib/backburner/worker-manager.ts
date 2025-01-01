@@ -10,28 +10,38 @@ enum WorkerStatus {
 // ----------------------------------------------------------------------------
 // -- WorkerManager --
 
-class WorkerManager<JobResult> {
+// TODO: can we get rid of the any types?
+// Maybe w/ generics the way we use `TaskResult`?
+interface WorkerManagerHooks {
+  beforeTask?: (task: any) => void;
+  afterTask?: (task: any, result: any) => void;
+}
+
+class WorkerManager<TaskResult> {
   private workerURL: URL;
-  private workers: BackburnerWorker<JobResult>[];
-  private onJobComplete: (result: any) => void;
-  private jobRelay: JobRelay;
+  private workers: BackburnerWorker<TaskResult>[];
+
+  private taskRelay: TaskRelay;
+  private hooks: WorkerManagerHooks;
 
   constructor(
     workerURL: URL,
     numberOfWorkers: number,
-    onJobComplete: (result: any) => void,
-    jobRelay: JobRelay,
+    taskRelay: TaskRelay,
+    hooks: WorkerManagerHooks = {},
   ) {
+    this.hooks = hooks || {};
+
     this.workerURL = workerURL;
     this.workers = [];
-    this.jobRelay = jobRelay;
-    this.onJobComplete = onJobComplete;
+    this.taskRelay = taskRelay;
+
     this.setNumberOfWorkers(numberOfWorkers);
   }
 
   setNumberOfWorkers(num: number): void {
     while (this.workers.length < num) {
-      this.workers.push(new BackburnerWorker<JobResult>(this.workerURL));
+      this.workers.push(this.createWorker());
     }
     while (this.workers.length > num) {
       const worker = this.workers.pop();
@@ -41,46 +51,73 @@ class WorkerManager<JobResult> {
     }
   }
 
+  get allWorkers(): BackburnerWorker<TaskResult>[] {
+    return this.workers;
+  }
+  get busyWorkers(): BackburnerWorker<TaskResult>[] {
+    return this.workers.filter((worker) => worker.isBusy);
+  }
+
+  createWorker(): BackburnerWorker<TaskResult> {
+    return new BackburnerWorker<TaskResult>(this.workerURL);
+  }
+
   get areAnyWorkersAvailable(): boolean {
     return this.workers.some((worker) => worker.isAvailable);
   }
 
-  get nextJob(): any | null {
-    return this.jobRelay.next();
+  popNextTask(): any | null {
+    return this.taskRelay.popNext();
   }
-  get hasJob(): boolean {
-    return this.jobRelay.hasJobs;
+  get hasTask(): boolean {
+    return this.taskRelay.hasTasks;
   }
 
-  get nextAvailableWorker(): BackburnerWorker<JobResult> | undefined {
+  get nextAvailableWorker(): BackburnerWorker<TaskResult> | undefined {
     return this.workers.find((worker) => worker.isAvailable);
   }
 
-  // This is purposefully idempotent
   startWorking() {
     let worker = this.nextAvailableWorker;
-    while (this.hasJob && worker) {
+    while (this.hasTask && worker) {
       // TODO: handle errors
-      worker.startJob(this.nextJob).then((result) => {
-        this.onJobComplete(result);
+      // TODO: The term "task" is a little misleading...
+      //   It's more like "task params", which are passed to the worker.
+      //   In our case, the actual value is a TileParams object.
+      const task = this.popNextTask();
+      this.beforeTask && this.beforeTask(task);
+
+      worker.startTask(task).then((result: any) => {
+        this.afterTask(task, result);
         this.startWorking();
       });
+
       worker = this.nextAvailableWorker;
     }
   }
-}
 
-class JobRelay {
-  private _hasJobs: () => boolean;
-  next: () => any | null;
-
-  constructor(hasJobs: () => boolean, getNext: () => any | null) {
-    this.next = getNext;
-    this._hasJobs = hasJobs;
+  beforeTask(task: any) {
+    const handler = this.hooks.beforeTask;
+    handler && handler(task);
   }
 
-  get hasJobs(): boolean {
-    return this._hasJobs();
+  afterTask(task: any, result: any) {
+    const handler = this.hooks.afterTask;
+    handler && handler(task, result);
+  }
+}
+
+class TaskRelay {
+  private _hasTasks: () => boolean;
+  popNext: () => any | null;
+
+  constructor(hasTasks: () => boolean, popNext: () => any | null) {
+    this.popNext = popNext;
+    this._hasTasks = hasTasks;
+  }
+
+  get hasTasks(): boolean {
+    return this._hasTasks();
   }
 }
 
@@ -95,6 +132,7 @@ type _WrappedWorker = Worker & {
 class BackburnerWorker<Result> {
   id: string;
   status: WorkerStatus;
+
   private worker: Remote<_WrappedWorker>;
   private pendingResult: Promise<Result> | null = null;
 
@@ -112,37 +150,28 @@ class BackburnerWorker<Result> {
   }
 
   // TODO: Get rid of these any types
-  startJob(job: any): Promise<Result> {
+  async startTask(task: any): Promise<Result> {
     if (this.pendingResult) {
-      console.log(
-        'DEBUG -- worker:',
-        this.id,
-        '\nstatus:',
-        this.status,
-        '\npendingResult:',
-        this.pendingResult,
-        '\npendingResult.then:',
-        this.pendingResult?.then,
-      );
-      throw new Error('Worker already has a pending job!');
+      console.warn(`DEBUG -- worker: ${this.id}, status: ${this.status}`);
+      console.warn(`DEBUG -- pendingResult: ${this.pendingResult}`);
+      throw new Error('Worker already has a pending task!');
     }
 
     this.status = WorkerStatus.BUSY;
-    // TODO: Error handling!!
-    //  Catch and report errors!!
+
+    // TODO: Improve error handling
     this.pendingResult = this.worker
-      .performWork(job)
+      .performWork(task)
       .then((result: Result) => {
         this.status = WorkerStatus.IDLE;
         this.pendingResult = null;
         return result;
       })
       .catch((error: any) => {
-        // TODO: what else should we do here?
         console.error('-- performWork error --');
-        console.error(error);
         throw error;
       });
+
     // TODO: Why does TS think this is a Promise<any> | null?
     return this.pendingResult!;
   }
@@ -154,4 +183,4 @@ class BackburnerWorker<Result> {
   static _generateId = IdGenerator.asFunc(3);
 }
 
-export { WorkerManager, JobRelay };
+export { WorkerManager, TaskRelay };

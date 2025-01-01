@@ -1,9 +1,14 @@
-import { WorkerManager, JobRelay } from '@/lib/backburner/worker-manager';
 import { BasicCache } from '@/lib/basic-cache';
+import { WorkerManager, TaskRelay } from '@/lib/backburner/worker-manager';
 import { Queue } from '@/lib/queue';
 // import { throttle } from '@/lib/throttle';
 
-import { TileID, TileParams, TileResult } from '@/mandelbrot/types';
+import {
+  TileID,
+  TileCalcTask,
+  TileResult,
+  TileParams,
+} from '@/mandelbrot/types';
 
 import {
   FrozenRenderParams,
@@ -41,7 +46,7 @@ class Mandelbrot {
   pendingRender: RenderJob | null = null;
 
   private cache = new BasicCache<TileResult>();
-  private workQueue = new Queue<TileParams>();
+  private workQueue = new Queue<TileCalcTask>();
   private workerManager: WorkerManager<TileResult>;
   private interactionManager: InteractionManager;
 
@@ -56,14 +61,16 @@ class Mandelbrot {
     this.workerManager = new WorkerManager(
       WORKER_URL,
       numWorkers,
-      this.onTileResultComputed,
-      new JobRelay(
+      new TaskRelay(
         () => !this.workQueue.isEmpty,
         () => {
-          const tile = this.workQueue.dequeue();
-          return tile ? [tile] : null;
+          const task = this.workQueue.dequeue();
+          return task || null;
         },
       ),
+      {
+        afterTask: this.onTileResultComputed,
+      },
     );
 
     this.interactionManager = new InteractionManager(
@@ -98,7 +105,16 @@ class Mandelbrot {
     }
 
     this.pendingRender = job;
-    this.workQueue.replaceWith(job.targetTiles);
+    // TODO: the coupling / relationship between `workQueue` and `workerManager`
+    // should be more explicit, clear, and clean.
+    // They are linked by the "TaskRelay" object that gets passed into `new workerManager`.
+    // e.g. mabye we pass in a new "queue" of target tiles?
+    this.workQueue.replaceWith(
+      job.targetTiles.map((params) => ({
+        params,
+        context: { renderId: job.id },
+      })),
+    );
     this.workerManager.startWorking();
   }
 

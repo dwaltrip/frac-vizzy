@@ -31,6 +31,13 @@ interface TileParams {
   iters: number;
 }
 
+interface TileCalcTask {
+  params: TileParams;
+  context: {
+    renderId: string;
+  };
+}
+
 interface TileResult {
   params: TileParams;
   data: TileData;
@@ -76,6 +83,7 @@ export {
   type RegionData,
   type TileData,
   type TileParams,
+  type TileCalcTask,
   type TileResult,
   type ParentInfo,
   type TileCorner,
