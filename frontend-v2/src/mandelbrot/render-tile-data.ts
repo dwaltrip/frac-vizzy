@@ -2,7 +2,6 @@ import {
   ComplexNum,
   ComplexRegion,
   // FrozenRenderParams,
-  RegionData,
   TileResult,
   Viewport,
 } from '@/mandelbrot/types';
@@ -11,13 +10,6 @@ import { pointsToBitmap } from '@/mandelbrot/utils/points-to-bitmap';
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
 import { calcUnitsPerPixel, createZoomInfo } from '@/mandelbrot/zoom';
 import { getTileGridRect } from '@/mandelbrot/tile';
-
-interface ImageSpec {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
 
 async function renderTile(
   canvas: HTMLCanvasElement,
@@ -86,20 +78,18 @@ async function renderTile(
     dest.height += canvasCoords.y;
   }
 
-  await renderRegionData(canvas, tile.data, source, dest);
-}
-
-async function renderRegionData(
-  canvas: HTMLCanvasElement,
-  data: RegionData,
-  source: ImageSpec,
-  dest: ImageSpec,
-) {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('2D context not available');
 
   try {
-    let imgBitmap = await pointsToBitmap(data);
+    const imgBitmap = await pointsToBitmap(tile.data);
+    // NOTE: Using `addTextToBitmap` is great for getting a live "debug" view of tile-level stuff
+    // const debugInfo = `${coord.x}, ${coord.y}, ${coord.zoom} (${someDebugData})`;
+    // let imgBitmap = await pointsToBitmap(tile.data, getColor);
+    // imgBitmap = await addTextToBitmap(imgBitmap, debugInfo, {
+    //   fontSize: 8,
+    //   padding: 2,
+    // });
 
     ctx.drawImage(
       imgBitmap,

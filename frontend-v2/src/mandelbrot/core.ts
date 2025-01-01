@@ -59,7 +59,7 @@ function computeSetStatus(c: ComplexNum, iterLimit: number): SetStatus {
 function computeRegion(
   topLeft: ComplexNum,
   steps: { re: number; im: number },
-  // Question: Can I use Typescript to distinguish mathToPx from arbitrary numbers?
+  // Question: Can I use Typescript to distinguish unitsPerPixel from arbitrary numbers?
   unitsPerPixel: number,
   iterLimit: number,
 ): SetStatus[][] {
