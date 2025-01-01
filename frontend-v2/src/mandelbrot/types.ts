@@ -38,6 +38,8 @@ interface TileCalcTask {
   };
 }
 
+type TileCalcStatus = 'not started' | 'in progress' | 'complete';
+
 interface TileResult {
   params: TileParams;
   data: TileData;
@@ -84,6 +86,7 @@ export {
   type TileData,
   type TileParams,
   type TileCalcTask,
+  type TileCalcStatus,
   type TileResult,
   type ParentInfo,
   type TileCorner,

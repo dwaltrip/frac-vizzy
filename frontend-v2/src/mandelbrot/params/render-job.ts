@@ -31,11 +31,19 @@ class RenderJob {
   private _renderedTiles: Set<TileID> = new Set();
 
   constructor(params: FrozenRenderParams, canvas: HTMLCanvasElement) {
+    // params are the "target" params for this render
     this.params = params;
     this.canvas = canvas;
 
     const view = params.view;
+    // TODO: this feels kind of hidden... probably doesn't belong here.
+    // Probably should be calculated in `mandelbrot` or something like that,
+    // and passed into each new RenderJob.
     this._targetTiles = calculateVisibleTilesUsingUpscaling(this.params, view);
+    console.log(
+      `-- New render job (${this.id}) -- # of target tiles:`,
+      this._targetTiles.length,
+    );
   }
 
   get id(): string {
@@ -53,7 +61,7 @@ class RenderJob {
     }));
   }
 
-  async render(getTile: (tileId: TileID) => TileResult | null) {
+  async render(getTileResult: (tileId: TileID) => TileResult | null) {
     if (this.status !== RenderJobStatus.CREATED) {
       throw new Error('RenderJob.render - Invalid render job status');
     }
@@ -63,10 +71,10 @@ class RenderJob {
     let skipCount = 0;
     for (const tp of this.targetTiles) {
       const tileId = getTileId(tp);
-      const tile = getTile(tileId);
+      const tileResult = getTileResult(tileId);
 
-      if (tile) {
-        await renderTile(this.canvas, tile, this.params);
+      if (tileResult) {
+        await renderTile(this.canvas, tileResult, this.params);
         this._renderedTiles.add(tileId);
       } else {
         // ----------------------------------------------------------
@@ -98,11 +106,8 @@ class RenderJob {
         // --------------------------------------------------
       }
     }
-    // console.log('skipped tiles:', skipCount);
-
-    // if (this._renderedTiles.size > 50) {
-    //   console.log('--- RenderJob.render ---', 'current rendered tile count:', this._renderedTiles.size);
-    // }
+    const fractionDone = `${this._renderedTiles.size}/${this._targetTiles.length}`;
+    console.log('\tRenderJob.render:', fractionDone, 'tiles rendered');
 
     // TODO (2024-11-017): is there a better way to know we are done rendering?
     // This feels hacky.

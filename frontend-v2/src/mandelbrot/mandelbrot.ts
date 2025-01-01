@@ -1,4 +1,3 @@
-import { BasicCache } from '@/lib/basic-cache';
 import { WorkerManager, TaskRelay } from '@/lib/backburner/worker-manager';
 import { Queue } from '@/lib/queue';
 // import { throttle } from '@/lib/throttle';
@@ -7,6 +6,7 @@ import {
   TileID,
   TileCalcTask,
   TileResult,
+  TileCalcStatus,
   TileParams,
 } from '@/mandelbrot/types';
 
@@ -18,6 +18,7 @@ import { InteractionManager } from '@/mandelbrot/interactions/interaction-manage
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
 import { RenderJob } from '@/mandelbrot/params/render-job';
 import { getTileId } from '@/mandelbrot/tile-id';
+import { TileStore } from '@/mandelbrot/tile-grid/tile-store';
 
 // TODO: is it possible to use an absolute path?
 const WORKER_URL = new URL('./worker.ts', import.meta.url);
@@ -45,7 +46,7 @@ class Mandelbrot {
   lastRender: RenderJob | null = null;
   pendingRender: RenderJob | null = null;
 
-  private cache = new BasicCache<TileResult>();
+  private tileStore = new TileStore();
   private workQueue = new Queue<TileCalcTask>();
   private workerManager: WorkerManager<TileResult>;
   private interactionManager: InteractionManager;
@@ -69,6 +70,10 @@ class Mandelbrot {
         },
       ),
       {
+        beforeTask: (task: TileCalcTask) => {
+          const tileId = getTileId(task.params);
+          this.tileStore.setAsInProgress(tileId, task.params);
+        },
         afterTask: this.onTileResultComputed,
       },
     );
@@ -99,18 +104,46 @@ class Mandelbrot {
       : this.lastRender.params;
   }
 
+  statusFilter = (status: TileCalcStatus) => {
+    return (params: TileParams) =>
+      this.tileStore.getStatus(getTileId(params)) == status;
+  };
+
+  // TODO: InteractionManager shouldn't craete a new RenderJob,
+  // it should just pass the new target params to the Mandelbrot instance
+  // and then the Mandelbrot instance should create the new RenderJob.
+  // Then we could get rid of the `setOnCompletion` method on RenderJob.
+  // And also pass the `tileStore` into the RenderJob constructor.
   queueRender(job: RenderJob) {
+    let numBusyWorkers = 0;
     if (this.pendingRender) {
+      numBusyWorkers = this.workerManager.busyWorkers.length;
       this.pendingRender.cancel();
     }
 
     this.pendingRender = job;
+    const tilesToCompute = job.targetTiles.filter(
+      this.statusFilter('not started'),
+    );
+
+    // --------------- helpful logging ----------------
+    const numInProgress = job.targetTiles.filter(
+      this.statusFilter('in progress'),
+    ).length;
+    const logInfo = [
+      `tiles to compute: ${tilesToCompute.length}`,
+      `tiles in progress: ${numInProgress}`,
+      ...(numBusyWorkers > 0 ? [`workers busy: ${numBusyWorkers}`] : []),
+    ];
+    console.log(`\tqueuing render job -- (${logInfo.join(' | ')})`);
+    // ---------------
+
     // TODO: the coupling / relationship between `workQueue` and `workerManager`
     // should be more explicit, clear, and clean.
     // They are linked by the "TaskRelay" object that gets passed into `new workerManager`.
     // e.g. mabye we pass in a new "queue" of target tiles?
     this.workQueue.replaceWith(
-      job.targetTiles.map((params) => ({
+      tilesToCompute.map((params) => ({
         params,
         context: { renderId: job.id },
       })),
@@ -118,6 +151,7 @@ class Mandelbrot {
     this.workerManager.startWorking();
   }
 
+  // TODO: is there a reason for this to exist? can we just use the constructor?
   setup() {
     this.interactionManager.attachEventListeners();
 
@@ -138,12 +172,13 @@ class Mandelbrot {
 
   private renderLoop = async () => {
     if (this.pendingRender) {
-      const getTile = (tileId: TileID) => {
-        return this.cache.has(tileId) ? this.cache.get(tileId) : null;
+      const getTileResult = (tileId: TileID) => {
+        const [calcStatus, result] = this.tileStore.get(tileId);
+        return calcStatus == 'complete' ? result : null;
       };
 
       try {
-        await this.pendingRender.render(getTile);
+        await this.pendingRender.render(getTileResult);
       } catch (e) {
         console.error('--- Mandelbrot.renderLoop: error rendering ---');
         console.error(e);
@@ -181,8 +216,9 @@ class Mandelbrot {
   private handleWindowResize = this._handleWindowResize;
   // private handleWindowResize = throttle(this._handleWindowResize, 30);
 
-  onTileResultComputed = (result: TileResult) => {
-    this.cache.set(getTileId(result.params), result);
+  onTileResultComputed = (task: TileCalcTask, result: TileResult) => {
+    const tileId = getTileId(task.params);
+    this.tileStore.cacheResult(tileId, result);
   };
 }
 
