@@ -46,10 +46,10 @@ function zoomScaleFactor(zoom: number): number {
 
 function tileSizePxScaledForFractionalZoom(
   zoom: number,
-  defaultTileSizePx: PixelLen,
+  baseTileSizePx: PixelLen,
 ): PixelLen {
   const scale = zoomScaleFactor(zoom);
-  const rawScaledTileSizePx = defaultTileSizePx * scale;
+  const rawScaledTileSizePx = baseTileSizePx * scale;
   // We can (and MUST) use Math.round here as rawScaledTileSizePx
   // should be incredibly close to an integer already.
   // In CanvasManger, we only call renderMandelbrot when we hit the next
