@@ -8,6 +8,8 @@ import {
   TileResult,
   TileCalcStatus,
   TileParams,
+  ColorMapper,
+  TileData,
 } from '@/mandelbrot/types';
 
 import {
@@ -23,7 +25,7 @@ import { TileStore } from '@/mandelbrot/tile-grid/tile-store';
 
 import {
   buildColorMapper,
-  // buildHistogramEqualized,
+  buildHistogramEqualized,
 } from '@/mandelbrot/color-mapper';
 
 // TODO: is it possible to use an absolute path?
@@ -131,8 +133,44 @@ class Mandelbrot {
   }
 
   private afterRender = debounce(() => {
-    console.log('##~~ After render ~~##');
-  }, 100);
+    console.log(
+      '##~~ After render ~~##',
+      'last render:',
+      this.lastRender?.id,
+      '-- pending render:',
+      this.pendingRender?.id,
+    );
+
+    // --------------------------------------------------------------------------------
+    // --------------------------------------------------------------------------------
+    // TODO: this is a mess
+    // --------------------------------------------------------------------------------
+    // --------------------------------------------------------------------------------
+    if (
+      this.lastRender &&
+      !this.pendingRender &&
+      this.lastRender !== this.lastLastRender
+    ) {
+      const tileResults = this.lastRender.targetTiles.map((tc) => {
+        const tileId = getTileId(tc);
+        const [calcStatus, result] = this.tileStore.get(tileId);
+        return result?.data as TileData;
+      });
+
+      const {
+        iters,
+        colors: { color1, color2 },
+      } = this.lastRender.params;
+      const mapperParams = {
+        maxIters: iters,
+        colors: { start: color1, end: color2 },
+      };
+      this.lastRender.render(
+        buildHistogramEqualized(tileResults, mapperParams),
+      );
+      this.lastLastRender = this.lastRender;
+    }
+  }, 50);
 
   statusFilter = (status: TileCalcStatus) => {
     return (params: TileParams) =>
@@ -140,21 +178,6 @@ class Mandelbrot {
   };
 
   queueRender(target: FrozenRenderParams) {
-    // const { color1, color2, algorithm: _ } = target.colors;
-    const { color1, color2 } = target.colors;
-
-    const colorParams = {
-      maxIters: target.iters,
-      colors: { start: color1, end: color2 },
-    };
-    const getColor = buildColorMapper(colorParams);
-
-    // const useHistogram = false;
-    // const getColor = (useHistogram ?
-    //   buildHistogramEqualized([], colorParams) :
-    //   buildColorMapper(colorParams)
-    // );
-
     let numBusyWorkers = 0;
     if (this.pendingRender) {
       numBusyWorkers = this.workerManager.busyWorkers.length;
@@ -165,7 +188,6 @@ class Mandelbrot {
       target,
       this.canvas,
       this.tileStore,
-      getColor,
       { onCompletion: () => this.afterRender() },
     ));
 
@@ -217,10 +239,30 @@ class Mandelbrot {
     // this.workerManager.terminate();
   }
 
+  buildColorMapperForParams(params: FrozenRenderParams): ColorMapper {
+    // const { color1, color2, algorithm: _ } = target.colors;
+    const { color1, color2 } = params.colors;
+
+    const mapperParams = {
+      maxIters: params.iters,
+      colors: { start: color1, end: color2 },
+    };
+    return buildColorMapper(mapperParams);
+
+    // const useHistogram = false;
+    // const getColor = (useHistogram ?
+    //   buildHistogramEqualized([], colorParams) :
+    //   buildColorMapper(colorParams)
+    // );
+  }
+
   private renderLoop = async () => {
     if (this.pendingRender) {
       try {
-        await this.pendingRender.render();
+        const getColor = this.buildColorMapperForParams(
+          this.pendingRender.params,
+        );
+        await this.pendingRender.render(getColor);
       } catch (e) {
         console.error('--- Mandelbrot.renderLoop: error rendering ---');
         console.error(e);

@@ -33,7 +33,7 @@ class RenderJob {
 
   status: RenderJobStatus = RenderJobStatus.CREATED;
 
-  getColor: ColorMapper;
+  // getColor: ColorMapper;
 
   private _id: string = generateId();
   private _targetTiles: TileCoord[];
@@ -44,14 +44,14 @@ class RenderJob {
     params: FrozenRenderParams,
     canvas: HTMLCanvasElement,
     tileStore: TileStore,
-    getColor: ColorMapper,
+    // getColor: ColorMapper,
     hooks: RenderJobHooks,
   ) {
     // params are the "target" params for this render
     this.params = params;
     this.canvas = canvas;
     this.tileStore = tileStore;
-    this.getColor = getColor;
+    // this.getColor = getColor;
     this.hooks = hooks;
 
     const view = params.view;
@@ -80,10 +80,10 @@ class RenderJob {
     }));
   }
 
-  async render() {
-    if (this.status !== RenderJobStatus.CREATED) {
-      throw new Error('RenderJob.render - Invalid render job status');
-    }
+  async render(getColor: ColorMapper) {
+    // if (this.status !== RenderJobStatus.CREATED) {
+    //   throw new Error('RenderJob.render - Invalid render job status');
+    // }
 
     this.clearCanvas();
 
@@ -96,7 +96,7 @@ class RenderJob {
       if (calcStatus === 'complete' && tileResult) {
         // TODO: we are passing in the color mapper down through like 7 levels
         // of function calls. Feels smelly, is there a better structure?
-        await renderTile(this.canvas, tileResult, this.params, this.getColor);
+        await renderTile(this.canvas, tileResult, this.params, getColor);
         this._renderedTiles.add(tileId);
       } else {
         // ----------------------------------------------------------
@@ -129,7 +129,11 @@ class RenderJob {
       }
     }
     const fractionDone = `${this._renderedTiles.size}/${this._targetTiles.length}`;
-    console.log('\tRenderJob.render:', fractionDone, 'tiles rendered');
+    console.log(
+      `\tRenderJob.render (${this.id}):`,
+      fractionDone,
+      'tiles rendered',
+    );
 
     // TODO (2024-11-017): is there a better way to know we are done rendering?
     // This feels hacky.
