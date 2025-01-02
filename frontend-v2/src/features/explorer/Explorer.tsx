@@ -1,5 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
 import { Mandelbrot } from '@/mandelbrot';
+import {
+  RenderParamsData,
+  RenderParamsUpdate,
+} from '@/mandelbrot/params/render-params';
 
 import { SettingsPanel } from './SettingsPanel';
 import '@/styles/features/explorer/Explorer.css';
@@ -13,6 +18,8 @@ function Explorer(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const mandelbrotRef = useRef<Mandelbrot | null>(null);
+
+  const [params, setParams] = useState<RenderParamsData | null>(null);
 
   console.log('-------- Explorer component --------');
 
@@ -29,6 +36,7 @@ function Explorer(): JSX.Element {
     );
     mandelbrot.setup();
     mandelbrotRef.current = mandelbrot;
+    setParams(mandelbrot.getCurrentParams());
 
     return () => mandelbrot.cleanup();
   }, []);
@@ -36,12 +44,14 @@ function Explorer(): JSX.Element {
   return (
     <div className='page explorer-page'>
       <SettingsPanel
-        onItersChange={(iters: number) => {
+        params={params}
+        updateParams={(changes: RenderParamsUpdate) => {
           const mb = mandelbrotRef.current;
           if (!mb) {
             throw new Error('Mandelbrot instance not available');
           }
-          mb.setIterations(iters);
+          mb.updateParams(changes);
+          setParams(mb.getCurrentParams());
         }}
       />
       <div className='mb-canvas-container' ref={containerRef}>

@@ -14,6 +14,7 @@ import {
 import {
   FrozenRenderParams,
   RenderParams,
+  RenderParamsUpdate,
 } from '@/mandelbrot/params/render-params';
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
@@ -102,6 +103,30 @@ class Mandelbrot {
 
   setIterations(iters: number) {
     const target = { ...this.getCurrentParams(), iters };
+    this.queueRender(new RenderJob(target, this.canvas));
+  }
+
+  updateParams(update: RenderParamsUpdate) {
+    const current = this.getCurrentParams();
+    const target = new RenderParams(current).clone();
+
+    switch (update.type) {
+      case 'center':
+        target.center = update.value;
+        break;
+      case 'zoom':
+        target.zoom = update.value;
+        break;
+      case 'iters':
+        target.iters = update.value;
+        break;
+      case 'colors':
+        target.colors = { ...current.colors, ...update.value };
+        break;
+      case 'view':
+        target.view = update.value;
+        break;
+    }
     this.queueRender(new RenderJob(target, this.canvas));
   }
 

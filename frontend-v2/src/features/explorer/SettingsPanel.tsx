@@ -4,6 +4,12 @@ import { ColorPicker } from '@/ui/ColorPicker';
 
 import '@/styles/features/explorer/settings-panel.css';
 import classnames from 'classnames';
+import {
+  FrozenRenderParams,
+  RenderParamsUpdate,
+  ColoringAlgorithm,
+} from '@/mandelbrot/params/render-params';
+import { Color } from '@/mandelbrot/types';
 
 const ITERATION_VALUE_OPTS = [100, 250, 500, 1000, 2500, 5000].map((num) => {
   const value = '' + num;
@@ -13,11 +19,9 @@ const ITERATION_VALUE_OPTS = [100, 250, 500, 1000, 2500, 5000].map((num) => {
 // ----------------------------------------------------------------------
 // TODO: These are placeholders for now, need to implement the real thing
 // Also need to figure out where to put this
-const COLOR_STYLE_OPTS = [
-  { value: 'gradient', text: 'Gradient' },
-  { value: 'smooth', text: 'Smooth' },
-  { value: 'solid', text: 'Solid' },
-  { value: 'really long text', text: 'Really long text' },
+const COLOR_ALGORITHM_OPTS = [
+  { value: 'linear', text: 'Linear' },
+  { value: 'histogram', text: 'Histogram' },
 ];
 // ----------------------------------------------------------------------
 
@@ -42,26 +46,39 @@ function SettingsRow({
 // ----------------------------------------------------------------------
 
 function SettingsPanel({
-  onItersChange,
+  params,
+  updateParams,
 }: {
-  onItersChange: (iters: number) => void;
+  params: FrozenRenderParams | null;
+  updateParams: (params: RenderParamsUpdate) => void;
 }) {
   // ---------------------------------------------------------------
   // TODO: these are placeholders for now so the code can run
   // Will implement the actual functionality later
-  const [color1, setColor1] = useState({ r: 70, g: 70, b: 70 });
-  const [color2, setColor2] = useState({ r: 255, g: 255, b: 255 });
-  const [colorStyle, setColorStyle] = useState('gradient');
   const [numCPUs, setNumCPUs] = useState(2);
   // ---------------------------------------------------------------
 
-  const [iters, _setIters] = useState(100);
   const setIters = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = parseInt(event.target.value, 10);
-    _setIters(value);
-    onItersChange(value);
+    updateParams({ type: 'iters', value });
   };
-  console.log('iters:', iters);
+  const setColor1 = (color: Color.RGB) => {
+    updateParams({ type: 'colors', value: { color1: color } });
+  };
+  const setColor2 = (color: Color.RGB) => {
+    updateParams({ type: 'colors', value: { color2: color } });
+  };
+  const setColorAlgo = (algo: ColoringAlgorithm) => {
+    updateParams({ type: 'colors', value: { algorithm: algo } });
+  };
+
+  if (!params) {
+    return null;
+  }
+  const {
+    iters,
+    colors: { color1, color2, algorithm },
+  } = params;
 
   return (
     <SlideOutPanel>
@@ -85,19 +102,21 @@ function SettingsPanel({
               </select>
             </SettingsRow>
 
-            <SettingsRow label='Color'>
+            <SettingsRow label='Colors'>
               <ColorPicker color={color1} onChange={setColor1} />
               <ColorPicker color={color2} onChange={setColor2} />
             </SettingsRow>
 
-            {/* TODO: Decide if "Color Style" is the best label, UX-wise */}
-            <SettingsRow label='Color Style'>
+            {/* TODO: Decide if "Visualization Style" is the best label, UX-wise */}
+            <SettingsRow label='Visualization Style'>
               <select
                 className='settings-select'
-                value={colorStyle}
-                onChange={(e) => setColorStyle(e.target.value)}
+                value={algorithm}
+                onChange={(e) =>
+                  setColorAlgo(e.target.value as ColoringAlgorithm)
+                }
               >
-                {COLOR_STYLE_OPTS.map(({ value, text }) => (
+                {COLOR_ALGORITHM_OPTS.map(({ value, text }) => (
                   <option value={value} key={value}>
                     {text}
                   </option>
