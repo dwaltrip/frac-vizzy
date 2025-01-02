@@ -16,6 +16,8 @@ class ZoomInfo {
   unitsPerPixel: number;
   scaleFactor: number;
 
+  // TODO: dont use global var TILE_SIZE_IN_PX
+  // Use RenderParams.baseTileSizePx instead
   constructor(zoomValue: number) {
     this.value = zoomValue;
     this.TILE_SIZE_IN_PX = TILE_SIZE_IN_PX;

@@ -1,11 +1,7 @@
 import { MousePos } from '@/mandelbrot/types';
 
 import { getMousePos } from '@/mandelbrot/utils/get-mouse-pos';
-import {
-  FrozenRenderParams,
-  RenderParams,
-} from '@/mandelbrot/params/render-params';
-import { RenderJob } from '@/mandelbrot/params/render-job';
+import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
 
 import { performZoom } from './perform-zoom';
 import { performPan } from './perform-pan';
@@ -17,7 +13,7 @@ class InteractionManager {
   constructor(
     private canvas: HTMLCanvasElement,
     private getCurrentParams: () => FrozenRenderParams,
-    private requestRender: (job: RenderJob) => void,
+    private requestRender: (target: FrozenRenderParams) => void,
   ) {
     this.canvas = canvas;
     this.getCurrentParams = getCurrentParams;
@@ -49,7 +45,7 @@ class InteractionManager {
       this.panMousePos = pos;
 
       const target = performPan(this.getCurrentParams(), panVec);
-      this.requestRender(new RenderJob(target, this.canvas));
+      this.requestRender(target);
     }
   };
 
@@ -60,7 +56,7 @@ class InteractionManager {
 
     const target = performZoom(this.getCurrentParams(), zoomAmt, mousePos);
     if (target) {
-      this.requestRender(new RenderJob(target, this.canvas));
+      this.requestRender(target);
     }
   };
 

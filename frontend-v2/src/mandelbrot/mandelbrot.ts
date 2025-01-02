@@ -4,7 +4,6 @@ import { Queue } from '@/lib/queue';
 // import { throttle } from '@/lib/throttle';
 
 import {
-  TileID,
   TileCalcTask,
   TileResult,
   TileCalcStatus,
@@ -22,11 +21,13 @@ import { RenderJob } from '@/mandelbrot/params/render-job';
 import { getTileId } from '@/mandelbrot/tile-id';
 import { TileStore } from '@/mandelbrot/tile-grid/tile-store';
 
+import {
+  buildColorMapper,
+  // buildHistogramEqualized,
+} from '@/mandelbrot/color-mapper';
+
 // TODO: is it possible to use an absolute path?
 const WORKER_URL = new URL('./worker.ts', import.meta.url);
-
-// TODO: this will be set by the user
-const ITER_LIMIT = 50;
 
 // TODO: this should be dynamically determined and updated on window resize
 const CONTAINER_SIZE = { width: 800, height: 700 };
@@ -35,7 +36,7 @@ function getDefaultParams(): RenderParams {
   return new RenderParams({
     center: { re: 0, im: 0 },
     zoom: 1,
-    iters: ITER_LIMIT,
+    iters: 100,
 
     colors: {
       algorithm: 'linear',
@@ -92,18 +93,8 @@ class Mandelbrot {
     this.interactionManager = new InteractionManager(
       canvas,
       () => this.getCurrentParams(),
-      (job: RenderJob) => this.queueRender(job),
+      (target) => this.queueRender(target),
     );
-  }
-
-  // TODO: iters param will be set by the user later.
-  get iters(): number {
-    return ITER_LIMIT;
-  }
-
-  setIterations(iters: number) {
-    const target = { ...this.getCurrentParams(), iters };
-    this.queueRender(new RenderJob(target, this.canvas));
   }
 
   updateParams(update: RenderParamsUpdate) {
@@ -127,7 +118,7 @@ class Mandelbrot {
         target.view = update.value;
         break;
     }
-    this.queueRender(new RenderJob(target, this.canvas));
+    this.queueRender(target);
   }
 
   getCurrentParams(): FrozenRenderParams {
@@ -148,21 +139,36 @@ class Mandelbrot {
       this.tileStore.getStatus(getTileId(params)) == status;
   };
 
-  // TODO: InteractionManager shouldn't craete a new RenderJob,
-  // it should just pass the new target params to the Mandelbrot instance
-  // and then the Mandelbrot instance should create the new RenderJob.
-  // Then we could get rid of the `setOnCompletion` method on RenderJob.
-  // And also pass the `tileStore` into the RenderJob constructor.
-  queueRender(job: RenderJob) {
+  queueRender(target: FrozenRenderParams) {
+    // const { color1, color2, algorithm: _ } = target.colors;
+    const { color1, color2 } = target.colors;
+
+    const colorParams = {
+      maxIters: target.iters,
+      colors: { start: color1, end: color2 },
+    };
+    const getColor = buildColorMapper(colorParams);
+
+    // const useHistogram = false;
+    // const getColor = (useHistogram ?
+    //   buildHistogramEqualized([], colorParams) :
+    //   buildColorMapper(colorParams)
+    // );
+
     let numBusyWorkers = 0;
     if (this.pendingRender) {
       numBusyWorkers = this.workerManager.busyWorkers.length;
       this.pendingRender.cancel();
     }
 
-    job.setOnCompletion(() => this.afterRender());
+    const job = (this.pendingRender = new RenderJob(
+      target,
+      this.canvas,
+      this.tileStore,
+      getColor,
+      { onCompletion: () => this.afterRender() },
+    ));
 
-    this.pendingRender = job;
     const tilesToCompute = job.targetTiles.filter(
       this.statusFilter('not started'),
     );
@@ -197,7 +203,7 @@ class Mandelbrot {
     this.interactionManager.attachEventListeners();
 
     window.requestAnimationFrame(this.renderLoop);
-    this.queueRender(new RenderJob(getDefaultParams(), this.canvas));
+    this.queueRender(getDefaultParams());
 
     // --------------------------------------------------------
     // TODO: where should this go
@@ -213,13 +219,8 @@ class Mandelbrot {
 
   private renderLoop = async () => {
     if (this.pendingRender) {
-      const getTileResult = (tileId: TileID) => {
-        const [calcStatus, result] = this.tileStore.get(tileId);
-        return calcStatus == 'complete' ? result : null;
-      };
-
       try {
-        await this.pendingRender.render(getTileResult);
+        await this.pendingRender.render();
       } catch (e) {
         console.error('--- Mandelbrot.renderLoop: error rendering ---');
         console.error(e);
@@ -250,7 +251,7 @@ class Mandelbrot {
     };
     const target = { ...this.getCurrentParams(), view: newView };
 
-    this.queueRender(new RenderJob(target, this.canvas));
+    this.queueRender(target);
     this.canvas.width = newView.width;
     this.canvas.height = newView.height;
   };
