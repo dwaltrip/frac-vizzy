@@ -1,4 +1,9 @@
-import { TileData, TileCoord, TileParams } from '@/mandelbrot/types';
+import {
+  TileData,
+  TileCoord,
+  TileParams,
+  ComplexNum,
+} from '@/mandelbrot/types';
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
 import { createZoomInfo } from '@/mandelbrot/zoom';
 import { computeRegion } from '@/mandelbrot/core';
@@ -11,14 +16,18 @@ function makeTileCoord(x: number, y: number, z: number): TileCoord {
   return { x, y, z };
 }
 
+function topLeftOfTile(coord: TileCoord): ComplexNum {
+  const zoomInfo = createZoomInfo(coord.z);
+  return {
+    re: coord.x * zoomInfo.tileSize,
+    im: coord.y * zoomInfo.tileSize,
+  };
+}
+
 function computeTile({ coord, iters }: TileParams): TileData {
   const zoomInfo = createZoomInfo(coord.z);
   return computeRegion(
-    // TODO: tile should know its own top left? or make this a function?
-    {
-      re: coord.x * zoomInfo.tileSize,
-      im: coord.y * zoomInfo.tileSize,
-    },
+    topLeftOfTile(coord),
     { re: zoomInfo.TILE_SIZE_IN_PX, im: zoomInfo.TILE_SIZE_IN_PX },
     zoomInfo.unitsPerPixel,
     iters,
