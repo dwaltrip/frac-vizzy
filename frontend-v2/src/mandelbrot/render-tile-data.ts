@@ -7,6 +7,7 @@ import {
   Viewport,
 } from '@/mandelbrot/types';
 
+import { getTileId } from '@/mandelbrot/tile-id';
 import { pointsToBitmap } from '@/mandelbrot/utils/points-to-bitmap';
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
 import { calcUnitsPerPixel, createZoomInfo } from '@/mandelbrot/zoom';
@@ -99,7 +100,9 @@ async function renderTile(
       ...[dest.x, dest.y, dest.width, dest.height],
     );
   } catch (error) {
-    console.error('Tile render error:', error);
+    const tileId = getTileId(tile.params);
+    console.error(`Tile (${tileId}) render error`);
+    throw error;
   }
 }
 

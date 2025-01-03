@@ -28,7 +28,10 @@ function buildColorMapper(params: EscapeTimeColoParams): ColorMapper {
   return (status: SetStatus) => {
     // Points in the set are always colored with the end color
     if (status.isInSet) {
-      return params.colors.end;
+      // -------------------------------
+      // TODO: don't hardcode this here.
+      // -------------------------------
+      return { r: 0, g: 0, b: 0 };
     }
 
     // For points outside the set, interpolate based on iteration count
@@ -66,4 +69,4 @@ function buildHistogramEqualized(
   };
 }
 
-export { buildColorMapper, buildHistogramEqualized };
+export { buildColorMapper, buildHistogramEqualized, type EscapeTimeColoParams };

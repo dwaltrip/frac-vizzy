@@ -1,7 +1,12 @@
+/* 
+  play with different borders..
+  make it configurable? also should be able to have no border.
+*/
 .explorer-page {
-  padding: 10px;
+  padding: 6px;
   /* background-color: #4b5167; */
-  background-color: #7b829d;
+  /* background-color: #7b829d; */
+  background-color: black;
   position: relative;
 }
 
@@ -10,7 +15,8 @@
   position: relative;
   flex-grow: 1;
   flex-direction: column;
-  border: 1px solid #555;
+  /* border: 1px solid #555; */
+  border: 2px solid #809dbf;
   background-color: white;
 }
 

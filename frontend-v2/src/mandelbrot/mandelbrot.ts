@@ -25,8 +25,9 @@ import { TileStore } from '@/mandelbrot/tile-grid/tile-store';
 
 import {
   buildColorMapper,
-  buildHistogramEqualized,
+  // buildHistogramEqualized,
 } from '@/mandelbrot/color-mapper';
+import { buildGetColorUsingHistogram } from '@/mandelbrot/viz/histogram';
 
 // TODO: is it possible to use an absolute path?
 const WORKER_URL = new URL('./worker.ts', import.meta.url);
@@ -44,8 +45,8 @@ function getDefaultParams(): RenderParams {
       algorithm: 'linear',
       // color1: { r: 255, g: 255, b: 255 },
       // color2: { r: 0, g: 0, b: 0 },
-      color1: { r: 255, g: 255, b: 255 },
-      color2: { r: 30, g: 0, b: 0 },
+      color1: { r: 30, g: 0, b: 0 },
+      color2: { r: 255, g: 255, b: 255 },
     },
     view: CONTAINER_SIZE,
 
@@ -59,6 +60,8 @@ class Mandelbrot {
 
   lastRender: RenderJob | null = null;
   pendingRender: RenderJob | null = null;
+  // TODO: fix this hack.
+  lastLastRender: RenderJob | null = null;
 
   private tileStore = new TileStore();
   private workQueue = new Queue<TileCalcTask>();
@@ -132,7 +135,7 @@ class Mandelbrot {
       : this.lastRender.params;
   }
 
-  private afterRender = debounce(() => {
+  private _afterRender = () => {
     console.log(
       '##~~ After render ~~##',
       'last render:',
@@ -153,24 +156,29 @@ class Mandelbrot {
     ) {
       const tileResults = this.lastRender.targetTiles.map((tc) => {
         const tileId = getTileId(tc);
-        const [calcStatus, result] = this.tileStore.get(tileId);
+        const [_, result] = this.tileStore.get(tileId);
         return result?.data as TileData;
       });
 
       const {
         iters,
-        colors: { color1, color2 },
+        colors: { algorithm, color1, color2 },
       } = this.lastRender.params;
-      const mapperParams = {
-        maxIters: iters,
-        colors: { start: color1, end: color2 },
-      };
-      this.lastRender.render(
-        buildHistogramEqualized(tileResults, mapperParams),
-      );
-      this.lastLastRender = this.lastRender;
+      if (algorithm === 'histogram') {
+        const mapperParams = {
+          maxIters: iters,
+          colors: { start: color1, end: color2 },
+        };
+        this.lastRender.render(
+          buildGetColorUsingHistogram(tileResults, mapperParams),
+          // buildHistogramEqualized(tileResults, mapperParams),
+        );
+        this.lastLastRender = this.lastRender;
+      }
     }
-  }, 50);
+  };
+
+  private afterRender = debounce(this._afterRender, 50);
 
   statusFilter = (status: TileCalcStatus) => {
     return (params: TileParams) =>
