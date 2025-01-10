@@ -31,6 +31,45 @@ type RenderParamsData = {
   colors: ColorParams;
 };
 
+function serializeColor(color: Color.RGB): string {
+  return `${color.r},${color.g},${color.b}`;
+}
+
+// This is the old format.
+interface SerializedRenderParams_Legacy {
+  pos: { r: number; i: number };
+  z: number;
+  il: number;
+  cm: ColoringAlgorithm;
+  cg: string;
+}
+
+interface SerializedRenderParams {
+  re: number;
+  im: number;
+  z: number;
+  iters: number;
+  alg: ColoringAlgorithm;
+  c1: string;
+  c2: string;
+}
+
+function serializeParamsForUrl(
+  params: RenderParamsData,
+): SerializedRenderParams_Legacy {
+  const {
+    center: c,
+    colors: { color1, color2 },
+  } = params;
+  return {
+    pos: { r: c.re, i: c.im },
+    z: params.zoom,
+    il: params.iters,
+    cm: params.colors.algorithm,
+    cg: `(${serializeColor(color1)},${serializeColor(color2)})`,
+  };
+}
+
 type RenderParamsUpdate =
   | { type: 'zoom'; value: number }
   | { type: 'center'; value: ComplexNum }
@@ -87,4 +126,7 @@ export {
   type ColorParams,
   type RenderParamsUpdate,
   type FrozenRenderParams,
+  type SerializedRenderParams,
+  type SerializedRenderParams_Legacy,
+  serializeParamsForUrl,
 };

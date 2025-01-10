@@ -15,6 +15,7 @@ import {
 import {
   FrozenRenderParams,
   RenderParams,
+  RenderParamsData,
   RenderParamsUpdate,
 } from '@/mandelbrot/params/render-params';
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
@@ -67,11 +68,13 @@ class Mandelbrot {
   private workQueue = new Queue<TileCalcTask>();
   private workerManager: WorkerManager<TileResult>;
   private interactionManager: InteractionManager;
+  private onNewParams: ((params: RenderParamsData) => void) | null;
 
   constructor(
     container: HTMLElement,
     canvas: HTMLCanvasElement,
     numWorkers: number,
+    onNewParams: ((params: RenderParamsData) => void) | null = null,
   ) {
     this.canvas = canvas;
     this.container = container;
@@ -100,6 +103,8 @@ class Mandelbrot {
       () => this.getCurrentParams(),
       (target) => this.queueRender(target),
     );
+
+    this.onNewParams = onNewParams;
   }
 
   updateParams(update: RenderParamsUpdate) {
@@ -198,6 +203,9 @@ class Mandelbrot {
       this.tileStore,
       { onCompletion: () => this.afterRender() },
     ));
+    // call hook with new params
+    // we use this to update the URL to reflect the new render params
+    this.onNewParams && this.onNewParams(job.params);
 
     const tilesToCompute = job.targetTiles.filter(
       this.statusFilter('not started'),
