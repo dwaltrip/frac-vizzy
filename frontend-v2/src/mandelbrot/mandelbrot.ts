@@ -225,6 +225,8 @@ class Mandelbrot {
 
   // TODO: is there a reason for this to exist? can we just use the constructor?
   setup(initialParams: ManagedRenderParams) {
+    console.log('--- Mandelbrot.setup ---');
+    console.log('initial params:', JSON.stringify(initialParams, null, 2));
     this.interactionManager.attachEventListeners();
 
     window.requestAnimationFrame(this.renderLoop);

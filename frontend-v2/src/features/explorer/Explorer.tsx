@@ -32,7 +32,18 @@ function Explorer(): JSX.Element {
     }
 
     const handleNewParams = (params: RenderParamsData) => {
-      console.log('New params:', JSON.stringify(params));
+      // If the URL doesn't have any params, don't add them until the user makes
+      // a change. This prevents the URL from being cluttered when the user opens
+      // the app for the first time and hasn't yet zoomed in on anything.
+      // if (!userHasChangedParams) {
+      //   return;
+      // }
+      const relPathWithQuery =
+        window.location.pathname +
+        '?' +
+        qs.stringify(serializeParamsForUrl(params), { encode: false });
+      window.history.replaceState(null, '', relPathWithQuery);
+      // console.log('New params:', JSON.stringify(params));
     };
 
     // TODO: this is brittle to React ref changes, as this only runs on mount.

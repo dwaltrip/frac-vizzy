@@ -74,20 +74,21 @@ function getInitialParams(): ManagedRenderParams {
   const url = new URL(window.location.href);
   // TODO: how does typing working with 'qs'?
   const data = qs.parse(url.searchParams.toString()) as any;
+  console.log('getInitialParams -- data', JSON.stringify(data, null, 2));
 
   // TOOD: make this more robust / better
   if (!data.pos) {
     return DEFAULT_PARAMS;
   }
 
-  const colorParts = data.colors?.split(',');
+  const colorParts = data.cg?.replaceAll(/[\(\)]/g, '').split(',');
   const color1 = parseColor(colorParts.slice(0, 3));
   const color2 = parseColor(colorParts.slice(3, 6));
 
   return {
     center: {
-      re: parseInt(data.center?.r),
-      im: parseInt(data.center?.im),
+      re: Number(data.pos?.r ?? DEFAULT_CENTER.re),
+      im: Number(data.pos?.i ?? DEFAULT_CENTER.im),
     },
     zoom: parseInt(data.z),
     iters: parseInt(data.il),
