@@ -1,4 +1,6 @@
+import qs from 'qs';
 import { DeepReadonly } from '@/types';
+
 import { Color, ComplexNum, Viewport } from '@/mandelbrot/types';
 
 type pixels = number;
@@ -16,6 +18,9 @@ type RenderParamsData = {
   // --- viewport params ---
   center: ComplexNum;
   zoom: number;
+
+  // This is the only param we don't put in the URL as we don't have "control"
+  // over it. We can't change the size of the window.
   view: Viewport;
 
   // --- calculation params ---
@@ -30,6 +35,95 @@ type RenderParamsData = {
   // --- visualization params ---
   colors: ColorParams;
 };
+
+// These are the params that are managed by the app,
+// and which the app can change directly.
+// `view` is determined by the window size and we can't change that.
+// `baseTileSizePx` is a hard-coded value in the source code.
+type ManagedRenderParams = Omit<RenderParamsData, 'view' | 'baseTileSizePx'>;
+
+const BOUNDING_BOX = {
+  topLeft: { re: -2, im: 1.2 },
+  botRight: { re: 0.5, im: -1.2 },
+};
+
+const { topLeft, botRight } = BOUNDING_BOX;
+const DEFAULT_CENTER = {
+  re: Number((topLeft.re + (botRight.re - topLeft.re) / 2).toFixed(3)),
+  im: Number((topLeft.im - (topLeft.im - botRight.im) / 2).toFixed(3)),
+};
+
+const DEFAULT_PARAMS: ManagedRenderParams = {
+  center: DEFAULT_CENTER,
+  // TODO: default zoom should be determined by user's screen size.
+  zoom: 1,
+  iters: 100,
+
+  colors: {
+    algorithm: 'linear',
+    color1: { r: 30, g: 0, b: 0 },
+    color2: { r: 255, g: 255, b: 255 },
+  },
+};
+
+// TODO: add default fallbacks for missing values.
+// -------------------------------------------
+// TODO: MORE VALIDATION / HANDLING BAD VALUES
+// -------------------------------------------
+function getInitialParams(): ManagedRenderParams {
+  const url = new URL(window.location.href);
+  // TODO: how does typing working with 'qs'?
+  const data = qs.parse(url.searchParams.toString()) as any;
+
+  // TOOD: make this more robust / better
+  if (!data.pos) {
+    return DEFAULT_PARAMS;
+  }
+
+  const colorParts = data.colors?.split(',');
+  const color1 = parseColor(colorParts.slice(0, 3));
+  const color2 = parseColor(colorParts.slice(3, 6));
+
+  return {
+    center: {
+      re: parseInt(data.center?.r),
+      im: parseInt(data.center?.im),
+    },
+    zoom: parseInt(data.z),
+    iters: parseInt(data.il),
+    colors: {
+      algorithm: data.cm,
+      color1,
+      color2,
+    },
+  };
+}
+
+function parseColor([r, g, b]: [string, string, string]): Color.RGB {
+  return {
+    r: parseInt(r),
+    g: parseInt(g),
+    b: parseInt(b),
+  };
+}
+
+// --------------- NOT USING, probably delete ---------------
+function isSerializedRenderParamsLegacy(
+  data: any,
+): data is SerializedRenderParams_Legacy {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof data.pos === 'object' &&
+    typeof data.pos.r === 'number' &&
+    typeof data.pos.i === 'number' &&
+    typeof data.z === 'number' &&
+    typeof data.il === 'number' &&
+    typeof data.cm === 'string' &&
+    typeof data.cg === 'string'
+  );
+}
+// --------------- NOT USING, probably delete ---------------
 
 function serializeColor(color: Color.RGB): string {
   return `${color.r},${color.g},${color.b}`;
@@ -128,5 +222,7 @@ export {
   type FrozenRenderParams,
   type SerializedRenderParams,
   type SerializedRenderParams_Legacy,
+  type ManagedRenderParams,
   serializeParamsForUrl,
+  getInitialParams,
 };

@@ -6,6 +6,7 @@ import {
   RenderParamsData,
   RenderParamsUpdate,
   serializeParamsForUrl,
+  getInitialParams,
 } from '@/mandelbrot/params/render-params';
 
 import { SettingsPanel } from './SettingsPanel';
@@ -41,7 +42,7 @@ function Explorer(): JSX.Element {
       NUM_WORKERS,
       handleNewParams,
     );
-    mandelbrot.setup();
+    mandelbrot.setup(getInitialParams());
     mandelbrotRef.current = mandelbrot;
     setParams(mandelbrot.getCurrentParams());
 

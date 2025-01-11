@@ -10,10 +10,12 @@ import {
   TileParams,
   ColorMapper,
   TileData,
+  Viewport,
 } from '@/mandelbrot/types';
 
 import {
   FrozenRenderParams,
+  ManagedRenderParams,
   RenderParams,
   RenderParamsData,
   RenderParamsUpdate,
@@ -32,28 +34,6 @@ import { buildGetColorUsingHistogram } from '@/mandelbrot/viz/histogram';
 
 // TODO: is it possible to use an absolute path?
 const WORKER_URL = new URL('./worker.ts', import.meta.url);
-
-// TODO: this should be dynamically determined and updated on window resize
-const CONTAINER_SIZE = { width: 800, height: 700 };
-
-function getDefaultParams(): RenderParams {
-  return new RenderParams({
-    center: { re: 0, im: 0 },
-    zoom: 1,
-    iters: 100,
-
-    colors: {
-      algorithm: 'linear',
-      // color1: { r: 255, g: 255, b: 255 },
-      // color2: { r: 0, g: 0, b: 0 },
-      color1: { r: 30, g: 0, b: 0 },
-      color2: { r: 255, g: 255, b: 255 },
-    },
-    view: CONTAINER_SIZE,
-
-    baseTileSizePx: TILE_SIZE_IN_PX,
-  });
-}
 
 class Mandelbrot {
   canvas: HTMLCanvasElement;
@@ -131,13 +111,20 @@ class Mandelbrot {
     this.queueRender(target);
   }
 
+  containerDims(): Viewport {
+    return {
+      width: this.container.clientWidth,
+      height: this.container.clientHeight,
+    };
+  }
+
   getCurrentParams(): FrozenRenderParams {
-    if (!this.lastRender) {
-      return getDefaultParams();
+    if (!this.pendingRender && !this.lastRender) {
+      throw new Error('Invalid state: never rendered');
     }
     return this.pendingRender
       ? this.pendingRender.params
-      : this.lastRender.params;
+      : this.lastRender!.params;
   }
 
   private _afterRender = () => {
@@ -237,16 +224,23 @@ class Mandelbrot {
   }
 
   // TODO: is there a reason for this to exist? can we just use the constructor?
-  setup() {
+  setup(initialParams: ManagedRenderParams) {
     this.interactionManager.attachEventListeners();
 
     window.requestAnimationFrame(this.renderLoop);
-    this.queueRender(getDefaultParams());
+
+    // TODO: initial zoom based should be basd on screen size / viewport size
+    const view = this.resizeCanvasToContainer();
+    const target = {
+      ...initialParams,
+      view,
+      baseTileSizePx: TILE_SIZE_IN_PX,
+    };
+    this.queueRender(target);
 
     // --------------------------------------------------------
     // TODO: where should this go
     window.addEventListener('resize', this.handleWindowResize);
-    this.handleWindowResize();
     // --------------------------------------------------------
   }
 
@@ -301,20 +295,19 @@ class Mandelbrot {
   // TODO: possibly look into ResizeObserver
   // -----------------------------------------------------------
   private _handleWindowResize = () => {
-    // const rect = this.container.getBoundingClientRect();
-    // const newView = { width: rect.width, height: rect.height };
-    const newView = {
-      width: this.container.clientWidth,
-      height: this.container.clientHeight,
-    };
-    const target = { ...this.getCurrentParams(), view: newView };
-
+    const view = this.resizeCanvasToContainer();
+    const target = { ...this.getCurrentParams(), view };
     this.queueRender(target);
-    this.canvas.width = newView.width;
-    this.canvas.height = newView.height;
   };
   private handleWindowResize = this._handleWindowResize;
   // private handleWindowResize = throttle(this._handleWindowResize, 30);
+
+  private resizeCanvasToContainer(): Viewport {
+    const view = this.containerDims();
+    this.canvas.width = view.width;
+    this.canvas.height = view.height;
+    return view;
+  }
 
   onTileResultComputed = (task: TileCalcTask, result: TileResult) => {
     const tileId = getTileId(task.params);
