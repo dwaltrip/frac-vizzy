@@ -1,7 +1,10 @@
 import qs from 'qs';
+
 import { DeepReadonly } from '@/types';
+import { invariant } from '@/utils/invariant';
 
 import { Color, ComplexNum, Viewport } from '@/mandelbrot/types';
+import { createZoomInfo, TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
 
 type pixels = number;
 
@@ -70,7 +73,7 @@ const DEFAULT_PARAMS: ManagedRenderParams = {
 // -------------------------------------------
 // TODO: MORE VALIDATION / HANDLING BAD VALUES
 // -------------------------------------------
-function getInitialParams(): ManagedRenderParams {
+function getInitialParams(view: Viewport): ManagedRenderParams {
   const url = new URL(window.location.href);
   // TODO: how does typing working with 'qs'?
   const data = qs.parse(url.searchParams.toString()) as any;
@@ -85,18 +88,45 @@ function getInitialParams(): ManagedRenderParams {
   const color1 = parseColor(colorParts.slice(0, 3));
   const color2 = parseColor(colorParts.slice(3, 6));
 
-  return {
-    center: {
+  const zoom = Number(data.z);
+  const center = trimCenterCoords(
+    {
       re: Number(data.pos?.r ?? DEFAULT_CENTER.re),
       im: Number(data.pos?.i ?? DEFAULT_CENTER.im),
     },
-    zoom: parseInt(data.z),
+    zoom,
+    view,
+  );
+
+  return {
+    center,
+    zoom,
     iters: parseInt(data.il),
     colors: {
       algorithm: data.cm,
       color1,
       color2,
     },
+  };
+}
+
+function trimCenterCoords(
+  center: ComplexNum,
+  zoom: number,
+  viewport: Viewport,
+): ComplexNum {
+  const zoomInfo = createZoomInfo(zoom);
+  const shortSide = Math.min(viewport.width, viewport.height);
+  // length of the short side in complex plane units
+  const d = (shortSide / TILE_SIZE_IN_PX) * zoomInfo.tileSize;
+
+  const numSignificantDecimals = Math.floor(-1 * Math.log10(d / 10000));
+  invariant(numSignificantDecimals > 0, 'Should be positive');
+
+  const trim = (num: number) => Number(num.toFixed(numSignificantDecimals));
+  return {
+    re: trim(center.re),
+    im: trim(center.im),
   };
 }
 
@@ -226,4 +256,6 @@ export {
   type ManagedRenderParams,
   serializeParamsForUrl,
   getInitialParams,
+  // TODO: should trimCenterCoords and trimZoom go in a different file?
+  trimCenterCoords,
 };

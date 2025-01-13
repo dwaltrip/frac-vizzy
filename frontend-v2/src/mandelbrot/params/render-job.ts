@@ -59,10 +59,6 @@ class RenderJob {
     // Probably should be calculated in `mandelbrot` or something like that,
     // and passed into each new RenderJob.
     this._targetTiles = calculateVisibleTilesUsingUpscaling(this.params, view);
-    console.log(
-      `-- New render job (${this.id}) -- # of target tiles:`,
-      this._targetTiles.length,
-    );
   }
 
   get id(): string {
@@ -128,12 +124,8 @@ class RenderJob {
         // --------------------------------------------------
       }
     }
-    const fractionDone = `${this._renderedTiles.size}/${this._targetTiles.length}`;
-    console.log(
-      `\tRenderJob.render (${this.id}):`,
-      fractionDone,
-      'tiles rendered',
-    );
+    const progress = `${this._renderedTiles.size}/${this._targetTiles.length}`;
+    // console.log(`\tRenderJob.render (${this.id}):`, progress, 'tiles rendered');
 
     // TODO (2024-11-017): is there a better way to know we are done rendering?
     // This feels hacky.

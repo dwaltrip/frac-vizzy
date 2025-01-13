@@ -15,10 +15,12 @@ import {
 
 import {
   FrozenRenderParams,
+  getInitialParams,
   ManagedRenderParams,
   RenderParams,
   RenderParamsData,
   RenderParamsUpdate,
+  trimCenterCoords,
 } from '@/mandelbrot/params/render-params';
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
@@ -58,6 +60,7 @@ class Mandelbrot {
   ) {
     this.canvas = canvas;
     this.container = container;
+    this.onNewParams = onNewParams;
 
     this.workerManager = new WorkerManager(
       WORKER_URL,
@@ -83,8 +86,21 @@ class Mandelbrot {
       () => this.getCurrentParams(),
       (target) => this.queueRender(target),
     );
+    this.interactionManager.attachEventListeners();
+    window.addEventListener('resize', this.handleWindowResize);
 
-    this.onNewParams = onNewParams;
+    // TODO: initial zoom based should be basd on screen size / viewport size
+    const view = this.resizeCanvasToContainer();
+    const initialParams = getInitialParams(view);
+
+    window.requestAnimationFrame(this.renderLoop);
+
+    // first render
+    this.queueRender({
+      ...initialParams,
+      view,
+      baseTileSizePx: TILE_SIZE_IN_PX,
+    });
   }
 
   updateParams(update: RenderParamsUpdate) {
@@ -177,12 +193,29 @@ class Mandelbrot {
       this.tileStore.getStatus(getTileId(params)) == status;
   };
 
-  queueRender(target: FrozenRenderParams) {
+  getViewport(): Viewport {
+    return {
+      width: this.canvas.width,
+      height: this.canvas.height,
+    };
+  }
+
+  queueRender(rawTarget: FrozenRenderParams) {
     let numBusyWorkers = 0;
     if (this.pendingRender) {
       numBusyWorkers = this.workerManager.busyWorkers.length;
       this.pendingRender.cancel();
     }
+
+    const view = this.getViewport();
+    // TODO: create a `normalizeParams` function that does this stuff.
+    const target = {
+      ...rawTarget,
+      center: trimCenterCoords(rawTarget.center, rawTarget.zoom, view),
+      // NOTE: we tried to implement a `trimZoom` with Claude, but it wasn't working.
+      // There were major jitters when zooming. So for now I'm just not trimming.
+      zoom: rawTarget.zoom,
+    };
 
     const job = (this.pendingRender = new RenderJob(
       target,
@@ -202,12 +235,12 @@ class Mandelbrot {
     const numInProgress = job.targetTiles.filter(
       this.statusFilter('in progress'),
     ).length;
-    const logInfo = [
-      `tiles to compute: ${tilesToCompute.length}`,
-      `tiles in progress: ${numInProgress}`,
-      ...(numBusyWorkers > 0 ? [`workers busy: ${numBusyWorkers}`] : []),
-    ];
-    console.log(`\tqueuing render job -- (${logInfo.join(' | ')})`);
+    console.log(
+      `-- New render job (${job.id}) -- # of target tiles:`,
+      job.targetTiles.length,
+      '-- # of tiles to compute:',
+      tilesToCompute.length,
+    );
     // ---------------
 
     // TODO: the coupling / relationship between `workQueue` and `workerManager`
@@ -221,29 +254,6 @@ class Mandelbrot {
       })),
     );
     this.workerManager.startWorking();
-  }
-
-  // TODO: is there a reason for this to exist? can we just use the constructor?
-  setup(initialParams: ManagedRenderParams) {
-    console.log('--- Mandelbrot.setup ---');
-    console.log('initial params:', JSON.stringify(initialParams, null, 2));
-    this.interactionManager.attachEventListeners();
-
-    window.requestAnimationFrame(this.renderLoop);
-
-    // TODO: initial zoom based should be basd on screen size / viewport size
-    const view = this.resizeCanvasToContainer();
-    const target = {
-      ...initialParams,
-      view,
-      baseTileSizePx: TILE_SIZE_IN_PX,
-    };
-    this.queueRender(target);
-
-    // --------------------------------------------------------
-    // TODO: where should this go
-    window.addEventListener('resize', this.handleWindowResize);
-    // --------------------------------------------------------
   }
 
   cleanup() {

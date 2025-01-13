@@ -53,7 +53,6 @@ function Explorer(): JSX.Element {
       NUM_WORKERS,
       handleNewParams,
     );
-    mandelbrot.setup(getInitialParams());
     mandelbrotRef.current = mandelbrot;
     setParams(mandelbrot.getCurrentParams());
 
