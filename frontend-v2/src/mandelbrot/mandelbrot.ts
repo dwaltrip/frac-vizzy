@@ -16,7 +16,6 @@ import {
 import {
   FrozenRenderParams,
   getInitialParams,
-  ManagedRenderParams,
   RenderParams,
   RenderParamsData,
   RenderParamsUpdate,
@@ -37,6 +36,11 @@ import { buildGetColorUsingHistogram } from '@/mandelbrot/viz/histogram';
 // TODO: is it possible to use an absolute path?
 const WORKER_URL = new URL('./worker.ts', import.meta.url);
 
+type ParamsChangeListener = (
+  params: RenderParamsData,
+  isInitialRender: boolean,
+) => void;
+
 class Mandelbrot {
   canvas: HTMLCanvasElement;
   container: HTMLElement;
@@ -50,13 +54,13 @@ class Mandelbrot {
   private workQueue = new Queue<TileCalcTask>();
   private workerManager: WorkerManager<TileResult>;
   private interactionManager: InteractionManager;
-  private onNewParams: ((params: RenderParamsData) => void) | null;
+  private onNewParams: ParamsChangeListener;
 
   constructor(
     container: HTMLElement,
     canvas: HTMLCanvasElement,
     numWorkers: number,
-    onNewParams: ((params: RenderParamsData) => void) | null = null,
+    onNewParams: ParamsChangeListener,
   ) {
     this.canvas = canvas;
     this.container = container;
@@ -91,16 +95,17 @@ class Mandelbrot {
 
     // TODO: initial zoom based should be basd on screen size / viewport size
     const view = this.resizeCanvasToContainer();
-    const initialParams = getInitialParams(view);
+    const [initialParams, isDefault] = getInitialParams(view);
 
     window.requestAnimationFrame(this.renderLoop);
 
     // first render
-    this.queueRender({
+    const target = {
       ...initialParams,
       view,
       baseTileSizePx: TILE_SIZE_IN_PX,
-    });
+    };
+    this.queueRender(target, isDefault);
   }
 
   updateParams(update: RenderParamsUpdate) {
@@ -200,7 +205,7 @@ class Mandelbrot {
     };
   }
 
-  queueRender(rawTarget: FrozenRenderParams) {
+  queueRender(rawTarget: FrozenRenderParams, isDefault = false) {
     let numBusyWorkers = 0;
     if (this.pendingRender) {
       numBusyWorkers = this.workerManager.busyWorkers.length;
@@ -225,7 +230,7 @@ class Mandelbrot {
     ));
     // call hook with new params
     // we use this to update the URL to reflect the new render params
-    this.onNewParams && this.onNewParams(job.params);
+    this.onNewParams && this.onNewParams(job.params, isDefault);
 
     const tilesToCompute = job.targetTiles.filter(
       this.statusFilter('not started'),

@@ -73,7 +73,7 @@ const DEFAULT_PARAMS: ManagedRenderParams = {
 // -------------------------------------------
 // TODO: MORE VALIDATION / HANDLING BAD VALUES
 // -------------------------------------------
-function getInitialParams(view: Viewport): ManagedRenderParams {
+function getInitialParams(view: Viewport): [ManagedRenderParams, boolean] {
   const url = new URL(window.location.href);
   // TODO: how does typing working with 'qs'?
   const data = qs.parse(url.searchParams.toString()) as any;
@@ -81,7 +81,7 @@ function getInitialParams(view: Viewport): ManagedRenderParams {
 
   // TOOD: make this more robust / better
   if (!data.pos) {
-    return DEFAULT_PARAMS;
+    return [DEFAULT_PARAMS, true];
   }
 
   const colorParts = data.cg?.replaceAll(/[\(\)]/g, '').split(',');
@@ -98,7 +98,7 @@ function getInitialParams(view: Viewport): ManagedRenderParams {
     view,
   );
 
-  return {
+  const params = {
     center,
     zoom,
     iters: parseInt(data.il),
@@ -108,6 +108,7 @@ function getInitialParams(view: Viewport): ManagedRenderParams {
       color2,
     },
   };
+  return [params, false];
 }
 
 function trimCenterCoords(

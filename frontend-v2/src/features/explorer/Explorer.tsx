@@ -6,7 +6,6 @@ import {
   RenderParamsData,
   RenderParamsUpdate,
   serializeParamsForUrl,
-  getInitialParams,
 } from '@/mandelbrot/params/render-params';
 
 import { SettingsPanel } from './SettingsPanel';
@@ -31,20 +30,19 @@ function Explorer(): JSX.Element {
       return;
     }
 
-    const handleNewParams = (params: RenderParamsData) => {
+    function handleNewParams(params: RenderParamsData, isDefault: boolean) {
       // If the URL doesn't have any params, don't add them until the user makes
       // a change. This prevents the URL from being cluttered when the user opens
       // the app for the first time and hasn't yet zoomed in on anything.
-      // if (!userHasChangedParams) {
-      //   return;
-      // }
+      if (isDefault) {
+        return;
+      }
       const relPathWithQuery =
         window.location.pathname +
         '?' +
         qs.stringify(serializeParamsForUrl(params), { encode: false });
       window.history.replaceState(null, '', relPathWithQuery);
-      // console.log('New params:', JSON.stringify(params));
-    };
+    }
 
     // TODO: this is brittle to React ref changes, as this only runs on mount.
     const mandelbrot = new Mandelbrot(
@@ -58,31 +56,6 @@ function Explorer(): JSX.Element {
 
     return () => mandelbrot.cleanup();
   }, []);
-
-  useEffect(() => {
-    // ---------------------------------------------------------------------------
-    // ---------------------------------------------------------------------------
-    // TODO: this commented out part is copied from the old v1 code.
-    // I wanna do something like this.
-    // ---------------------------------------------------------------------------
-    // If the URL doesn't have any params, don't add them until the user makes
-    // a change. This prevents the URL from being cluttered when the user opens
-    // the app for the first time and hasn't yet zoomed in on anything.
-    // if (!userHasChangedParams) {
-    //   return;
-    // }
-    // ---------------------------------------------------------------------------
-    // ---------------------------------------------------------------------------
-    if (!params) {
-      console.log('--- No params to serialize ---');
-      return;
-    }
-    const relPathWithQuery =
-      window.location.pathname +
-      '?' +
-      qs.stringify(serializeParamsForUrl(params), { encode: false });
-    window.history.replaceState(null, '', relPathWithQuery);
-  }, [params]);
 
   return (
     <div className='page explorer-page'>
