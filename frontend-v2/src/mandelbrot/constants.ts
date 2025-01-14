@@ -1,3 +1,4 @@
+/*
 import { BBox, FrozenRenderParams } from '@/mandelbrot/types';
 
 const DEFAULT_PARAMS: FrozenRenderParams = {
@@ -12,3 +13,4 @@ const MANDELBROT_BBOX: BBox = {
 };
 
 export { DEFAULT_PARAMS, MANDELBROT_BBOX };
+*/

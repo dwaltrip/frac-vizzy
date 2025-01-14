@@ -124,7 +124,7 @@ class RenderJob {
         // --------------------------------------------------
       }
     }
-    const progress = `${this._renderedTiles.size}/${this._targetTiles.length}`;
+    // const progress = `${this._renderedTiles.size}/${this._targetTiles.length}`;
     // console.log(`\tRenderJob.render (${this.id}):`, progress, 'tiles rendered');
 
     // TODO (2024-11-017): is there a better way to know we are done rendering?

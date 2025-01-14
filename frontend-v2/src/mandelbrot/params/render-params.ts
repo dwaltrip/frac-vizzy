@@ -140,6 +140,7 @@ function parseColor([r, g, b]: [string, string, string]): Color.RGB {
 }
 
 // --------------- NOT USING, probably delete ---------------
+// @ts-ignore
 function isSerializedRenderParamsLegacy(
   data: any,
 ): data is SerializedRenderParams_Legacy {

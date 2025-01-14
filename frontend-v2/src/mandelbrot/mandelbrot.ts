@@ -206,9 +206,7 @@ class Mandelbrot {
   }
 
   queueRender(rawTarget: FrozenRenderParams, isDefault = false) {
-    let numBusyWorkers = 0;
     if (this.pendingRender) {
-      numBusyWorkers = this.workerManager.busyWorkers.length;
       this.pendingRender.cancel();
     }
 
@@ -237,9 +235,6 @@ class Mandelbrot {
     );
 
     // --------------- helpful logging ----------------
-    const numInProgress = job.targetTiles.filter(
-      this.statusFilter('in progress'),
-    ).length;
     console.log(
       `-- New render job (${job.id}) -- # of target tiles:`,
       job.targetTiles.length,

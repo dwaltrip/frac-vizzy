@@ -1,3 +1,4 @@
+/*
 import { WorkerManager } from './worker-manager';
 
 // type CalcId = string;
@@ -40,3 +41,4 @@ class Backburner<JobParam, JobResult> {
 }
 
 export { Backburner };
+*/
