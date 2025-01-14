@@ -9,7 +9,7 @@ import {
 } from '@/mandelbrot/params/render-params';
 
 import { SettingsPanel } from './SettingsPanel';
-import '@/styles/features/explorer/Explorer.css';
+import '@/styles/features/explorer/explorer.css';
 
 // TOOD: Make this configurable / user setting
 // Default to most of the available cores.
