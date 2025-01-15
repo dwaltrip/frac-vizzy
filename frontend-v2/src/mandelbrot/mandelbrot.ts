@@ -33,9 +33,6 @@ import {
 } from '@/mandelbrot/color-mapper';
 import { buildGetColorUsingHistogram } from '@/mandelbrot/viz/histogram';
 
-// TODO: is it possible to use an absolute path?
-const WORKER_URL = new URL('./worker.ts', import.meta.url);
-
 type ParamsChangeListener = (
   params: RenderParamsData,
   isInitialRender: boolean,
@@ -67,7 +64,22 @@ class Mandelbrot {
     this.onNewParams = onNewParams;
 
     this.workerManager = new WorkerManager(
-      WORKER_URL,
+      () => {
+        // -------------------------------------------------------------------------
+        // NOTE: This has to be a string literal passed directly to URL constructor,
+        // which is passed directly to the Worker constructor.
+        // Vite uses a regex to figure out how to build the worker script,
+        // so we can't pass a variable to the URL constructor.
+        // The docs don't mention this...
+        // I was clued off by this github issue which mentioned a regex used in preactjs
+        // for their worker plugin.
+        // https://github.com/vitejs/vite/discussions/18932
+        // https://github.com/preactjs/wmr/blob/a3d8935d5c5f99f5cd9b3a5ad435ee9f063cf5ad/packages/wmr/src/plugins/worker-plugin.js#L88-L89
+        // -------------------------------------------------------------------------
+        return new Worker(new URL('./worker.ts', import.meta.url), {
+          type: 'module',
+        });
+      },
       numWorkers,
       new TaskRelay(
         () => !this.workQueue.isEmpty,

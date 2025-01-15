@@ -18,21 +18,39 @@ interface WorkerManagerHooks {
 }
 
 class WorkerManager<TaskResult> {
-  private workerURL: URL;
   private workers: BackburnerWorker<TaskResult>[];
 
+  // -------------------------------------------------------------------------------------
+  // NOTE: We need a function that returns an actual worker instance.
+  // Before, WorkerManager received a plain string for the path to the worker script.
+  // But for peculiar reasons, this breaks in vitejs prod builds.
+  // You HAVE to create the Worker using the exact syntax of:
+  // ```
+  //  const worker = new Worker(new URL('./path-to-my-worker.ts', import.meta.url), { type: 'module' });
+  // ```
+  // Namely, you can't do something like:
+  // ```
+  //   const urlPath = './path-to-my-worker.ts';
+  //   const worker = new Worker(new URL(urlPath, import.meta.url), { type: 'module' });
+  // ```
+  // This class is agnostic to what the worker does, so it doesn't know the URL.
+  // So the best solution I could come up with is to ask for a function that creates the worker,
+  // using the above syntax.
+  // This isn't in the vitejs docs unfortunately... but this seems to be the way you have to do it.
+  // -------------------------------------------------------------------------------------
+  private workerFactory: () => Worker;
   private taskRelay: TaskRelay;
   private hooks: WorkerManagerHooks;
 
   constructor(
-    workerURL: URL,
+    workerFactory: () => Worker,
     numberOfWorkers: number,
     taskRelay: TaskRelay,
     hooks: WorkerManagerHooks = {},
   ) {
     this.hooks = hooks || {};
+    this.workerFactory = workerFactory;
 
-    this.workerURL = workerURL;
     this.workers = [];
     this.taskRelay = taskRelay;
 
@@ -59,7 +77,7 @@ class WorkerManager<TaskResult> {
   }
 
   createWorker(): BackburnerWorker<TaskResult> {
-    return new BackburnerWorker<TaskResult>(this.workerURL);
+    return new BackburnerWorker<TaskResult>(this.workerFactory());
   }
 
   get areAnyWorkersAvailable(): boolean {
@@ -143,10 +161,10 @@ class BackburnerWorker<Result> {
     return this.status === WorkerStatus.BUSY;
   }
 
-  constructor(workerURL: URL) {
+  constructor(workerInstance: Worker) {
     this.id = BackburnerWorker._generateId();
     this.status = WorkerStatus.IDLE;
-    this.worker = wrap(new Worker(workerURL, { type: 'module' }));
+    this.worker = wrap(workerInstance);
   }
 
   // TODO: Get rid of these any types
