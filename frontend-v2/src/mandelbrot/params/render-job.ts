@@ -1,13 +1,19 @@
-import { ColorMapper, TileCoord, TileID, TileParams } from '@/mandelbrot/types';
+import {
+  ColorMapper,
+  TileCoord,
+  TileID,
+  TileParams,
+  TileResult,
+} from '@/mandelbrot/types';
 
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
 import { calculateVisibleTilesUsingUpscaling } from '@/mandelbrot/tile';
 import { getTileId } from '@/mandelbrot/tile-id';
 import { TileStore } from '@/mandelbrot/tile-grid/tile-store';
-// import {
-//   getParentTileInfo,
-//   getCornerSliceIndices,
-// } from '@/mandelbrot/tile-grid/parent-info';
+import {
+  getParentTileInfo,
+  getCornerSliceIndices,
+} from '@/mandelbrot/tile-grid/parent-info';
 
 import { renderTile } from '@/mandelbrot/render-tile-data';
 import { IdGenerator } from '@/lib/backburner/id-generator';
@@ -95,40 +101,39 @@ class RenderJob {
         await renderTile(this.canvas, tileResult, this.params, getColor);
         this._renderedTiles.add(tileId);
       } else {
-        // ----------------------------------------------------------
-        // NOTE: before I returned early when the tile was missing???
-        // but that would exit the entire function and skip teh of the tiles
-        // ----------------------------------------------------------
         skipCount += 1;
-        // --------------------------------------------------
-        // TODO: finish implementing this!!!
-        // --------------------------------------------------
-        // const parentInfo = getParentTileInfo(tp.coord);
-        // const parentId = getTileId({
-        //   coord: parentInfo.parent,
-        //   iters: tp.iters,
-        // });
-        // const parent = getTile(parentId);
-        // if (parent) {
-        //   const { x: ix, y: iy } = getCornerSliceIndices(
-        //     parentInfo.corner,
-        //     this.params.baseTileSizePx,
-        //   );
-        //   const slice = parent.data
-        //     .slice(iy.start, iy.end)
-        //     .map((row) => row.slice(ix.start, ix.end));
-        //   return;
-        // } else {
-        //   return;
-        // }
-        // --------------------------------------------------
+        const parentInfo = getParentTileInfo(tp.coord);
+        const parentId = getTileId({
+          coord: parentInfo.parent,
+          // TODO: We are only looking at the parent tile w/ matching iters,
+          // but in theory we could look at parents with "close enough" iters as well
+          iters: tp.iters,
+        });
+        const [parentStatus, parentResult] = this.tileStore.get(parentId);
+
+        // The tile isn't ready yet. So we crop and scale the matching quadrant of the
+        // parent tile, and render that until the tile is ready.
+        if (parentStatus === 'complete' && parentResult) {
+          const { x: ix, y: iy } = getCornerSliceIndices(
+            parentInfo.corner,
+            this.params.baseTileSizePx,
+          );
+          const lowResTempTile: TileResult = {
+            params: {
+              coord: tp.coord,
+              iters: tp.iters,
+            },
+            data: parentResult.data
+              .slice(iy.start, iy.end)
+              .map((row) => row.slice(ix.start, ix.end)),
+          };
+          await renderTile(this.canvas, lowResTempTile, this.params, getColor);
+        }
       }
     }
-    // const progress = `${this._renderedTiles.size}/${this._targetTiles.length}`;
-    // console.log(`\tRenderJob.render (${this.id}):`, progress, 'tiles rendered');
 
-    // TODO (2024-11-017): is there a better way to know we are done rendering?
-    // This feels hacky.
+    // TODO Is there a better way to know we are done rendering?
+    // Feels slightly brittle. It might be fine though.
     if (this._renderedTiles.size === this._targetTiles.length) {
       this.status = RenderJobStatus.COMPLETE;
 

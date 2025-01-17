@@ -31,17 +31,21 @@ function Explorer(): JSX.Element {
     }
 
     function handleNewParams(params: RenderParamsData, isDefault: boolean) {
+      const mandelbrot = mandelbrotRef.current;
+      if (mandelbrot) {
+        setParams(mandelbrot.getCurrentParams());
+      }
+
       // If the URL doesn't have any params, don't add them until the user makes
       // a change. This prevents the URL from being cluttered when the user opens
       // the app for the first time and hasn't yet zoomed in on anything.
-      if (isDefault) {
-        return;
+      if (!isDefault) {
+        const relPathWithQuery =
+          window.location.pathname +
+          '?' +
+          qs.stringify(serializeParamsForUrl(params), { encode: false });
+        window.history.replaceState(null, '', relPathWithQuery);
       }
-      const relPathWithQuery =
-        window.location.pathname +
-        '?' +
-        qs.stringify(serializeParamsForUrl(params), { encode: false });
-      window.history.replaceState(null, '', relPathWithQuery);
     }
 
     // TODO: this is brittle to React ref changes, as this only runs on mount.
@@ -67,7 +71,6 @@ function Explorer(): JSX.Element {
             throw new Error('Mandelbrot instance not available');
           }
           mb.updateParams(changes);
-          setParams(mb.getCurrentParams());
         }}
       />
       <div className='mb-canvas-container' ref={containerRef}>

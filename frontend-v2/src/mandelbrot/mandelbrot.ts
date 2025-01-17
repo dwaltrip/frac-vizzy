@@ -293,6 +293,7 @@ class Mandelbrot {
   private renderLoop = async () => {
     if (this.pendingRender) {
       try {
+        // TODO: don't do this every frame, can do once per render job
         const getColor = this.buildColorMapperForParams(
           this.pendingRender.params,
         );
