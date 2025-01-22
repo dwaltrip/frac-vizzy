@@ -1,6 +1,5 @@
 // TODO: I don't it makes sense for this file to be in the /params subdir
 import { IdGenerator } from '@/lib/backburner/id-generator';
-import { invariant } from '@/utils/invariant';
 
 import {
   ColorMapper,

@@ -84,9 +84,15 @@ function getInitialParams(view: Viewport): [ManagedRenderParams, boolean] {
     return [DEFAULT_PARAMS, true];
   }
 
-  const colorParts = data.cg?.replaceAll(/[\(\)]/g, '').split(',');
-  const color1 = parseColor(colorParts.slice(0, 3));
-  const color2 = parseColor(colorParts.slice(3, 6));
+  let color1: Color.RGB, color2: Color.RGB;
+  if (data.cg) {
+    const colorParts = data.cg.replaceAll(/[\(\)]/g, '').split(',');
+    color1 = parseColor(colorParts.slice(0, 3));
+    color2 = parseColor(colorParts.slice(3, 6));
+  } else {
+    color1 = DEFAULT_PARAMS.colors.color1;
+    color2 = DEFAULT_PARAMS.colors.color2;
+  }
 
   const zoom = Number(data.z);
   const center = trimCenterCoords(
