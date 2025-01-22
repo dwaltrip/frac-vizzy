@@ -1,22 +1,23 @@
+// TODO: I don't it makes sense for this file to be in the /params subdir
+import { IdGenerator } from '@/lib/backburner/id-generator';
+import { invariant } from '@/utils/invariant';
+
 import {
   ColorMapper,
-  TileCoord,
+  TileData,
   TileID,
   TileParams,
   TileResult,
 } from '@/mandelbrot/types';
 
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
-import { calculateVisibleTilesUsingUpscaling } from '@/mandelbrot/tile';
 import { getTileId } from '@/mandelbrot/tile-id';
 import { TileStore } from '@/mandelbrot/tile-grid/tile-store';
 import {
   getParentTileInfo,
   getCornerSliceIndices,
 } from '@/mandelbrot/tile-grid/parent-info';
-
 import { renderTile } from '@/mandelbrot/render-tile-data';
-import { IdGenerator } from '@/lib/backburner/id-generator';
 
 enum RenderJobStatus {
   CREATED = 'CREATED',
@@ -32,39 +33,44 @@ interface RenderJobHooks {
   onCompletion?: () => void;
 }
 
+type LinearColorMappers = ColorMapper;
+type HistogramColorMappers = {
+  during: ColorMapper;
+  buildGetColorOnCompletion: (tilesData: TileData[]) => ColorMapper;
+  after?: ColorMapper;
+};
+type RenderColorMappers = LinearColorMappers | HistogramColorMappers;
+
 class RenderJob {
   canvas: HTMLCanvasElement;
   params: FrozenRenderParams;
+  targetTiles: TileParams[];
   tileStore: TileStore;
 
   status: RenderJobStatus = RenderJobStatus.CREATED;
 
-  // getColor: ColorMapper;
+  colorMappers: RenderColorMappers;
 
   private _id: string = generateId();
-  private _targetTiles: TileCoord[];
   private _renderedTiles: Set<TileID> = new Set();
   private hooks: RenderJobHooks = {};
 
   constructor(
     params: FrozenRenderParams,
-    canvas: HTMLCanvasElement,
+    targetTiles: TileParams[],
     tileStore: TileStore,
-    // getColor: ColorMapper,
+    canvas: HTMLCanvasElement,
+    colorMappers: RenderColorMappers,
     hooks: RenderJobHooks,
   ) {
-    // params are the "target" params for this render
+    // The "target" params for this render
     this.params = params;
+    this.targetTiles = targetTiles;
     this.canvas = canvas;
     this.tileStore = tileStore;
-    // this.getColor = getColor;
-    this.hooks = hooks;
 
-    const view = params.view;
-    // TODO: this feels kind of hidden... probably doesn't belong here.
-    // Probably should be calculated in `mandelbrot` or something like that,
-    // and passed into each new RenderJob.
-    this._targetTiles = calculateVisibleTilesUsingUpscaling(this.params, view);
+    this.colorMappers = colorMappers;
+    this.hooks = hooks;
   }
 
   get id(): string {
@@ -75,21 +81,50 @@ class RenderJob {
     return this.status === RenderJobStatus.COMPLETE;
   }
 
-  get targetTiles(): TileParams[] {
-    return this._targetTiles.map((tc) => ({
-      coord: tc,
-      iters: this.params.iters,
-    }));
+  get allTilesAreCalculated(): boolean {
+    return this.targetTiles.every((tp) => {
+      const tileId = getTileId(tp);
+      const [calcStatus] = this.tileStore.get(tileId);
+      return calcStatus === 'complete';
+    });
   }
 
-  async render(getColor: ColorMapper) {
-    // if (this.status !== RenderJobStatus.CREATED) {
-    //   throw new Error('RenderJob.render - Invalid render job status');
-    // }
+  requireAllTileResults(): TileResult[] {
+    return this.targetTiles.map((tp) => {
+      const tileId = getTileId(tp);
+      const [_, result] = this.tileStore.get(tileId);
+      if (!result) {
+        throw new Error(`Tile result not found for tileId: ${tileId}`);
+      }
+      return result;
+    });
+  }
+
+  getColorMapper(): ColorMapper {
+    const alg = this.params.colors.algorithm;
+    if (alg === 'linear') {
+      return this.colorMappers as LinearColorMappers;
+    } else {
+      const mappers = this.colorMappers as HistogramColorMappers;
+      if (this.status === RenderJobStatus.COMPLETE) {
+        assertAfterColorMapperExists(mappers.after);
+        return mappers.after;
+      } else {
+        return mappers.during;
+      }
+    }
+  }
+
+  async render() {
+    if (this.status !== RenderJobStatus.CREATED) {
+      console.log('RenderJob.render', `(${this.id})`);
+      throw new Error('RenderJob.render - Invalid render job status');
+    }
 
     this.clearCanvas();
 
-    let skipCount = 0;
+    const getColor = this.getColorMapper();
+
     for (const tp of this.targetTiles) {
       const tileId = getTileId(tp);
 
@@ -101,7 +136,6 @@ class RenderJob {
         await renderTile(this.canvas, tileResult, this.params, getColor);
         this._renderedTiles.add(tileId);
       } else {
-        skipCount += 1;
         const parentInfo = getParentTileInfo(tp.coord);
         const parentId = getTileId({
           coord: parentInfo.parent,
@@ -134,10 +168,25 @@ class RenderJob {
 
     // TODO Is there a better way to know we are done rendering?
     // Feels slightly brittle. It might be fine though.
-    if (this._renderedTiles.size === this._targetTiles.length) {
+    if (this._renderedTiles.size === this.targetTiles.length) {
       this.status = RenderJobStatus.COMPLETE;
-
+      this.postRender();
       this.hooks.onCompletion && this.hooks.onCompletion();
+    }
+  }
+
+  private async postRender() {
+    if (this.params.colors.algorithm === 'histogram') {
+      const results = this.requireAllTileResults();
+      const mappers = this.colorMappers as HistogramColorMappers;
+      mappers.after = mappers.buildGetColorOnCompletion(
+        results.map((r) => r.data),
+      );
+
+      const getColor = this.getColorMapper();
+      for (const tileResult of results) {
+        await renderTile(this.canvas, tileResult, this.params, getColor);
+      }
     }
   }
 
@@ -149,6 +198,14 @@ class RenderJob {
   clearCanvas() {
     const ctx = this.canvas.getContext('2d');
     if (ctx) ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+}
+
+function assertAfterColorMapperExists(
+  mapper: HistogramColorMappers['after'],
+): asserts mapper is NonNullable<HistogramColorMappers['after']> {
+  if (!mapper) {
+    throw new Error('colorMappers.after should be set');
   }
 }
 

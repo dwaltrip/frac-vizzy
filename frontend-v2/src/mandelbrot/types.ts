@@ -14,9 +14,13 @@ type SetStatus = {
   isInSet: boolean;
   iters: number;
 };
+type SetStatusOrSkipped = SetStatus | null;
 
 type RegionData = SetStatus[][];
 type TileData = RegionData;
+
+type PartialRegionData = SetStatusOrSkipped[][];
+type PartialTileData = PartialRegionData;
 
 type TileCoord = {
   x: number;
@@ -65,6 +69,12 @@ type ComplexRegion = {
   topLeft: ComplexNum;
 };
 
+// (x,y) coords for pixels. starting from top left of canvas, which is (0,0)
+interface PixelCoord {
+  x: number;
+  y: number;
+}
+
 type Viewport = {
   width: number;
   height: number;
@@ -87,10 +97,13 @@ export {
   type ComplexNum,
   type BBox,
   type SetStatus,
+  type SetStatusOrSkipped,
   type TileCoord,
   type TileID,
   type RegionData,
   type TileData,
+  type PartialRegionData,
+  type PartialTileData,
   type TileParams,
   type TileCalcTask,
   type TileCalcStatus,
@@ -100,6 +113,7 @@ export {
   type FrozenRenderParams,
   type ComplexRegion,
   type Viewport,
+  type PixelCoord,
   type MousePos,
   type Color,
   type ColorMapper,

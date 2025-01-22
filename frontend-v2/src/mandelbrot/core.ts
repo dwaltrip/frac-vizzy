@@ -1,4 +1,10 @@
-import { ComplexNum, SetStatus } from '@/mandelbrot/types';
+import {
+  ComplexNum,
+  SetStatus,
+  RegionData,
+  PartialRegionData,
+  PixelCoord,
+} from '@/mandelbrot/types';
 
 const MB_RADIUS = 2;
 const CRITICAL_POINT_Z = { re: 0, im: 0 };
@@ -58,26 +64,71 @@ function computeSetStatus(c: ComplexNum, iterLimit: number): SetStatus {
 
 function computeRegion(
   topLeft: ComplexNum,
-  steps: { re: number; im: number },
-  // Question: Can I use Typescript to distinguish unitsPerPixel from arbitrary numbers?
+  numSteps: { re: number; im: number },
   unitsPerPixel: number,
   iterLimit: number,
-): SetStatus[][] {
-  if (!Number.isInteger(steps.re) || !Number.isInteger(steps.im)) {
+): RegionData {
+  if (!Number.isInteger(numSteps.re) || !Number.isInteger(numSteps.im)) {
     throw new TypeError('steps must be integers');
   }
+  const getStatus = (point: ComplexNum) => computeSetStatus(point, iterLimit);
+  return mapPointsInRegion(topLeft, numSteps, unitsPerPixel, getStatus);
+}
 
-  const points = [];
-  for (let i = 0; i < steps.im; i++) {
-    const row = [];
-    for (let r = 0; r < steps.re; r++) {
-      const re = topLeft.re + r * unitsPerPixel;
-      const im = topLeft.im - i * unitsPerPixel;
-      row.push(computeSetStatus({ re, im }, iterLimit));
+function computeRegionPointsConditionally(
+  topLeft: ComplexNum,
+  numSteps: { re: number; im: number },
+  unitsPerPixel: number,
+  iterLimit: number,
+  shouldComputePoint: (c: ComplexNum, p: PixelCoord) => boolean,
+): PartialRegionData {
+  const getStatusMaybe = (point: ComplexNum, pixel: PixelCoord) => {
+    const shouldCompute = shouldComputePoint(point, pixel);
+    return shouldCompute ? computeSetStatus(point, iterLimit) : null;
+  };
+  return mapPointsInRegion(topLeft, numSteps, unitsPerPixel, getStatusMaybe);
+}
+
+function mapPointsInRegion<T>(
+  topLeft: ComplexNum,
+  numSteps: { re: number; im: number },
+  unitsPerPixel: number,
+  mapFn: (point: ComplexNum, coord: PixelCoord) => T,
+): T[][] {
+  const points: T[][] = [];
+  for (let y = 0; y < numSteps.im; y++) {
+    const row: T[] = [];
+    for (let x = 0; x < numSteps.re; x++) {
+      const re = topLeft.re + x * unitsPerPixel;
+      const im = topLeft.im - y * unitsPerPixel;
+      row.push(mapFn({ re, im }, { x, y }));
     }
     points.push(row);
   }
   return points;
 }
 
-export { computeRegion, type SetStatus };
+// // -----------------------------------------------------------------------------
+// // Cool generator function that could be useful if we need to do different kinds
+// // of calculations with the points in a region.
+// // There's a few cases where I could see this happening.
+// // E.g. An optimization where we use a small subset of points to estimate if the
+// //  tile is fully in the set. If so, we skip calculating the rest of the points.
+// // For now it's not needed, but I'm keeping it here commented out for reference.
+// // If I don't end up using it, I should delete this at some point.
+// // -----------------------------------------------------------------------------
+// function* pointsInRegion(
+//   topLeft: ComplexNum,
+//   numSteps: { re: number; im: number },
+//   unitsPerPixel: number,
+// ): Generator<[ComplexNum, PixelCoord]> {
+//   for (let i = 0; i < numSteps.im; i++) {
+//     for (let r = 0; r < numSteps.re; r++) {
+//       const re = topLeft.re + r * unitsPerPixel;
+//       const im = topLeft.im - i * unitsPerPixel;
+//       yield [{ re, im }, { x: r, y: i }];
+//     }
+//   }
+// }
+
+export { computeRegion, computeRegionPointsConditionally, type SetStatus };

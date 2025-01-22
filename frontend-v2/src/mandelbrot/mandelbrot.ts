@@ -1,12 +1,12 @@
 import { debounce } from '@/lib/debounce';
 import { WorkerManager, TaskRelay } from '@/lib/backburner/worker-manager';
 import { Queue } from '@/lib/queue';
+import { invariant } from '@/utils/invariant';
 // import { throttle } from '@/lib/throttle';
 
 import {
   TileCalcTask,
   TileResult,
-  TileCalcStatus,
   TileParams,
   ColorMapper,
   TileData,
@@ -24,6 +24,10 @@ import {
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
 import { RenderJob } from '@/mandelbrot/params/render-job';
+import {
+  calculateVisibleTilesUsingUpscaling,
+  computeTilePointsConditionally,
+} from '@/mandelbrot/tile';
 import { getTileId } from '@/mandelbrot/tile-id';
 import { TileStore } from '@/mandelbrot/tile-grid/tile-store';
 
@@ -168,47 +172,8 @@ class Mandelbrot {
       '-- pending render:',
       this.pendingRender?.id,
     );
-
-    // --------------------------------------------------------------------------------
-    // --------------------------------------------------------------------------------
-    // TODO: this is a mess
-    // --------------------------------------------------------------------------------
-    // --------------------------------------------------------------------------------
-    if (
-      this.lastRender &&
-      !this.pendingRender &&
-      this.lastRender !== this.lastLastRender
-    ) {
-      const tileResults = this.lastRender.targetTiles.map((tc) => {
-        const tileId = getTileId(tc);
-        const [_, result] = this.tileStore.get(tileId);
-        return result?.data as TileData;
-      });
-
-      const {
-        iters,
-        colors: { algorithm, color1, color2 },
-      } = this.lastRender.params;
-      if (algorithm === 'histogram') {
-        const mapperParams = {
-          maxIters: iters,
-          colors: { start: color1, end: color2 },
-        };
-        this.lastRender.render(
-          buildGetColorUsingHistogram(tileResults, mapperParams),
-          // buildHistogramEqualized(tileResults, mapperParams),
-        );
-        this.lastLastRender = this.lastRender;
-      }
-    }
   };
-
   private afterRender = debounce(this._afterRender, 50);
-
-  statusFilter = (status: TileCalcStatus) => {
-    return (params: TileParams) =>
-      this.tileStore.getStatus(getTileId(params)) == status;
-  };
 
   getViewport(): Viewport {
     return {
@@ -222,38 +187,48 @@ class Mandelbrot {
       this.pendingRender.cancel();
     }
 
-    const view = this.getViewport();
-    // TODO: create a `normalizeParams` function that does this stuff.
-    const target = {
-      ...rawTarget,
-      center: trimCenterCoords(rawTarget.center, rawTarget.zoom, view),
-      // NOTE: we tried to implement a `trimZoom` with Claude, but it wasn't working.
-      // There were major jitters when zooming. So for now I'm just not trimming.
-      zoom: rawTarget.zoom,
+    const target = this.normalizeParams(rawTarget);
+    const targetTiles = calculateVisibleTilesUsingUpscaling(
+      target,
+      target.view,
+    );
+
+    const { color1, color2 } = target.colors;
+    const mapperParams = {
+      maxIters: target.iters,
+      colors: { start: color1, end: color2 },
     };
+    const colorMapper =
+      target.colors.algorithm === 'linear'
+        ? buildColorMapper(mapperParams)
+        : {
+            during: this.createInProgressHistogramColorMapper(
+              target,
+              targetTiles,
+            ),
+            buildGetColorOnCompletion: (tilesData: TileData[]) => {
+              return buildGetColorUsingHistogram(tilesData, mapperParams);
+            },
+          };
 
     const job = (this.pendingRender = new RenderJob(
       target,
-      this.canvas,
+      targetTiles,
       this.tileStore,
+      this.canvas,
+      colorMapper,
       { onCompletion: () => this.afterRender() },
     ));
+
     // call hook with new params
     // we use this to update the URL to reflect the new render params
     this.onNewParams && this.onNewParams(job.params, isDefault);
 
+    // Don't recompute tiles.
+    // Importantly, this skips tiles currently in progress.
     const tilesToCompute = job.targetTiles.filter(
-      this.statusFilter('not started'),
+      (tp) => this.tileStore.getStatus(getTileId(tp)) === 'not started',
     );
-
-    // --------------- helpful logging ----------------
-    console.log(
-      `-- New render job (${job.id}) -- # of target tiles:`,
-      job.targetTiles.length,
-      '-- # of tiles to compute:',
-      tilesToCompute.length,
-    );
-    // ---------------
 
     // TODO: the coupling / relationship between `workQueue` and `workerManager`
     // should be more explicit, clear, and clean.
@@ -266,6 +241,42 @@ class Mandelbrot {
       })),
     );
     this.workerManager.startWorking();
+  }
+
+  // TODO: Once we have a progress indicator, we can show a messaage
+  // for this step saying something like "prepping for render".
+  createInProgressHistogramColorMapper(
+    params: FrozenRenderParams,
+    targetTiles: TileParams[],
+  ) {
+    const { algorithm, color1, color2 } = params.colors;
+    invariant(algorithm === 'histogram', 'Invalid algorithm for histogram');
+    const mapperParams = {
+      maxIters: params.iters,
+      colors: { start: color1, end: color2 },
+    };
+
+    // Get random sample of 1% of points
+    // TODO: Make this deterministic so the colors don't flicker as you pan around.
+    // Hmmm, in frac-vizzy v1 there was flickering. But it seems fine now!
+    // May not neeed to worry about this.
+    const randomSampleTileResults = targetTiles.map((tile) => {
+      return computeTilePointsConditionally(tile, () => {
+        return Math.random() < 0.01;
+      });
+    });
+
+    return buildGetColorUsingHistogram(randomSampleTileResults, mapperParams);
+  }
+
+  normalizeParams(params: RenderParamsData): RenderParamsData {
+    return {
+      ...params,
+      center: trimCenterCoords(params.center, params.zoom, params.view),
+      // NOTE: we tried to implement a `trimZoom` with Claude, but it wasn't working.
+      // There were major jitters when zooming. So for now I'm just not trimming.
+      zoom: params.zoom,
+    };
   }
 
   cleanup() {
@@ -293,11 +304,7 @@ class Mandelbrot {
   private renderLoop = async () => {
     if (this.pendingRender) {
       try {
-        // TODO: don't do this every frame, can do once per render job
-        const getColor = this.buildColorMapperForParams(
-          this.pendingRender.params,
-        );
-        await this.pendingRender.render(getColor);
+        await this.pendingRender.render();
       } catch (e) {
         console.error('--- Mandelbrot.renderLoop: error rendering ---');
         console.error(e);

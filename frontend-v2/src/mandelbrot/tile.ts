@@ -3,10 +3,15 @@ import {
   TileCoord,
   TileParams,
   ComplexNum,
+  PartialTileData,
+  PixelCoord,
 } from '@/mandelbrot/types';
 import { FrozenRenderParams } from '@/mandelbrot/params/render-params';
 import { createZoomInfo } from '@/mandelbrot/zoom';
-import { computeRegion } from '@/mandelbrot/core';
+import {
+  computeRegion,
+  computeRegionPointsConditionally,
+} from '@/mandelbrot/core';
 
 // TODO: dedupe with `getTileId` in `tile-id.ts`
 function makeTileCoord(x: number, y: number, z: number): TileCoord {
@@ -31,6 +36,20 @@ function computeTile({ coord, iters }: TileParams): TileData {
     { re: zoomInfo.TILE_SIZE_IN_PX, im: zoomInfo.TILE_SIZE_IN_PX },
     zoomInfo.unitsPerPixel,
     iters,
+  );
+}
+
+function computeTilePointsConditionally(
+  { coord, iters }: TileParams,
+  shouldComputePoint: (c: ComplexNum, p: PixelCoord) => boolean,
+): PartialTileData {
+  const zoomInfo = createZoomInfo(coord.z);
+  return computeRegionPointsConditionally(
+    topLeftOfTile(coord),
+    { re: zoomInfo.TILE_SIZE_IN_PX, im: zoomInfo.TILE_SIZE_IN_PX },
+    zoomInfo.unitsPerPixel,
+    iters,
+    shouldComputePoint,
   );
 }
 
@@ -68,13 +87,16 @@ function getTileGridRect(
 function calculateVisibleTilesUsingUpscaling(
   params: FrozenRenderParams,
   view: { width: number; height: number },
-) {
+): TileParams[] {
   const grid = getTileGridRect(params, view);
   const truncZoom = Math.floor(params.zoom);
   const tiles = [];
   for (let x = grid.topLeft.x; x <= grid.botRight.x; x++) {
     for (let y = grid.topLeft.y; y >= grid.botRight.y; y--) {
-      tiles.push(makeTileCoord(x, y, truncZoom));
+      tiles.push({
+        coord: makeTileCoord(x, y, truncZoom),
+        iters: params.iters,
+      });
     }
   }
   return tiles;
@@ -82,6 +104,7 @@ function calculateVisibleTilesUsingUpscaling(
 
 export {
   computeTile,
+  computeTilePointsConditionally,
   // calculateVisibleTiles,
   getTileGridRect,
   calculateVisibleTilesUsingUpscaling,
