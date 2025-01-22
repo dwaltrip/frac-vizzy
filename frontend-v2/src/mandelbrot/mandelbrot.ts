@@ -284,23 +284,6 @@ class Mandelbrot {
     // this.workerManager.terminate();
   }
 
-  buildColorMapperForParams(params: FrozenRenderParams): ColorMapper {
-    // const { color1, color2, algorithm: _ } = target.colors;
-    const { color1, color2 } = params.colors;
-
-    const mapperParams = {
-      maxIters: params.iters,
-      colors: { start: color1, end: color2 },
-    };
-    return buildColorMapper(mapperParams);
-
-    // const useHistogram = false;
-    // const getColor = (useHistogram ?
-    //   buildHistogramEqualized([], colorParams) :
-    //   buildColorMapper(colorParams)
-    // );
-  }
-
   private renderLoop = async () => {
     if (this.pendingRender) {
       try {
