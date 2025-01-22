@@ -63,7 +63,7 @@ const DEFAULT_PARAMS: ManagedRenderParams = {
   iters: 100,
 
   colors: {
-    algorithm: 'linear',
+    algorithm: 'histogram',
     color1: { r: 30, g: 0, b: 0 },
     color2: { r: 255, g: 255, b: 255 },
   },
