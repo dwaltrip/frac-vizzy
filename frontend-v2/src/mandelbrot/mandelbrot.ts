@@ -8,7 +8,6 @@ import {
   TileCalcTask,
   TileResult,
   TileParams,
-  ColorMapper,
   TileData,
   Viewport,
 } from '@/mandelbrot/types';
@@ -31,10 +30,7 @@ import {
 import { getTileId } from '@/mandelbrot/tile-id';
 import { TileStore } from '@/mandelbrot/tile-grid/tile-store';
 
-import {
-  buildColorMapper,
-  // buildHistogramEqualized,
-} from '@/mandelbrot/color-mapper';
+import { buildColorMapper } from '@/mandelbrot/color-mapper';
 import { buildGetColorUsingHistogram } from '@/mandelbrot/viz/histogram';
 
 type ParamsChangeListener = (
