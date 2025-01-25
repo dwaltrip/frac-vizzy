@@ -19,6 +19,10 @@
   height: 20px; /* current-color height + border thickness */
 }
 
+.color-picker.color-picker.is-editing {
+  height: initial;
+}
+
 .color-picker .current-color {
   width: 24px;
   height: 18px;
@@ -31,7 +35,7 @@
 
 .color-picker .current-color:hover,
 .color-picker.is-editing .current-color {
-  border: 1px solid #d0ae29;
+  border: 2px solid #d0ae29;
 }
 
 .color-picker .react-colorful {

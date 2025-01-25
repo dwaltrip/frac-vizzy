@@ -1,6 +1,8 @@
 import { JSX } from 'react';
 import { useState } from 'react';
 import { ColorPicker } from '@/ui/ColorPicker';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGear, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 import '@/styles/features/explorer/settings-panel.css';
 import classnames from 'classnames';
@@ -11,19 +13,15 @@ import {
 } from '@/mandelbrot/params/render-params';
 import { Color } from '@/mandelbrot/types';
 
+// TODO: should these be somewhere else?
 const ITERATION_VALUE_OPTS = [100, 250, 500, 1000, 2500, 5000].map((num) => {
   const value = '' + num;
   return { value, text: value };
 });
-
-// ----------------------------------------------------------------------
-// TODO: These are placeholders for now, need to implement the real thing
-// Also need to figure out where to put this
 const COLOR_ALGORITHM_OPTS = [
   { value: 'linear', text: 'Linear' },
   { value: 'histogram', text: 'Histogram' },
 ];
-// ----------------------------------------------------------------------
 
 function SettingsRow({
   label,
@@ -40,17 +38,14 @@ function SettingsRow({
   );
 }
 
-// ----------------------------------------------------------------------
-// TODO: Need to add some sort of affordance so the user realizes how to
-// access the settings panel. Right now it's pretty "hidden" / non-discoverable
-// ----------------------------------------------------------------------
-
-function SettingsPanel({
+function SettingsPanelContent({
   params,
   updateParams,
+  setIsOpen,
 }: {
   params: FrozenRenderParams | null;
   updateParams: (params: RenderParamsUpdate) => void;
+  setIsOpen: (isOpen: boolean) => void;
 }) {
   // ---------------------------------------------------------------
   // TODO: these are placeholders for now so the code can run
@@ -81,90 +76,101 @@ function SettingsPanel({
   } = params;
 
   return (
-    <SlideOutPanel>
-      {/* TODO: decide if I want to use this or not */}
-      {/* {({ isOpen, setIsOpen }) => ( */}
-      {() => (
-        <div className='settings-panel'>
-          <div className='settings-panel-header'>Frac Vizzy</div>
-          <div className='settings-rows-container'>
-            <SettingsRow label='Iterations'>
-              <select
-                className='settings-select'
-                value={iters}
-                onChange={setIters}
-              >
-                {ITERATION_VALUE_OPTS.map(({ value, text }) => (
-                  <option value={value} key={value}>
-                    {text}
-                  </option>
-                ))}
-              </select>
-            </SettingsRow>
+    <div className='settings-panel'>
+      <div className='header'>
+        Frac Vizzy
+        <button
+          className='close-button'
+          onClick={() => setIsOpen(false)}
+          aria-label='Close settings'
+        >
+          <FontAwesomeIcon icon={faXmark} />
+        </button>
+      </div>
+      <div className='rows-container'>
+        <SettingsRow label='Iterations'>
+          <select className='settings-select' value={iters} onChange={setIters}>
+            {ITERATION_VALUE_OPTS.map(({ value, text }) => (
+              <option value={value} key={value}>
+                {text}
+              </option>
+            ))}
+          </select>
+        </SettingsRow>
 
-            <SettingsRow label='Colors'>
-              <ColorPicker color={color1} onChange={setColor1} />
-              <ColorPicker color={color2} onChange={setColor2} />
-            </SettingsRow>
+        <SettingsRow label='Colors'>
+          <ColorPicker color={color1} onChange={setColor1} />
+          <ColorPicker color={color2} onChange={setColor2} />
+        </SettingsRow>
 
-            {/* TODO: Decide if "Visualization Style" is the best label, UX-wise */}
-            <SettingsRow label='Visualization Style'>
-              <select
-                className='settings-select'
-                value={algorithm}
-                onChange={(e) =>
-                  setColorAlgo(e.target.value as ColoringAlgorithm)
-                }
-              >
-                {COLOR_ALGORITHM_OPTS.map(({ value, text }) => (
-                  <option value={value} key={value}>
-                    {text}
-                  </option>
-                ))}
-              </select>
-            </SettingsRow>
+        {/* TODO: Decide if "Visualization Style" is the best label, UX-wise */}
+        <SettingsRow label='Visualization Style'>
+          <select
+            className='settings-select'
+            value={algorithm}
+            onChange={(e) => setColorAlgo(e.target.value as ColoringAlgorithm)}
+          >
+            {COLOR_ALGORITHM_OPTS.map(({ value, text }) => (
+              <option value={value} key={value}>
+                {text}
+              </option>
+            ))}
+          </select>
+        </SettingsRow>
 
-            {/* TODO: This a different type of setting, compared to others.
-                Should be displayed separately? Or somehow differentiated in the UI. */}
-            <SettingsRow label='CPUs'>
-              <select
-                className='settings-select'
-                value={numCPUs}
-                onChange={(e) => setNumCPUs(parseInt(e.target.value, 10))}
-              >
-                {/* TODO: placeholder values, implement for real */}
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((value) => (
-                  <option value={value} key={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </SettingsRow>
-          </div>
-        </div>
-      )}
-    </SlideOutPanel>
+        {/* TODO: This a different type of setting, compared to others.
+            Should be displayed separately? Or somehow differentiated in the UI. */}
+        <SettingsRow label='CPUs'>
+          <select
+            className='settings-select'
+            value={numCPUs}
+            onChange={(e) => setNumCPUs(parseInt(e.target.value, 10))}
+          >
+            {/* TODO: placeholder values, implement for real */}
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((value) => (
+              <option value={value} key={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </SettingsRow>
+      </div>
+    </div>
   );
 }
 
-function SlideOutPanel({
-  children,
+function SettingsPanel({
+  params,
+  updateParams,
 }: {
-  children: (...args: any[]) => JSX.Element;
+  params: FrozenRenderParams | null;
+  updateParams: (params: RenderParamsUpdate) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  // TODO: inital value should be pulled from user's saved preferences
+  const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div
-      className={classnames('slide-out-panel-container', isOpen && 'visible')}
-    >
-      <div className='slide-out-panel' onMouseLeave={() => setIsOpen(false)}>
-        {children({ isOpen, setIsOpen })}
-      </div>
+    <div className='settings-wrap'>
       <div
-        className='slide-out-panel-opener'
-        onMouseEnter={() => setIsOpen(true)}
-      ></div>
+        className={classnames(
+          'settings-panel-container',
+          isOpen ? 'is-visible' : 'is-hidden',
+        )}
+      >
+        <SettingsPanelContent
+          params={params}
+          updateParams={updateParams}
+          setIsOpen={setIsOpen}
+        />
+      </div>
+
+      <button
+        className='panel-opener'
+        onClick={() => setIsOpen(true)}
+        aria-label='Open settings'
+      >
+        <FontAwesomeIcon icon={faGear} />
+      </button>
     </div>
   );
 }

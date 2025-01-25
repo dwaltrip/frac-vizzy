@@ -1,83 +1,235 @@
-.settings-row .color-picker + .color-picker {
-  margin-left: 6px;
+:root {
+  --main-border-default: #444;
+  --main-border-hover: #555;
+  --item-border: #777;
+  --item-border-hover: #888;
+
+  --bg-default: rgba(20, 20, 20, 0.8);
+  --bg-hover: rgba(20, 20, 20, 0.9);
+
+  --text-default: rgba(190, 190, 190, 70%);
+  --text-hover: rgba(215, 215, 215, 90%);
+  --text-select-default: rgba(180, 180, 180, 70%);
+  --text-select-hover: rgba(200, 200, 200, 90%);
 }
 
-.settings-row > label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-/* ---------------------------------------- */
-/* Settings Panel Basic Layout */
+/* ---------- bg color, text color, borders, including hover states ---------- */
 
 .settings-panel {
-  height: 100%;
-  padding: 10px;
-  background-color: #7b829d;
-  border-right: 1px solid #555;
+  /* color: rgba(78, 255, 63, 70%); */
+  color: var(--text-default);
+  border-right-style: solid;
+  border-top-style: solid;
+  border-width: 1px;
+
+  & .color-picker .picker-panel,
+  & .color-picker:not(.is-editing) .current-color,
+  select.settings-select {
+    border-style: solid;
+    border-width: 1px;
+  }
+
+  &,
+  & .color-picker .picker-panel,
+  select.settings-select {
+    background-color: var(--bg-default);
+    /* border: 1px solid var(--main-border-default); */
+    border-color: var(--main-border-default);
+  }
+
+  & .color-picker:not(.is-editing) .current-color,
+  & select.settings-select {
+    /* border: 1px solid var(--item-border); */
+    border-color: var(--item-border);
+  }
+
+  & select.settings-select {
+    color: var(--text-select-default);
+  }
+
+  & .header {
+    & .close-button {
+      color: var(--text-default);
+      &:hover {
+        color: white;
+      }
+    }
+  }
+
+  /* -----------------------------------------------------------
+    TODO: make this more robust than just `:hover`,
+    if we are using the color picker we aren't hovering anymore
+  ----------------------------------------------------------- */
+  &:hover {
+    &,
+    .close-button {
+      /* color: rgba(78, 255, 63, 80%); */
+      color: var(--text-hover);
+    }
+
+    &,
+    & .color-picker .picker-panel,
+    select.settings-select {
+      background-color: var(--bg-hover);
+      /* border: 1px solid var(--main-border-hover); */
+      border-color: var(--main-border-hover);
+    }
+
+    & .color-picker:not(.is-editing) .current-color,
+    & select.settings-select {
+      /* border: 1px solid var(--item-border-hover); */
+      border-color: var(--item-border-hover);
+    }
+
+    & select.settings-select {
+      color: var(--text-select-hover);
+    }
+  }
 }
 
-.settings-panel-content {
-  padding: 15px 10px;
+.settings-wrap {
+  & .panel-opener {
+    background-color: var(--bg-default);
+    color: var(--text-default);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--main-border-default);
+
+    &:hover {
+      background-color: var(--bg-hover);
+      color: var(--text-hover);
+      border-color: var(--main-border-hover);
+    }
+  }
 }
 
-.settings-panel-header {
-  font-size: 18px;
-  margin-bottom: 15px;
-}
+/* ---------- Styles related to the panel open / close mechanism ---------- */
 
-.settings-rows-container {
-  display: grid;
-  grid-template-columns: repeat(2, auto); /* 2 auto-sized columns */
-  gap: 10px;
-  width: fit-content;
-}
-
-.settings-row {
-  display: contents;
-}
-
-.settings-row > label,
-.settings-row > .content {
-  min-width: 0;
-}
-
-.settings-row > .content {
-  display: flex;
-  flex-direction: row;
-  min-width: 0;
-}
-
-/* ---------------------------------------- */
-/* Slide Out Panel */
-
-.slide-out-panel-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  z-index: 10;
-}
-
-.slide-out-panel-opener {
-  width: 30px;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.slide-out-panel {
+.settings-panel-container {
   position: fixed;
-  top: 0;
-  left: 0;
   bottom: 0;
-  height: 100%;
-  transform: translateX(-100%);
-  transition: transform 200ms ease-out;
+  left: 0;
+  z-index: 10;
+
+  &.is-hidden {
+    transform: translateX(-100%);
+  }
+  &.is-visible {
+    transform: translateX(0);
+  }
 }
 
-.slide-out-panel-container.visible .slide-out-panel {
-  transform: translateX(0);
+.settings-panel {
+  &,
+  & select.settings-select,
+  & .close-button {
+    transition:
+      color 150ms ease,
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+}
+
+.settings-panel-container,
+.settings-wrap .panel-opener {
+  transition: transform 150ms ease-out;
+}
+
+.settings-wrap {
+  & .panel-opener {
+    position: absolute;
+    z-index: 9;
+    transform: translateX(-100%);
+    left: 0;
+    bottom: 6px;
+  }
+
+  /* Show the panel opener (gear icon) when the panel is hidden */
+  & .settings-panel-container.is-hidden ~ .panel-opener {
+    transform: translateX(6px);
+  }
+}
+
+/* ---------- General layout, spacing, etc ---------- */
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  border-top-right-radius: 3px;
+
+  & .settings-panel-content {
+    padding: 15px 10px;
+  }
+
+  & .header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+    margin-bottom: 15px;
+
+    & .close-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+
+      font-size: 18px;
+      padding: 6px;
+      height: 32px;
+      width: 32px;
+      margin: -6px;
+      margin-left: 0;
+    }
+  }
+
+  & .rows-container {
+    display: grid;
+    /* 2 auto-sized columns */
+    grid-template-columns: repeat(2, auto);
+    gap: 10px;
+    width: fit-content;
+  }
+
+  & .settings-row {
+    display: contents;
+
+    & > label,
+    & > .content {
+      min-width: 0;
+    }
+    & > .content {
+      display: flex;
+      flex-direction: row;
+    }
+    & > label {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+
+  & .color-picker {
+    & + .color-picker {
+      margin-left: 6px;
+    }
+    & .picker-panel {
+      bottom: 0;
+      padding: 15px;
+    }
+  }
+}
+
+.settings-wrap {
+  position: relative;
+  width: 0;
+
+  & .panel-opener {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    padding: 8px;
+    font-size: 18px;
+    border-radius: 4px;
+  }
 }
