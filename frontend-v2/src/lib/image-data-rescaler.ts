@@ -1,3 +1,6 @@
+// TODO: This is dead code, remove it soon. Keeping it around for a little longer
+// until I do a spike on perf improvements for zooming.
+
 class ImageDataRescaler {
   private oldCanvas: OffscreenCanvas;
   private oldCtx: OffscreenCanvasRenderingContext2D;

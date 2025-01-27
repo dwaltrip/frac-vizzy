@@ -1,3 +1,5 @@
+// TODO: dead code, remove this soon.
+
 import {
   ComplexNum,
   FrozenRenderParams,

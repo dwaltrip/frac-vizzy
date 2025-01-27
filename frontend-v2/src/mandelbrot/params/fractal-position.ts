@@ -1,12 +1,11 @@
+// ------------------------------------------------------------------
+// TODO: Dead code!! Some of this could be useful in nearish future.
+// But otherwise should delete it soon.
+// ------------------------------------------------------------------
 import { clamp } from '@/utils/clamp';
 
 import { ComplexNum } from '@/mandelbrot/types';
 import { calcUnitsPerPixel } from '@/mandelbrot/zoom';
-
-// ------------------------------------------------------------------
-// TODO: I AM NOT CURRENTLY USING THIS...............
-// keeping it just in case, for now. clean up later.
-// ------------------------------------------------------------------
 
 class FractalPosition {
   center: GetterSetter<Readonly<ComplexNum>>;
