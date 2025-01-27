@@ -13,7 +13,6 @@ import {
   computeRegionPointsConditionally,
 } from '@/mandelbrot/core';
 
-// TODO: dedupe with `getTileId` in `tile-id.ts`
 function makeTileCoord(x: number, y: number, z: number): TileCoord {
   if (!Number.isInteger(x) || !Number.isInteger(y) || !Number.isInteger(z)) {
     throw new TypeError('Tile coordinates must be integers');
@@ -58,14 +57,9 @@ type TileGridRect = {
   botRight: TileCoord;
 };
 
-// --------------------
-// WITH UPSCALING!!!!!!
-// --------------------
-function getTileGridRect(
-  params: FrozenRenderParams,
-  view: { width: number; height: number },
-): TileGridRect {
+function getTileGridRect(params: FrozenRenderParams): TileGridRect {
   const zoomInfo = createZoomInfo(params.zoom);
+  const view = params.view;
   const region = {
     width: view.width * zoomInfo.unitsPerPixel,
     height: view.height * zoomInfo.unitsPerPixel,
@@ -86,9 +80,8 @@ function getTileGridRect(
 
 function calculateVisibleTilesUsingUpscaling(
   params: FrozenRenderParams,
-  view: { width: number; height: number },
 ): TileParams[] {
-  const grid = getTileGridRect(params, view);
+  const grid = getTileGridRect(params);
   const truncZoom = Math.floor(params.zoom);
   const tiles = [];
   for (let x = grid.topLeft.x; x <= grid.botRight.x; x++) {
@@ -105,7 +98,6 @@ function calculateVisibleTilesUsingUpscaling(
 export {
   computeTile,
   computeTilePointsConditionally,
-  // calculateVisibleTiles,
   getTileGridRect,
   calculateVisibleTilesUsingUpscaling,
 };

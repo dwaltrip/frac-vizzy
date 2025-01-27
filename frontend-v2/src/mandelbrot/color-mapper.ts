@@ -1,4 +1,3 @@
-// import { Color, ColorMapper, SetStatus, TileData } from '@/mandelbrot/types';
 import { Color, ColorMapper, SetStatus, TileData } from '@/mandelbrot/types';
 
 type EscapeTimeColoParams = {

@@ -215,10 +215,7 @@ class Mandelbrot {
     }
 
     const target = this.normalizeParams(rawTarget);
-    const targetTiles = calculateVisibleTilesUsingUpscaling(
-      target,
-      target.view,
-    );
+    const targetTiles = calculateVisibleTilesUsingUpscaling(target);
 
     const { color1, color2 } = target.colors;
     const mapperParams = {

@@ -1,3 +1,8 @@
+// -----------------------------------------------------------------------------
+// TODO: This code isn't being used, keeping it around until I review / improve
+// the current tile cache implementation.
+// Note, this was copied as-is from v1 of the frontend.
+// -----------------------------------------------------------------------------
 import { TILE_SIDE_LENGTH_IN_PIXELS } from 'settings';
 import { LRUCache } from 'lib/LRUCache';
 

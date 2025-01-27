@@ -1,11 +1,4 @@
-import {
-  ColorMapper,
-  ComplexNum,
-  ComplexRegion,
-  // FrozenRenderParams,
-  TileResult,
-  Rect,
-} from '@/mandelbrot/types';
+import { ColorMapper, ComplexRegion, TileResult } from '@/mandelbrot/types';
 
 import { getTileId } from '@/mandelbrot/tile-id';
 import { pointsToBitmap } from '@/mandelbrot/utils/points-to-bitmap';
@@ -19,12 +12,8 @@ async function renderTile(
   params: FrozenRenderParams,
   getColor: ColorMapper,
 ) {
-  // TODO: The view dimensions are stored on the render params now,
-  //   so we don't need to read from the canvas.
-  //   Can probably just pass `params` to `regionForView`.
-  const view = { width: canvas.width, height: canvas.height };
-  const region = regionForView(params.center, view, params.zoom);
-  const grid = getTileGridRect(params, view);
+  const region = regionForParams(params);
+  const grid = getTileGridRect(params);
   const topLeftTileCoord = grid.topLeft;
   const zoomInfo = createZoomInfo(params.zoom);
 
@@ -106,11 +95,8 @@ async function renderTile(
   }
 }
 
-function regionForView(
-  center: ComplexNum,
-  view: Rect,
-  zoom: number,
-): ComplexRegion {
+function regionForParams(params: FrozenRenderParams): ComplexRegion {
+  const { center, zoom, view } = params;
   const unitsPerPixel = calcUnitsPerPixel(zoom);
   const width = view.width * unitsPerPixel;
   const height = view.height * unitsPerPixel;

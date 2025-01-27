@@ -165,7 +165,7 @@ class RenderJob {
       }
     }
 
-    // TODO Is there a better way to know we are done rendering?
+    // TODO: Is there a better way to know we are done rendering?
     // Feels slightly brittle. It might be fine though.
     if (this._renderedTiles.size === this.targetTiles.length) {
       this.status = RenderJobStatus.COMPLETE;
@@ -189,7 +189,8 @@ class RenderJob {
     }
   }
 
-  // TODO: do we need this?
+  // TODO: Do we need this? We don't seem to need to check for cancellation anywhere.
+  // The only place we call this creates a new render job.
   cancel() {
     this.status = RenderJobStatus.CANCELED;
   }
