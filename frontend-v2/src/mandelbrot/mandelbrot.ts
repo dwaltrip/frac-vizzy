@@ -20,6 +20,12 @@ import {
   RenderParamsUpdate,
   trimCenterCoords,
 } from '@/mandelbrot/params/render-params';
+import {
+  getInitialUserSettings,
+  saveUserSettings,
+  UserSettings,
+  UserSettingsUpdate,
+} from '@/mandelbrot/params/user-settings';
 import { InteractionManager } from '@/mandelbrot/interactions/interaction-manager';
 import { TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
 import { RenderJob } from '@/mandelbrot/params/render-job';
@@ -42,6 +48,8 @@ class Mandelbrot {
   canvas: HTMLCanvasElement;
   container: HTMLElement;
 
+  userSettings: UserSettings;
+
   lastRender: RenderJob | null = null;
   pendingRender: RenderJob | null = null;
   // TODO: fix this hack.
@@ -51,17 +59,23 @@ class Mandelbrot {
   private workQueue = new Queue<TileCalcTask>();
   private workerManager: WorkerManager<TileResult>;
   private interactionManager: InteractionManager;
+
   private onNewParams: ParamsChangeListener;
+  private onNewUserSettings: (userSettings: UserSettings) => void;
 
   constructor(
     container: HTMLElement,
     canvas: HTMLCanvasElement,
-    numWorkers: number,
     onNewParams: ParamsChangeListener,
+    onNewUserSettings: (userSettings: UserSettings) => void,
   ) {
     this.canvas = canvas;
     this.container = container;
     this.onNewParams = onNewParams;
+    this.onNewUserSettings = onNewUserSettings;
+
+    this.userSettings = getInitialUserSettings();
+    onNewUserSettings(this.userSettings);
 
     this.workerManager = new WorkerManager(
       () => {
@@ -80,7 +94,7 @@ class Mandelbrot {
           type: 'module',
         });
       },
-      numWorkers,
+      this.userSettings.numCPUs,
       new TaskRelay(
         () => !this.workQueue.isEmpty,
         () => {
@@ -142,6 +156,24 @@ class Mandelbrot {
         break;
     }
     this.queueRender(target);
+  }
+
+  updateUserSettings(update: UserSettingsUpdate) {
+    const prev = this.userSettings;
+    const next = { ...prev } as UserSettings;
+
+    switch (update.type) {
+      case 'numCPUs':
+        next.numCPUs = update.value;
+        this.workerManager.setNumberOfWorkers(update.value);
+        break;
+      case 'hideSettingsPanel':
+        next.hideSettingsPanel = update.value;
+        break;
+    }
+    this.userSettings = next;
+    saveUserSettings(this.userSettings);
+    this.onNewUserSettings && this.onNewUserSettings(this.userSettings);
   }
 
   containerDims(): Rect {

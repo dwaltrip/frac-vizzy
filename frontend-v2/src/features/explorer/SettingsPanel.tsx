@@ -12,6 +12,12 @@ import {
   ColoringAlgorithm,
 } from '@/mandelbrot/params/render-params';
 import { Color } from '@/mandelbrot/types';
+import {
+  UserSettings,
+  UserSettingsUpdate,
+  MAX_NUM_CPUS,
+} from '@/mandelbrot/params/user-settings';
+import { range } from '@/lib/range';
 
 // TODO: should these be somewhere else?
 const ITERATION_VALUE_OPTS = [100, 250, 500, 1000, 2500, 5000].map((num) => {
@@ -22,6 +28,12 @@ const COLOR_ALGORITHM_OPTS = [
   { value: 'linear', text: 'Linear' },
   { value: 'histogram', text: 'Histogram' },
 ];
+
+// range 1 to MAX_NUM_CPUS
+const NUM_CPU_OPTS = range(1, MAX_NUM_CPUS).map((num) => {
+  const value = '' + num;
+  return { value, text: value };
+});
 
 function SettingsRow({
   label,
@@ -38,21 +50,23 @@ function SettingsRow({
   );
 }
 
+type ParamsUpdater = (changes: RenderParamsUpdate) => void;
+type UserSettingsUpdater = (changes: UserSettingsUpdate) => void;
+
 function SettingsPanelContent({
   params,
+  userSettings,
+  updateUserSettings,
   updateParams,
   setIsOpen,
 }: {
   params: FrozenRenderParams | null;
-  updateParams: (params: RenderParamsUpdate) => void;
+  userSettings: UserSettings | null;
+  updateParams: ParamsUpdater;
+  updateUserSettings: UserSettingsUpdater;
   setIsOpen: (isOpen: boolean) => void;
 }) {
-  // ---------------------------------------------------------------
-  // TODO: these are placeholders for now so the code can run
-  // Will implement the actual functionality later
-  const [numCPUs, setNumCPUs] = useState(2);
-  // ---------------------------------------------------------------
-
+  // update params
   const setIters = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = parseInt(event.target.value, 10);
     updateParams({ type: 'iters', value });
@@ -67,13 +81,26 @@ function SettingsPanelContent({
     updateParams({ type: 'colors', value: { algorithm: algo } });
   };
 
-  if (!params) {
+  // update user settings
+  const setNumCPUs = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = parseInt(event.target.value, 10);
+    updateUserSettings({ type: 'numCPUs', value });
+  };
+  // HTML checkbox
+  const setHideSettingsPanel = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.checked;
+    updateUserSettings({ type: 'hideSettingsPanel', value });
+  };
+
+  if (!params || !userSettings) {
     return null;
   }
   const {
     iters,
     colors: { color1, color2, algorithm },
   } = params;
+
+  const { numCPUs, hideSettingsPanel } = userSettings;
 
   return (
     <div className='settings-panel'>
@@ -124,16 +151,26 @@ function SettingsPanelContent({
           <select
             className='settings-select'
             value={numCPUs}
-            onChange={(e) => setNumCPUs(parseInt(e.target.value, 10))}
+            onChange={setNumCPUs}
           >
-            {/* TODO: placeholder values, implement for real */}
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((value) => (
+            {NUM_CPU_OPTS.map(({ value, text }) => (
               <option value={value} key={value}>
-                {value}
+                {text}
               </option>
             ))}
           </select>
         </SettingsRow>
+
+        {/* TODO: Finish implementing this feature. Hiding from the UI for now. */}
+        {/*
+          <SettingsRow label='Hide Settings Panel'>
+            <input
+              type='checkbox'
+              checked={hideSettingsPanel}
+              onChange={setHideSettingsPanel}
+            />
+          </SettingsRow>
+        */}
       </div>
     </div>
   );
@@ -141,10 +178,14 @@ function SettingsPanelContent({
 
 function SettingsPanel({
   params,
+  userSettings,
   updateParams,
+  updateUserSettings,
 }: {
   params: FrozenRenderParams | null;
-  updateParams: (params: RenderParamsUpdate) => void;
+  userSettings: UserSettings | null;
+  updateParams: ParamsUpdater;
+  updateUserSettings: UserSettingsUpdater;
 }) {
   // TODO: inital value should be pulled from user's saved preferences
   const [isOpen, setIsOpen] = useState(true);
@@ -159,7 +200,9 @@ function SettingsPanel({
       >
         <SettingsPanelContent
           params={params}
+          userSettings={userSettings}
           updateParams={updateParams}
+          updateUserSettings={updateUserSettings}
           setIsOpen={setIsOpen}
         />
       </div>

@@ -64,6 +64,10 @@ class WorkerManager<TaskResult> {
     while (this.workers.length > num) {
       const worker = this.workers.pop();
       if (worker) {
+        // ---------------------------------------------------------------------------------
+        // TODO: I'm seeing old workers in the chrome console, even after they're terminated.
+        // Check if we are using releaseProxy correctly.
+        // ---------------------------------------------------------------------------------
         worker.terminate();
       }
     }

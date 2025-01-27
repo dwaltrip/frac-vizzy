@@ -7,14 +7,13 @@ import {
   RenderParamsUpdate,
   serializeParamsForUrl,
 } from '@/mandelbrot/params/render-params';
+import {
+  UserSettings,
+  UserSettingsUpdate,
+} from '@/mandelbrot/params/user-settings';
 
-import { SettingsPanel } from './SettingsPanel';
+import { SettingsPanel } from '@/features/explorer/SettingsPanel';
 import '@/styles/features/explorer/explorer.css';
-
-// TOOD: Make this configurable / user setting
-// Default to most of the available cores.
-const NUM_WORKERS = 8;
-// const NUM_WORKERS = 2;
 
 function Explorer(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -22,6 +21,7 @@ function Explorer(): JSX.Element {
   const mandelbrotRef = useRef<Mandelbrot | null>(null);
 
   const [params, setParams] = useState<RenderParamsData | null>(null);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
 
   console.log('-------- Explorer component --------');
 
@@ -48,12 +48,17 @@ function Explorer(): JSX.Element {
       }
     }
 
+    function handleNewUserSettings(userSettings: UserSettings) {
+      console.log('handleNewUserSettings', userSettings);
+      setUserSettings(userSettings);
+    }
+
     // TODO: this is brittle to React ref changes, as this only runs on mount.
     const mandelbrot = new Mandelbrot(
       containerRef.current,
       canvasRef.current,
-      NUM_WORKERS,
       handleNewParams,
+      handleNewUserSettings,
     );
     mandelbrotRef.current = mandelbrot;
     setParams(mandelbrot.getCurrentParams());
@@ -65,12 +70,20 @@ function Explorer(): JSX.Element {
     <div className='page explorer-page'>
       <SettingsPanel
         params={params}
+        userSettings={userSettings}
         updateParams={(changes: RenderParamsUpdate) => {
           const mb = mandelbrotRef.current;
           if (!mb) {
             throw new Error('Mandelbrot instance not available');
           }
           mb.updateParams(changes);
+        }}
+        updateUserSettings={(changes: UserSettingsUpdate) => {
+          const mb = mandelbrotRef.current;
+          if (!mb) {
+            throw new Error('Mandelbrot instance not available');
+          }
+          mb.updateUserSettings(changes);
         }}
       />
       <div className='mb-canvas-container' ref={containerRef}>
