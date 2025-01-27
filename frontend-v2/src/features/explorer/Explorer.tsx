@@ -25,6 +25,8 @@ function Explorer(): JSX.Element {
 
   console.log('-------- Explorer component --------');
 
+  // TODO: Look into potentially doing clenanup of the Mandelbrot instance
+  // if the component is unmounted. Right now that doesn't happen.
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) {
       return;
@@ -53,7 +55,6 @@ function Explorer(): JSX.Element {
       setUserSettings(userSettings);
     }
 
-    // TODO: this is brittle to React ref changes, as this only runs on mount.
     const mandelbrot = new Mandelbrot(
       containerRef.current,
       canvasRef.current,

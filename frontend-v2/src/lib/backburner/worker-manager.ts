@@ -146,16 +146,15 @@ class TaskRelay {
 // ----------------------------------------------------------------------------
 // -- BackburnerWorker --
 
-type _WrappedWorker = Worker & {
-  // performWork(workerId: string, inputs: any): Promise<any>;
-  performWork(inputs: any): Promise<any>;
+type _WrappedWorker<WorkResult> = Worker & {
+  performWork(inputs: any): Promise<WorkResult>;
 };
 
 class BackburnerWorker<Result> {
   id: string;
   status: WorkerStatus;
 
-  private worker: Remote<_WrappedWorker>;
+  private worker: Remote<_WrappedWorker<Result>>;
   private pendingResult: Promise<Result> | null = null;
 
   get isAvailable(): boolean {
@@ -171,7 +170,7 @@ class BackburnerWorker<Result> {
     this.worker = wrap(workerInstance);
   }
 
-  // TODO: Get rid of these any types
+  // TODO: type `task` properly
   async startTask(task: any): Promise<Result> {
     if (this.pendingResult) {
       console.warn(`DEBUG -- worker: ${this.id}, status: ${this.status}`);
@@ -181,21 +180,27 @@ class BackburnerWorker<Result> {
 
     this.status = WorkerStatus.BUSY;
 
-    // TODO: Improve error handling
-    this.pendingResult = this.worker
+    const result = this.worker
       .performWork(task)
-      .then((result: Result) => {
+      .then((result) => {
         this.status = WorkerStatus.IDLE;
         this.pendingResult = null;
-        return result;
+        // Comlink doesn't infer that values from the worker will match their
+        // declared types after serialization/deserialization, so it types them
+        // as `unknown`. We know the worker returns Result, so it's safe to cast.
+        return result as Result;
       })
-      .catch((error: any) => {
-        console.error('-- performWork error --');
+      .catch((error: Error) => {
+        console.error('Worker task failed:', {
+          workerId: this.id,
+          error: error.message,
+          stack: error.stack,
+        });
         throw error;
       });
 
-    // TODO: Why does TS think this is a Promise<any> | null?
-    return this.pendingResult!;
+    this.pendingResult = result;
+    return result;
   }
 
   terminate() {

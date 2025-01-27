@@ -121,6 +121,7 @@ function getInitialParams(view: Rect): [ManagedRenderParams, boolean] {
   return [params, false];
 }
 
+/* Remove non-significant digits from the center coordinates */
 function trimCenterCoords(
   center: ComplexNum,
   zoom: number,

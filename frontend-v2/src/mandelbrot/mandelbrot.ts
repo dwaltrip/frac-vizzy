@@ -2,7 +2,6 @@ import { debounce } from '@/lib/debounce';
 import { WorkerManager, TaskRelay } from '@/lib/backburner/worker-manager';
 import { Queue } from '@/lib/queue';
 import { invariant } from '@/utils/invariant';
-// import { throttle } from '@/lib/throttle';
 
 import {
   TileCalcTask,
@@ -307,8 +306,11 @@ class Mandelbrot {
     };
   }
 
+  // NOTE: This never gets ever called at the moment.
+  // But it will later when we have different pages / views (e.g. social features, etc)
   cleanup() {
     this.interactionManager.detachEventListeners();
+    // TODO: clean up workers?
     // this.workerManager.terminate();
   }
 
@@ -333,7 +335,8 @@ class Mandelbrot {
   // -----------------------------------------------------------
   // TODO: this feels a little laggy / sluggish.
   // Was the throttle contributing? Other ways to improve?
-  // As a reference point, look at how resizing feels without any mandelbrot viz.
+  // As a reference point, test how resizing feels with a blank canvas
+  //  and no rendering of the fractal.
   // -----------------------------------------------------------
   // TODO: possibly look into ResizeObserver
   // -----------------------------------------------------------

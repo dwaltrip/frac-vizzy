@@ -1,25 +1,28 @@
 import { JSX } from 'react';
 import { useState } from 'react';
-import { ColorPicker } from '@/ui/ColorPicker';
+import classnames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGear, faXmark } from '@fortawesome/free-solid-svg-icons';
 
-import '@/styles/features/explorer/settings-panel.css';
-import classnames from 'classnames';
+import { range } from '@/lib/range';
+
+import { Color } from '@/mandelbrot/types';
 import {
   FrozenRenderParams,
   RenderParamsUpdate,
   ColoringAlgorithm,
 } from '@/mandelbrot/params/render-params';
-import { Color } from '@/mandelbrot/types';
 import {
   UserSettings,
   UserSettingsUpdate,
   MAX_NUM_CPUS,
 } from '@/mandelbrot/params/user-settings';
-import { range } from '@/lib/range';
+import { ColorPicker } from '@/ui/ColorPicker';
 
-// TODO: should these be somewhere else?
+import '@/styles/features/explorer/settings-panel.css';
+
+// TODO: This should probably be in a file w/ all other default values / params,
+// and other similar constants.
 const ITERATION_VALUE_OPTS = [100, 250, 500, 1000, 2500, 5000].map((num) => {
   const value = '' + num;
   return { value, text: value };

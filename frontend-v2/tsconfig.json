@@ -14,13 +14,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
+    /* Typing / linting settings */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* setup absolute imports */
+    /* Setup absolute imports */
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
