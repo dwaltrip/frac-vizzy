@@ -56,7 +56,7 @@ class Mandelbrot {
 
   private tileStore = new TileStore();
   private workQueue = new Queue<TileCalcTask>();
-  private workerManager: WorkerManager<TileResult>;
+  private workerManager: WorkerManager<TileCalcTask, TileResult>;
   private interactionManager: InteractionManager;
 
   private onNewParams: ParamsChangeListener;
@@ -267,6 +267,8 @@ class Mandelbrot {
         context: { renderId: job.id },
       })),
     );
+    // TODO: Think about possible UI feedback / other stuff
+    // if the are errors in the worker
     this.workerManager.startWorking();
   }
 

@@ -1,4 +1,4 @@
-import { wrap, Remote, releaseProxy } from 'comlink';
+import { wrap, Remote, releaseProxy, UnproxyOrClone } from 'comlink';
 
 import { IdGenerator } from './id-generator';
 
@@ -10,18 +10,16 @@ enum WorkerStatus {
 // ----------------------------------------------------------------------------
 // -- WorkerManager --
 
-// TODO: can we get rid of the any types?
-// Maybe w/ generics the way we use `TaskResult`?
-interface WorkerManagerHooks {
-  beforeTask?: (task: any) => void;
-  afterTask?: (task: any, result: any) => void;
+interface WorkerManagerHooks<TaskInputs, TaskResult> {
+  beforeTask?: (task: TaskInputs) => void;
+  afterTask?: (task: TaskInputs, result: TaskResult) => void;
 }
 
-class WorkerManager<TaskResult> {
-  private workers: BackburnerWorker<TaskResult>[];
+class WorkerManager<TaskInputs, TaskResult> {
+  private workers: BackburnerWorker<TaskInputs, TaskResult>[];
 
   // -------------------------------------------------------------------------------------
-  // NOTE: We need a function that returns an actual worker instance.
+  // NOTE: For `workerFactory`, we need a function that returns an actual worker instance.
   // Before, WorkerManager received a plain string for the path to the worker script.
   // But for peculiar reasons, this breaks in vitejs prod builds.
   // You HAVE to create the Worker using the exact syntax of:
@@ -38,15 +36,11 @@ class WorkerManager<TaskResult> {
   // using the above syntax.
   // This isn't in the vitejs docs unfortunately... but this seems to be the way you have to do it.
   // -------------------------------------------------------------------------------------
-  private workerFactory: () => Worker;
-  private taskRelay: TaskRelay;
-  private hooks: WorkerManagerHooks;
-
   constructor(
-    workerFactory: () => Worker,
+    private workerFactory: () => Worker,
     numberOfWorkers: number,
-    taskRelay: TaskRelay,
-    hooks: WorkerManagerHooks = {},
+    private taskRelay: TaskRelay<TaskInputs>,
+    private hooks: WorkerManagerHooks<TaskInputs, TaskResult> = {},
   ) {
     this.hooks = hooks || {};
     this.workerFactory = workerFactory;
@@ -73,44 +67,51 @@ class WorkerManager<TaskResult> {
     }
   }
 
-  get allWorkers(): BackburnerWorker<TaskResult>[] {
+  get allWorkers(): BackburnerWorker<TaskInputs, TaskResult>[] {
     return this.workers;
   }
-  get busyWorkers(): BackburnerWorker<TaskResult>[] {
+  get busyWorkers(): BackburnerWorker<TaskInputs, TaskResult>[] {
     return this.workers.filter((worker) => worker.isBusy);
   }
 
-  createWorker(): BackburnerWorker<TaskResult> {
-    return new BackburnerWorker<TaskResult>(this.workerFactory());
+  createWorker(): BackburnerWorker<TaskInputs, TaskResult> {
+    return new BackburnerWorker<TaskInputs, TaskResult>(this.workerFactory());
   }
 
   get areAnyWorkersAvailable(): boolean {
     return this.workers.some((worker) => worker.isAvailable);
   }
 
-  popNextTask(): any | null {
+  popNextTask(): TaskInputs | null {
     return this.taskRelay.popNext();
   }
+
+  requireNextTask(): TaskInputs {
+    const task = this.popNextTask();
+    if (!task) {
+      throw new Error('No tasks available');
+    }
+    return task;
+  }
+
   get hasTask(): boolean {
     return this.taskRelay.hasTasks;
   }
 
-  get nextAvailableWorker(): BackburnerWorker<TaskResult> | undefined {
+  get nextAvailableWorker():
+    | BackburnerWorker<TaskInputs, TaskResult>
+    | undefined {
     return this.workers.find((worker) => worker.isAvailable);
   }
 
   startWorking() {
     let worker = this.nextAvailableWorker;
     while (this.hasTask && worker) {
-      // TODO: handle errors
-      // TODO: The term "task" is a little misleading...
-      //   It's more like "task params", which are passed to the worker.
-      //   In our case, the actual value is a TileParams object.
-      const task = this.popNextTask();
-      this.beforeTask && this.beforeTask(task);
+      const taskInput = this.requireNextTask();
+      this.beforeTask && this.beforeTask(taskInput);
 
-      worker.startTask(task).then((result: any) => {
-        this.afterTask(task, result);
+      worker.startTask(taskInput).then((result: TaskResult) => {
+        this.afterTask(taskInput, result);
         this.startWorking();
       });
 
@@ -118,22 +119,22 @@ class WorkerManager<TaskResult> {
     }
   }
 
-  beforeTask(task: any) {
+  beforeTask(taskInput: TaskInputs) {
     const handler = this.hooks.beforeTask;
-    handler && handler(task);
+    handler && handler(taskInput);
   }
 
-  afterTask(task: any, result: any) {
+  afterTask(taskInput: TaskInputs, result: TaskResult) {
     const handler = this.hooks.afterTask;
-    handler && handler(task, result);
+    handler && handler(taskInput, result);
   }
 }
 
-class TaskRelay {
+class TaskRelay<TaskInputs> {
   private _hasTasks: () => boolean;
-  popNext: () => any | null;
+  popNext: () => TaskInputs | null;
 
-  constructor(hasTasks: () => boolean, popNext: () => any | null) {
+  constructor(hasTasks: () => boolean, popNext: () => TaskInputs | null) {
     this.popNext = popNext;
     this._hasTasks = hasTasks;
   }
@@ -146,16 +147,16 @@ class TaskRelay {
 // ----------------------------------------------------------------------------
 // -- BackburnerWorker --
 
-type _WrappedWorker<WorkResult> = Worker & {
-  performWork(inputs: any): Promise<WorkResult>;
+type _WrappedWorker<Inputs, Outputs> = Worker & {
+  performWork(inputs: Inputs): Promise<Outputs>;
 };
 
-class BackburnerWorker<Result> {
+class BackburnerWorker<TaskInputs, TaskResult> {
   id: string;
   status: WorkerStatus;
 
-  private worker: Remote<_WrappedWorker<Result>>;
-  private pendingResult: Promise<Result> | null = null;
+  private worker: Remote<_WrappedWorker<TaskInputs, TaskResult>>;
+  private pendingResult: Promise<TaskResult> | null = null;
 
   get isAvailable(): boolean {
     return this.status === WorkerStatus.IDLE;
@@ -170,8 +171,7 @@ class BackburnerWorker<Result> {
     this.worker = wrap(workerInstance);
   }
 
-  // TODO: type `task` properly
-  async startTask(task: any): Promise<Result> {
+  async startTask(task: TaskInputs): Promise<TaskResult> {
     if (this.pendingResult) {
       console.warn(`DEBUG -- worker: ${this.id}, status: ${this.status}`);
       console.warn(`DEBUG -- pendingResult: ${this.pendingResult}`);
@@ -181,14 +181,16 @@ class BackburnerWorker<Result> {
     this.status = WorkerStatus.BUSY;
 
     const result = this.worker
-      .performWork(task)
+      // `performWork` takes `TaskInputs`, but comlink seems to change the type.
+      // Not sure if this cast is the correct fix.
+      .performWork(task as UnproxyOrClone<TaskInputs>)
       .then((result) => {
         this.status = WorkerStatus.IDLE;
         this.pendingResult = null;
         // Comlink doesn't infer that values from the worker will match their
         // declared types after serialization/deserialization, so it types them
-        // as `unknown`. We know the worker returns Result, so it's safe to cast.
-        return result as Result;
+        // as `unknown`. We know the worker returns TaskResult, so it's safe to cast.
+        return result as TaskResult;
       })
       .catch((error: Error) => {
         console.error('Worker task failed:', {
