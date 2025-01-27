@@ -3,7 +3,7 @@ import qs from 'qs';
 import { DeepReadonly } from '@/types';
 import { invariant } from '@/utils/invariant';
 
-import { Color, ComplexNum, Viewport } from '@/mandelbrot/types';
+import { Color, ComplexNum, Rect } from '@/mandelbrot/types';
 import { createZoomInfo, TILE_SIZE_IN_PX } from '@/mandelbrot/zoom';
 
 type pixels = number;
@@ -22,21 +22,25 @@ type RenderParamsData = {
   center: ComplexNum;
   zoom: number;
 
-  // This is the only param we don't put in the URL as we don't have "control"
-  // over it. We can't change the size of the window.
-  view: Viewport;
+  // Height and width of the canvas in pixels. The app doesn't control this
+  // it's dynamically determined by the window size.
+  // As such, we don't serialize it into the URL.
+  view: Rect;
 
   // --- calculation params ---
   iters: number;
+
+  // --- visualization params ---
+  colors: ColorParams;
+
+  // --- other ---
   // The size of the tile in pixels when zoom is an integer.
   // With smooth zoom, the rendered tiles are never this exact size.
   // There is always some fractional part of the zoom that we need to account for,
   //   which is done by scaling the tiles appropriately.
   // See the rendering code in `render-tile-data.ts` for more details.
+  // This hard-coded in the source code, so we don't serialize it into the URL.
   baseTileSizePx: pixels;
-
-  // --- visualization params ---
-  colors: ColorParams;
 };
 
 // These are the params that are managed by the app,
@@ -73,7 +77,7 @@ const DEFAULT_PARAMS: ManagedRenderParams = {
 // -------------------------------------------
 // TODO: MORE VALIDATION / HANDLING BAD VALUES
 // -------------------------------------------
-function getInitialParams(view: Viewport): [ManagedRenderParams, boolean] {
+function getInitialParams(view: Rect): [ManagedRenderParams, boolean] {
   const url = new URL(window.location.href);
   // TODO: how does typing working with 'qs'?
   const data = qs.parse(url.searchParams.toString()) as any;
@@ -120,7 +124,7 @@ function getInitialParams(view: Viewport): [ManagedRenderParams, boolean] {
 function trimCenterCoords(
   center: ComplexNum,
   zoom: number,
-  viewport: Viewport,
+  viewport: Rect,
 ): ComplexNum {
   const zoomInfo = createZoomInfo(zoom);
   const shortSide = Math.min(viewport.width, viewport.height);
@@ -208,7 +212,7 @@ type RenderParamsUpdate =
   | { type: 'center'; value: ComplexNum }
   | { type: 'iters'; value: number }
   | { type: 'colors'; value: Partial<ColorParams> }
-  | { type: 'view'; value: Viewport };
+  | { type: 'view'; value: Rect };
 
 type FrozenRenderParams = DeepReadonly<RenderParamsData>;
 
@@ -218,7 +222,7 @@ class RenderParams {
   iters: number;
 
   colors: ColorParams;
-  view: Viewport;
+  view: Rect;
 
   baseTileSizePx: pixels;
 

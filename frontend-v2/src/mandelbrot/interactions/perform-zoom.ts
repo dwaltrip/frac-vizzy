@@ -1,5 +1,5 @@
 import { clamp } from '@/utils/clamp';
-import { ComplexNum, MousePos, Viewport } from '@/mandelbrot/types';
+import { ComplexNum, MousePos, Rect } from '@/mandelbrot/types';
 import {
   RenderParams,
   FrozenRenderParams,
@@ -80,7 +80,7 @@ function roundIfIsEpsilonDistFromInt(num: number): number {
 function findCenterToKeepMousePosStationary(
   oldCenter: ComplexNum,
   zoom: { old: number; new: number },
-  view: Viewport,
+  view: Rect,
   mousePos: MousePos,
 ): ComplexNum {
   const centerPos = {

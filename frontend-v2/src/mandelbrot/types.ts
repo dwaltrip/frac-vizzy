@@ -75,7 +75,7 @@ interface PixelCoord {
   y: number;
 }
 
-type Viewport = {
+type Rect = {
   width: number;
   height: number;
 };
@@ -112,7 +112,7 @@ export {
   type TileCorner,
   type FrozenRenderParams,
   type ComplexRegion,
-  type Viewport,
+  type Rect,
   type PixelCoord,
   type MousePos,
   type Color,

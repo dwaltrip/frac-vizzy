@@ -4,7 +4,7 @@ import {
   ComplexRegion,
   // FrozenRenderParams,
   TileResult,
-  Viewport,
+  Rect,
 } from '@/mandelbrot/types';
 
 import { getTileId } from '@/mandelbrot/tile-id';
@@ -108,7 +108,7 @@ async function renderTile(
 
 function regionForView(
   center: ComplexNum,
-  view: Viewport,
+  view: Rect,
   zoom: number,
 ): ComplexRegion {
   const unitsPerPixel = calcUnitsPerPixel(zoom);

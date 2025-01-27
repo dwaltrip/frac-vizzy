@@ -9,7 +9,7 @@ import {
   TileResult,
   TileParams,
   TileData,
-  Viewport,
+  Rect,
 } from '@/mandelbrot/types';
 
 import {
@@ -144,7 +144,7 @@ class Mandelbrot {
     this.queueRender(target);
   }
 
-  containerDims(): Viewport {
+  containerDims(): Rect {
     return {
       width: this.container.clientWidth,
       height: this.container.clientHeight,
@@ -171,7 +171,7 @@ class Mandelbrot {
   };
   private afterRender = debounce(this._afterRender, 50);
 
-  getViewport(): Viewport {
+  getViewport(): Rect {
     return {
       width: this.canvas.width,
       height: this.canvas.height,
@@ -313,7 +313,7 @@ class Mandelbrot {
   private handleWindowResize = this._handleWindowResize;
   // private handleWindowResize = throttle(this._handleWindowResize, 30);
 
-  private resizeCanvasToContainer(): Viewport {
+  private resizeCanvasToContainer(): Rect {
     const view = this.containerDims();
     this.canvas.width = view.width;
     this.canvas.height = view.height;
