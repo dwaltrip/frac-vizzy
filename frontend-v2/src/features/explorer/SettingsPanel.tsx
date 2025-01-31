@@ -89,11 +89,12 @@ function SettingsPanelContent({
     const value = parseInt(event.target.value, 10);
     updateUserSettings({ type: 'numCPUs', value });
   };
-  // HTML checkbox
-  const setHideSettingsPanel = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.checked;
-    updateUserSettings({ type: 'hideSettingsPanel', value });
-  };
+
+  // -- Unfinished code. It goes with the commented out "Hide Settings Panel" checkbox below --
+  // const setHideSettingsPanel = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const value = event.target.checked;
+  //   updateUserSettings({ type: 'hideSettingsPanel', value });
+  // };
 
   if (!params || !userSettings) {
     return null;
@@ -103,7 +104,8 @@ function SettingsPanelContent({
     colors: { color1, color2, algorithm },
   } = params;
 
-  const { numCPUs, hideSettingsPanel } = userSettings;
+  const { numCPUs } = userSettings;
+  // const { numCPUs, hideSettingsPanel } = userSettings;
 
   return (
     <div className='settings-panel'>
