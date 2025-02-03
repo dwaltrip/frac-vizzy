@@ -9,6 +9,7 @@ import {
   calcUnitsPerPixel,
   PixelLen,
   TILE_SIZE_IN_PX,
+  MAX_ZOOM,
 } from '@/mandelbrot/zoom';
 
 // This only modifies the params, doesn't render anything
@@ -66,7 +67,7 @@ function tileSizeFromZoom(zoom: number): PixelLen {
 }
 
 function zoomAdd(params: RenderParams, amount: number): number {
-  return clamp(params.zoom + amount, 0, 40);
+  return clamp(params.zoom + amount, 0, MAX_ZOOM);
 }
 
 function roundIfIsEpsilonDistFromInt(num: number): number {

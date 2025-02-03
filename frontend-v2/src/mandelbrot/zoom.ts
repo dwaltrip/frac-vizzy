@@ -4,6 +4,9 @@ const FIT_MOST_SCREENS_AT_ZOOM_LEVEL_1 = 125;
 // TODO: Move this to more central location / settings file?
 const TILE_SIZE_IN_PX = 64;
 
+// The visuals become pixelated / complete noise around 45-50 zoom.
+const MAX_ZOOM = 52;
+
 type PixelLen = number;
 type ComplexLen = number;
 type PixelsPerUnit = number;
@@ -81,6 +84,7 @@ function calcUnitsPerPixel(zoomLevel: number): PixelsPerUnit {
 export {
   type PixelLen,
   TILE_SIZE_IN_PX,
+  MAX_ZOOM,
   createZoomInfo,
   calcUnitsPerPixel,
   calcFractionalZoomFromScaledTileSize,

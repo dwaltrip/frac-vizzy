@@ -5,7 +5,7 @@
 import { clamp } from '@/utils/clamp';
 
 import { ComplexNum } from '@/mandelbrot/types';
-import { calcUnitsPerPixel } from '@/mandelbrot/zoom';
+import { calcUnitsPerPixel, MAX_ZOOM } from '@/mandelbrot/zoom';
 
 class FractalPosition {
   center: GetterSetter<Readonly<ComplexNum>>;
@@ -32,7 +32,7 @@ class FractalPosition {
   }
 
   private _zoomAdd(amountToAdd: number): number {
-    return clamp(this.zoom.get() + amountToAdd, 0, 40);
+    return clamp(this.zoom.get() + amountToAdd, 0, MAX_ZOOM);
   }
 
   get data() {
