@@ -1,4 +1,4 @@
-import { JSX } from 'react';
+import { JSX, useEffect, useRef } from 'react';
 import { useState } from 'react';
 import classnames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -17,7 +17,12 @@ import {
   UserSettingsUpdate,
   MAX_NUM_CPUS,
 } from '@/mandelbrot/params/user-settings';
+
 import { ColorPicker } from '@/ui/ColorPicker';
+import {
+  SelectWithCustomValue,
+  SelectWithCustomValueHandles,
+} from '@/ui/SelectWithCustomValue';
 
 import '@/styles/features/explorer/settings-panel.css';
 
@@ -28,8 +33,8 @@ const ITERATION_VALUE_OPTS = [100, 250, 500, 1000, 2500, 5000].map((num) => {
   return { value, text: value };
 });
 const COLOR_ALGORITHM_OPTS = [
-  { value: 'linear', text: 'Linear' },
-  { value: 'histogram', text: 'Histogram' },
+  { value: 'linear', text: 'linear' },
+  { value: 'histogram', text: 'histogram' },
 ];
 
 // range 1 to MAX_NUM_CPUS
@@ -62,16 +67,19 @@ function SettingsPanelContent({
   updateUserSettings,
   updateParams,
   setIsOpen,
+  isOpen,
 }: {
   params: FrozenRenderParams | null;
   userSettings: UserSettings | null;
   updateParams: ParamsUpdater;
   updateUserSettings: UserSettingsUpdater;
   setIsOpen: (isOpen: boolean) => void;
+  isOpen: boolean;
 }) {
+  const customSelectRef = useRef<SelectWithCustomValueHandles>(null);
   // update params
-  const setIters = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = parseInt(event.target.value, 10);
+  const setIters = (rawValue: string) => {
+    const value = parseInt(rawValue);
     updateParams({ type: 'iters', value });
   };
   const setColor1 = (color: Color.RGB) => {
@@ -96,9 +104,17 @@ function SettingsPanelContent({
   //   updateUserSettings({ type: 'hideSettingsPanel', value });
   // };
 
+  useEffect(() => {
+    if (!isOpen) {
+      // reset the custom value text field when the panel closes
+      customSelectRef.current?.resetCustomValue();
+    }
+  }, [isOpen]);
+
   if (!params || !userSettings) {
     return null;
   }
+
   const {
     iters,
     colors: { color1, color2, algorithm },
@@ -121,13 +137,14 @@ function SettingsPanelContent({
       </div>
       <div className='rows-container'>
         <SettingsRow label='Iterations'>
-          <select className='settings-select' value={iters} onChange={setIters}>
-            {ITERATION_VALUE_OPTS.map(({ value, text }) => (
-              <option value={value} key={value}>
-                {text}
-              </option>
-            ))}
-          </select>
+          <SelectWithCustomValue
+            value={iters}
+            options={ITERATION_VALUE_OPTS}
+            onChange={setIters}
+            label='custom'
+            selectClassName='settings-select'
+            ref={customSelectRef}
+          />
         </SettingsRow>
 
         <SettingsRow label='Colors'>
@@ -209,6 +226,7 @@ function SettingsPanel({
           updateParams={updateParams}
           updateUserSettings={updateUserSettings}
           setIsOpen={setIsOpen}
+          isOpen={isOpen}
         />
       </div>
 

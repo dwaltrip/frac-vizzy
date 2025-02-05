@@ -24,26 +24,30 @@
 
   & .color-picker .picker-panel,
   & .color-picker:not(.is-editing) .current-color,
-  select.settings-select {
+  & select.settings-select,
+  & input[type='text'] {
     border-style: solid;
     border-width: 1px;
   }
 
   &,
   & .color-picker .picker-panel,
-  select.settings-select {
+  & select.settings-select,
+  & input[type='text'] {
     background-color: var(--bg-default);
     /* border: 1px solid var(--main-border-default); */
     border-color: var(--main-border-default);
   }
 
   & .color-picker:not(.is-editing) .current-color,
-  & select.settings-select {
+  & select.settings-select,
+  & input[type='text'] {
     /* border: 1px solid var(--item-border); */
     border-color: var(--item-border);
   }
 
-  & select.settings-select {
+  & select.settings-select,
+  & input[type='text'] {
     color: var(--text-select-default);
   }
 
@@ -69,19 +73,22 @@
 
     &,
     & .color-picker .picker-panel,
-    select.settings-select {
+    & select.settings-select,
+    & input[type='text'] {
       background-color: var(--bg-hover);
       /* border: 1px solid var(--main-border-hover); */
       border-color: var(--main-border-hover);
     }
 
     & .color-picker:not(.is-editing) .current-color,
-    & select.settings-select {
+    & select.settings-select,
+    & input[type='text'] {
       /* border: 1px solid var(--item-border-hover); */
       border-color: var(--item-border-hover);
     }
 
-    & select.settings-select {
+    & select.settings-select,
+    & input[type='text'] {
       color: var(--text-select-hover);
     }
   }
@@ -215,6 +222,19 @@
       bottom: 0;
       padding: 15px;
     }
+  }
+
+  & select.settings-select {
+    font-size: 12px;
+  }
+  & .select-with-custom-value {
+    & input[type='text'],
+    & button {
+      font-size: 12px;
+    }
+  }
+  & .select-with-custom-value input[type='text'] {
+    padding-left: 4px;
   }
 }
 
