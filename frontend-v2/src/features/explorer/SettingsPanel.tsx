@@ -136,6 +136,7 @@ function SettingsPanelContent({
         </button>
       </div>
       <div className='rows-container'>
+        {/* TODO: Move this to below the color stuff */}
         <SettingsRow label='Iterations'>
           <SelectWithCustomValue
             value={iters}
