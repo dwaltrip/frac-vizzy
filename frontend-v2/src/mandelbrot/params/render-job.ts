@@ -17,6 +17,11 @@ import {
   getCornerSliceIndices,
 } from '@/mandelbrot/tile-grid/parent-info';
 import { renderTile } from '@/mandelbrot/render-tile-data';
+import { renderGridlines } from '@/mandelbrot/render/render-gridlines';
+import {
+  DEFAULT_CANVAS_BG,
+  TILE_GRIDLINE_COLOR,
+} from '@/mandelbrot/viz/style-constants';
 
 enum RenderJobStatus {
   CREATED = 'CREATED',
@@ -161,6 +166,8 @@ class RenderJob {
               .map((row) => row.slice(ix.start, ix.end)),
           };
           await renderTile(this.canvas, lowResTempTile, this.params, getColor);
+        } else {
+          renderGridlines(this.canvas, tp, this.params, TILE_GRIDLINE_COLOR);
         }
       }
     }
@@ -197,7 +204,11 @@ class RenderJob {
 
   clearCanvas() {
     const ctx = this.canvas.getContext('2d');
-    if (ctx) ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    if (ctx) {
+      const { r, g, b } = DEFAULT_CANVAS_BG;
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
   }
 }
 

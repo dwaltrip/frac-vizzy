@@ -4,8 +4,6 @@ import { expose } from 'comlink';
 import { TileCalcTask, TileResult } from '@/mandelbrot/types';
 import { computeTile } from '@/mandelbrot/tile';
 
-console.log('mandelbrot worker loaded');
-
 const workerAPI = {
   async performWork(task: TileCalcTask): Promise<TileResult> {
     const { params } = task;
