@@ -22,6 +22,7 @@ import {
   DEFAULT_CANVAS_BG,
   TILE_GRIDLINE_COLOR,
 } from '@/mandelbrot/viz/style-constants';
+import { invariant } from '@/utils/invariant';
 
 enum RenderJobStatus {
   CREATED = 'CREATED',
@@ -59,6 +60,8 @@ class RenderJob {
   private _renderedTiles: Set<TileID> = new Set();
   private hooks: RenderJobHooks = {};
 
+  private tmpCanvases: Map<number, OffscreenCanvas>;
+
   constructor(
     params: FrozenRenderParams,
     targetTiles: TileParams[],
@@ -75,6 +78,15 @@ class RenderJob {
 
     this.colorMappers = colorMappers;
     this.hooks = hooks;
+
+    const size = params.baseTileSizePx;
+    const sizes = [1, 2, 4].map((n) => size / n);
+    this.tmpCanvases = new Map(
+      sizes.map((s) => {
+        invariant(Math.floor(s) === s, 'size must be an integer');
+        return [s, new OffscreenCanvas(s, s)];
+      }),
+    );
   }
 
   get id(): string {
@@ -126,7 +138,6 @@ class RenderJob {
     }
 
     this.clearCanvas();
-
     const getColor = this.getColorMapper();
 
     for (const tp of this.targetTiles) {
@@ -137,7 +148,7 @@ class RenderJob {
       if (calcStatus === 'complete' && tileResult) {
         // TODO: we are passing in the color mapper down through like 7 levels
         // of function calls. Feels smelly, is there a better structure?
-        await renderTile(this.canvas, tileResult, this.params, getColor);
+        await this.renderTile(tileResult, getColor);
         this._renderedTiles.add(tileId);
       } else {
         const parentInfo = getParentTileInfo(tp.coord);
@@ -165,7 +176,7 @@ class RenderJob {
               .slice(iy.start, iy.end)
               .map((row) => row.slice(ix.start, ix.end)),
           };
-          await renderTile(this.canvas, lowResTempTile, this.params, getColor);
+          await this.renderTile(lowResTempTile, getColor);
         } else {
           renderGridlines(this.canvas, tp, this.params, TILE_GRIDLINE_COLOR);
         }
@@ -191,9 +202,19 @@ class RenderJob {
 
       const getColor = this.getColorMapper();
       for (const tileResult of results) {
-        await renderTile(this.canvas, tileResult, this.params, getColor);
+        await this.renderTile(tileResult, getColor);
       }
     }
+  }
+
+  // TODO: could maybe not pass getColor in, and just use this.getColorMapper()
+  private async renderTile(tile: TileResult, getColor: ColorMapper) {
+    const size = tile.data.length;
+    const tmpCanvas = this.tmpCanvases.get(size);
+    if (!tmpCanvas) {
+      throw new Error(`No tmp canvas found for size: ${size}`);
+    }
+    await renderTile(this.canvas, tmpCanvas, tile, this.params, getColor);
   }
 
   // TODO: Do we need this? We don't seem to need to check for cancellation anywhere.

@@ -81,7 +81,14 @@ function getInitialParams(view: Rect): [ManagedRenderParams, boolean] {
   const url = new URL(window.location.href);
   // TODO: how does typing working with 'qs'?
   const data = qs.parse(url.searchParams.toString()) as any;
-  console.log('getInitialParams -- data', JSON.stringify(data, null, 2));
+  console.log(
+    '-- getInitialParams --',
+    '\ndata:',
+    JSON.stringify(data, null, 2),
+    `\nview: (w=${view.width}, h=${view.height})`,
+    '\ntile size:',
+    TILE_SIZE_IN_PX,
+  );
 
   // TOOD: make this more robust / better
   if (!data.pos) {

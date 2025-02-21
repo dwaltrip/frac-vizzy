@@ -313,7 +313,20 @@ class Mandelbrot {
     // this.workerManager.terminate();
   }
 
-  private renderLoop = async () => {
+  private lastFrameTime = 0;
+  private TARGET_FPS = 60;
+  private FRAME_DURATION = 1000 / this.TARGET_FPS;
+
+  private renderLoop = async (timestamp: number) => {
+    window.requestAnimationFrame(this.renderLoop);
+
+    const elapsed = timestamp - this.lastFrameTime;
+    // Limit to target frame rate (don't render excessively)
+    if (elapsed < this.FRAME_DURATION) {
+      return;
+    }
+    this.lastFrameTime = timestamp;
+
     if (this.pendingRender) {
       try {
         await this.pendingRender.render();
@@ -327,8 +340,6 @@ class Mandelbrot {
         this.pendingRender = null;
       }
     }
-
-    window.requestAnimationFrame(this.renderLoop);
   };
 
   // -----------------------------------------------------------
